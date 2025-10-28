@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pixel Academy - The Founding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #cutscene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 1;
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        .character {
+            position: absolute;
+            max-height: 25vh;
+            width: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 100;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        /* Character positioning relative to dialogue box */
+        .character.bottom-left-overlap {
+            bottom: 8vh;
+            left: 8vw;
+        }
+
+        .character.center-bottom {
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Custodian pacing animation (smaller size, near library) */
+        .character.custodian-pacing {
+            bottom: 35vh;
+            left: 42%;
+            max-height: 12vh;
+            animation: bounce 3s ease-in-out infinite;
+        }
+
+        /* Wellspring positioning - small, above and left of Four Founders */
+        .character.wellspring-small {
+            bottom: 22vh;
+            left: 38%;
+            max-height: 15vh;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* Warpy animation for FourFounders */
+        .character.four-founders-warp {
+            animation: warpIn 1.5s ease-out, floatShimmer 4s ease-in-out infinite 1.5s;
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                filter: brightness(1) drop-shadow(0 0 5px rgba(100, 200, 255, 0.5));
+            }
+            50% {
+                filter: brightness(1.2) drop-shadow(0 0 15px rgba(100, 200, 255, 0.8));
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        @keyframes warpIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.3) rotate(10deg);
+                filter: blur(10px) hue-rotate(180deg);
+            }
+            50% {
+                opacity: 0.7;
+                transform: translateX(-50%) scale(1.1) rotate(-5deg);
+                filter: blur(5px) hue-rotate(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1) rotate(0deg);
+                filter: blur(0px) hue-rotate(0deg);
+            }
+        }
+
+        @keyframes floatShimmer {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0) scale(1);
+                filter: brightness(1);
+            }
+            25% {
+                transform: translateX(-50%) translateY(-5px) scale(1.01);
+                filter: brightness(1.1);
+            }
+            50% {
+                transform: translateX(-50%) translateY(0) scale(1);
+                filter: brightness(1);
+            }
+            75% {
+                transform: translateX(-50%) translateY(5px) scale(0.99);
+                filter: brightness(1.05);
+            }
+        }
+
+        #dialogue-box {
+            position: absolute;
+            max-width: 65%;
+            min-width: 50%;
+            padding: 25px 35px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 17px;
+            line-height: 1.7;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #dialogue-box.custodian {
+            background: rgba(139, 69, 69, 0.95);
+        }
+
+        #dialogue-box.narrator {
+            background: rgba(61, 90, 107, 0.95);
+        }
+
+        #dialogue-box.top-center {
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.top-left {
+            top: 10%;
+            left: 10%;
+            max-width: 45%;
+        }
+
+        #dialogue-box.bottom-center {
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .speaker-name {
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.9;
+        }
+
+        .dialogue-text {
+            text-align: left;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 200;
+        }
+
+        .control-btn {
+            color: #F5E6D3;
+            font-size: 14px;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        .control-btn.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .fade-transition {
+            transition: opacity 1.5s ease;
+        }
+
+        /* Title page styling */
+        #title-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 69, 0.95);
+            color: #F5E6D3;
+            padding: 40px 60px;
+            border-radius: 15px;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #title-box.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <img id="background" src="" alt="Background">
+        <div id="title-box">Lore: The Founding</div>
+        <div id="dialogue-box">
+            <div class="speaker-name"></div>
+            <div class="dialogue-text"></div>
+        </div>
+        <div id="character-container"></div>
+        <div id="controls">
+            <button id="back-btn" class="control-btn">◀ Back</button>
+            <div id="click-indicator" class="control-btn">▶ Continue</div>
+        </div>
+    </div>
+
+    <script>
+        const FRAMES = [
+            {
+                number: 1,
+                background: "Scenes/Campus Map.png",
+                characters: [],
+                dialogue: null,
+                showTitle: true
+            },
+            {
+                number: 2,
+                background: "Scenes/Campus Map.png",
+                characters: [{file: "Custodian.png", position: "custodian-pacing"}],
+                dialogue: "One evening on your way back to the Dormitory from the Observatory, you see the Custodian pacing around outside of the Library, looking deep in thought. Unsure if you should interrupt, you try to slip past unnoticed.",
+                speaker: null,
+                position: "top-left",
+                style: "custodian",
+                musicCue: "start-track1"
+            },
+            {
+                number: 3,
+                background: "Scenes/libraryfoundingscene.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "Ah, hello there, dear student! I see you've been keeping busy, eh? Have you met the assistants in the labs and the greenhouse? Well, let me tell you a little secret. Believe it or not, the Academy never advertised for staff openings.\\n\\nNo, each of them found their own way here - just knocked on my door one day and said they had been drawn by some deep feeling that what they were searching for was here in the middle of these hills.",
+                speaker: "Custodian",
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 4,
+                background: "Scenes/libraryfoundingscene.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "One was looking for the knowledge to help and heal living things, another, the key to express themselves through language as they never could with their body; a third, the joy to breathe into the hopes of understanding their own creation. The Four Founders figured they must be Seekers and decided to let them stay.\\n\\nHmm? That's right, I suppose you don't know much about the Four Founders. I reckon it's high time you learned the story of how this whole Academy began.",
+                speaker: "Custodian",
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 5,
+                background: "Scenes/Campus Map.png",
+                characters: [],
+                dialogue: null,
+                musicCue: "fadeout-track1"
+            },
+            {
+                number: 6,
+                background: "Scenes/PreFounding_Forest.png",
+                characters: [],
+                dialogue: null,
+                musicCue: "fadein-track2"
+            },
+            {
+                number: 7,
+                background: "Scenes/PreFounding_Forest.png",
+                characters: [{file: "FourFounders.png", position: "center-bottom", specialClass: "four-founders-warp"}],
+                dialogue: "Before they were known as the Four Founders, they roamed the world as Seekers, searching for the secrets of creation. Each was master of a different power: Creativity, Critical Thinking, Craft, and Collaboration. Together, they made a most excellent team.",
+                speaker: null,
+                position: "top-center",
+                style: "narrator"
+            },
+            {
+                number: 8,
+                background: "Scenes/PreFounding_Forest.png",
+                characters: [
+                    {file: "FourFounders.png", position: "center-bottom", specialClass: "four-founders-warp"},
+                    {file: "Wellspring.png", position: "wellspring-small"}
+                ],
+                dialogue: "One day, in these very hills, they came upon a Spring. Thirsty from their journey, they drank deeply from it, for it was clean and pure, bubbling straight from the deep earth itself. As they rested, each began to feel their senses heighten in a different way. Their powers and imagination becoming sharper until a shared vision emerged among them.",
+                speaker: null,
+                position: "top-center",
+                style: "narrator"
+            },
+            {
+                number: 9,
+                background: "Scenes/PreFounding_Forest.png",
+                characters: [
+                    {file: "FourFounders.png", position: "center-bottom", specialClass: "four-founders-warp"},
+                    {file: "Wellspring.png", position: "wellspring-small"}
+                ],
+                dialogue: "That day among the trees, they saw the Academy, almost as real as you and I see it now. From that vision, powered by the Wellspring, they performed together the first great act of Shaping ever known to our kind. They created the Academy out of sheer will and imagination from pure imagination itself - a safe haven for Seekers from across the land to come forth and Shaping.",
+                speaker: null,
+                position: "top-center",
+                style: "narrator"
+            },
+            {
+                number: 10,
+                background: "Scenes/Campus Map.png",
+                characters: [],
+                dialogue: null
+            },
+            {
+                number: 11,
+                background: "Scenes/libraryfoundingscene.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "Well, and look at you now - come and learn you did! The founders have been away on a mission, but I hope you'll meet them someday. Until then, keep hard at your studies, and you'll become a Shaper in no more than your own guess.\\n\\nThe Custodian fishes around in his pocket and removes half a stick of gum, fuzz sticking to the open end. After offering it to you politely, he unwraps it, pops it into his mouth, and begins chewing thoughtfully as he shuffles away.",
+                speaker: "Custodian",
+                position: "bottom-center",
+                style: "custodian",
+                musicCue: "fadeout-track2"
+            },
+            {
+                number: 12,
+                background: "Scenes/Campus Map.png",
+                characters: [],
+                dialogue: "... You return to your Dormitory.",
+                speaker: null,
+                position: "top-center",
+                style: "custodian",
+                musicCue: "fadein-track3"
+            }
+        ];
+
+        let currentFrame = 0;
+        let audioTracks = {};
+        let isTransitioning = false;
+        let audioInitialized = false;
+
+        // Initialize audio tracks
+        function initAudio() {
+            const tracks = [
+                { name: 'track1', file: 'Music/toby fox - UNDERTALE Soundtrack - 04 Fallen Down (1).mp3' },
+                { name: 'track2', file: 'Music/16. Legend of Hyrule.mp3' },
+                { name: 'track3', file: 'Music/31. Kakariko Village.mp3' }
+            ];
+
+            tracks.forEach(track => {
+                const audio = new Audio(track.file);
+                audio.loop = false;
+                audio.volume = 0;
+                audioTracks[track.name] = audio;
+
+                // Preload
+                audio.load();
+            });
+
+            audioInitialized = true;
+        }
+
+        function fadeAudio(audio, targetVolume, duration) {
+            const steps = 60;
+            const stepTime = (duration * 1000) / steps;
+            const startVolume = audio.volume;
+            const volumeChange = targetVolume - startVolume;
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                currentStep++;
+                audio.volume = Math.max(0, Math.min(1, startVolume + (volumeChange * currentStep / steps)));
+
+                if (currentStep >= steps) {
+                    clearInterval(interval);
+                    if (targetVolume === 0) {
+                        audio.pause();
+                    }
+                }
+            }, stepTime);
+        }
+
+        function handleMusicCue(cue) {
+            if (!cue || !audioInitialized) return;
+
+            switch(cue) {
+                case 'start-track1':
+                    audioTracks.track1.currentTime = 0;
+                    audioTracks.track1.play().catch(e => {
+                        console.log('Autoplay blocked, will start on first click');
+                    });
+                    fadeAudio(audioTracks.track1, 0.6, 2);
+                    break;
+                case 'fadeout-track1':
+                    fadeAudio(audioTracks.track1, 0, 2);
+                    break;
+                case 'fadein-track2':
+                    audioTracks.track2.currentTime = 0;
+                    audioTracks.track2.play().catch(e => console.log('Track 2 play blocked'));
+                    fadeAudio(audioTracks.track2, 0.6, 2);
+                    break;
+                case 'fadeout-track2':
+                    fadeAudio(audioTracks.track2, 0, 2);
+                    break;
+                case 'fadein-track3':
+                    audioTracks.track3.currentTime = 0;
+                    audioTracks.track3.play().catch(e => console.log('Track 3 play blocked'));
+                    fadeAudio(audioTracks.track3, 0.6, 2);
+                    // Fade out near end
+                    audioTracks.track3.ontimeupdate = function() {
+                        if (this.duration - this.currentTime < 3 && this.duration > 0) {
+                            fadeAudio(this, 0, 3);
+                            this.ontimeupdate = null;
+                        }
+                    };
+                    break;
+            }
+        }
+
+        function updateBackButton() {
+            const backBtn = document.getElementById('back-btn');
+            if (currentFrame === 0) {
+                backBtn.classList.add('disabled');
+            } else {
+                backBtn.classList.remove('disabled');
+            }
+        }
+
+        function loadFrame(frameIndex) {
+            if (frameIndex >= FRAMES.length) {
+                document.body.style.cursor = 'default';
+                document.getElementById('click-indicator').style.display = 'none';
+                return;
+            }
+
+            // Show continue button if we're back from the end
+            document.getElementById('click-indicator').style.display = 'block';
+            document.body.style.cursor = 'pointer';
+
+            if (frameIndex < 0) {
+                frameIndex = 0;
+            }
+
+            isTransitioning = true;
+            const frame = FRAMES[frameIndex];
+
+            const bg = document.getElementById('background');
+            const dialogueBox = document.getElementById('dialogue-box');
+            const speakerName = dialogueBox.querySelector('.speaker-name');
+            const dialogueText = dialogueBox.querySelector('.dialogue-text');
+            const charContainer = document.getElementById('character-container');
+            const titleBox = document.getElementById('title-box');
+
+            // Clear previous frame
+            dialogueBox.classList.remove('visible', 'custodian', 'narrator', 'top-center', 'top-left', 'bottom-center');
+            charContainer.innerHTML = '';
+            titleBox.classList.remove('visible');
+
+            // Set background
+            if (frame.background) {
+                bg.src = frame.background;
+                setTimeout(() => {
+                    bg.classList.add('visible');
+                }, 50);
+            }
+
+            // Add characters AFTER dialogue box in DOM (so they render on top)
+            if (frame.characters && frame.characters.length > 0) {
+                setTimeout(() => {
+                    frame.characters.forEach((charData) => {
+                        const charImg = document.createElement('img');
+                        charImg.src = 'Sprites/' + charData.file;
+                        charImg.className = 'character ' + charData.position;
+
+                        // Add special class if specified
+                        if (charData.specialClass) {
+                            charImg.classList.add(charData.specialClass);
+                        }
+
+                        charContainer.appendChild(charImg);
+                        setTimeout(() => charImg.classList.add('visible'), 100);
+                    });
+                }, 300);
+            }
+
+            // Show title if this is the title frame
+            if (frame.showTitle) {
+                setTimeout(() => {
+                    titleBox.classList.add('visible');
+                }, 500);
+            }
+
+            // Set dialogue
+            if (frame.dialogue) {
+                setTimeout(() => {
+                    dialogueText.innerHTML = frame.dialogue.replace(/\\n\\n/g, '<br><br>');
+
+                    if (frame.speaker) {
+                        speakerName.textContent = frame.speaker;
+                        speakerName.style.display = 'block';
+                    } else {
+                        speakerName.style.display = 'none';
+                    }
+
+                    dialogueBox.classList.add('visible', frame.style, frame.position);
+                }, 500);
+            }
+
+            // Handle music
+            if (frame.musicCue) {
+                handleMusicCue(frame.musicCue);
+            }
+
+            updateBackButton();
+
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 1000);
+        }
+
+        function nextFrame() {
+            if (isTransitioning) return;
+
+            // Enable audio on first click if blocked (fallback if autoplay was blocked)
+            if (audioInitialized && audioTracks.track1.paused && currentFrame === 0) {
+                audioTracks.track1.play().catch(e => console.log('Still blocked'));
+                fadeAudio(audioTracks.track1, 0.6, 2);
+            }
+
+            currentFrame++;
+            loadFrame(currentFrame);
+        }
+
+        function previousFrame() {
+            if (isTransitioning || currentFrame === 0) return;
+            currentFrame--;
+            loadFrame(currentFrame);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initAudio();
+            setTimeout(() => {
+                loadFrame(0);
+            }, 500);
+        });
+
+        // Click to advance (but not if clicking back button)
+        document.getElementById('cutscene-container').addEventListener('click', (e) => {
+            if (!e.target.closest('#controls')) {
+                nextFrame();
+            }
+        });
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            previousFrame();
+        });
+
+        // Continue indicator (redundant click handler for clarity)
+        document.getElementById('click-indicator').addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextFrame();
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                previousFrame();
+            }
+        });
+    </script>
+</body>
+</html>
