@@ -1,0 +1,10 @@
+name = "vocab-checker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# This worker will be deployed to: https://vocab-checker.YOUR-SUBDOMAIN.workers.dev
+# After deployment, you'll get the actual URL to use in VocabChecker_Activity.html
+
+# The Claude API key will be stored as a secret environment variable
+# Set it using: wrangler secret put CLAUDE_API_KEY
+# You'll be prompted to paste your key securely (it won't be visible)

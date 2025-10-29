@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Practice - Interactive Activity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1E1E1E;
+            color: #F5E6D3;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4EC9B0;
+            margin-bottom: 10px;
+            font-size: 36px;
+        }
+
+        #list-title {
+            text-align: center;
+            color: #FFD700;
+            margin-bottom: 30px;
+            font-size: 20px;
+        }
+
+        #loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 24px;
+            color: #4EC9B0;
+        }
+
+        #error-screen {
+            display: none;
+            background: rgba(192, 80, 77, 0.2);
+            border: 2px solid #C0504D;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #error-screen.visible {
+            display: block;
+        }
+
+        #error-screen h2 {
+            color: #C0504D;
+            margin-bottom: 15px;
+        }
+
+        #activity-screen {
+            display: none;
+        }
+
+        #activity-screen.visible {
+            display: block;
+        }
+
+        #instructions {
+            background: rgba(139, 69, 69, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        #progress-bar {
+            background: #2D2D2D;
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #progress-fill {
+            background: linear-gradient(90deg, #4EC9B0, #5DDAC7);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1E1E1E;
+        }
+
+        .vocab-card {
+            background: rgba(139, 69, 69, 0.1);
+            border: 3px solid #8B4545;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .vocab-card.validated {
+            border-color: #4EC9B0;
+            background: rgba(78, 201, 176, 0.1);
+        }
+
+        .vocab-card.error {
+            border-color: #C0504D;
+            background: rgba(192, 80, 77, 0.1);
+        }
+
+        .vocab-word {
+            font-size: 24px;
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .vocab-hint {
+            color: #AAA;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .sentence-input {
+            width: 100%;
+            padding: 15px;
+            background: #2D2D2D;
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #F5E6D3;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            margin-bottom: 15px;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .sentence-input:focus {
+            outline: none;
+            border-color: #5DDAC7;
+            box-shadow: 0 0 10px rgba(78, 201, 176, 0.3);
+        }
+
+        .btn {
+            background: #4EC9B0;
+            color: #1E1E1E;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', monospace;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #8B4545;
+            color: #F5E6D3;
+        }
+
+        .btn-secondary:hover {
+            background: #A05555;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .feedback-box.visible {
+            display: block;
+        }
+
+        .feedback-box.success {
+            background: rgba(78, 201, 176, 0.2);
+            border: 2px solid #4EC9B0;
+        }
+
+        .feedback-box.error {
+            background: rgba(192, 80, 77, 0.2);
+            border: 2px solid #C0504D;
+        }
+
+        .feedback-box.warning {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .feedback-text {
+            line-height: 1.6;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(78, 201, 176, 0.3);
+            border-top-color: #4EC9B0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #completion-message {
+            background: rgba(78, 201, 176, 0.98);
+            color: #1E1E1E;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 30px 0;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+        }
+
+        #completion-message.visible {
+            display: block;
+            animation: celebrate 0.6s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 500;
+            display: none;
+        }
+
+        #confetti-canvas.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <h1>📚 Vocabulary Practice</h1>
+        <div id="list-title"></div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen">
+            <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+            Loading vocabulary list...
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error-screen">
+            <h2>Error Loading Vocabulary</h2>
+            <p id="error-message"></p>
+            <p style="margin-top: 20px; font-size: 14px; color: #AAA;">
+                Contact your teacher if this problem persists.
+            </p>
+        </div>
+
+        <!-- Activity Screen -->
+        <div id="activity-screen">
+            <div id="instructions">
+                Use each vocabulary word correctly in a sentence.<br>
+                Click "Check Sentence" to get AI feedback!
+            </div>
+
+            <div id="progress-bar">
+                <div id="progress-fill">0 / 0</div>
+            </div>
+
+            <div id="vocab-list"></div>
+
+            <div id="completion-message">
+                🎉 All Words Completed! 🎉<br>
+                <small style="font-size: 18px; margin-top: 10px; display: block;">Bev is proud of your vocabulary work!</small>
+                <small style="font-size: 16px; margin-top: 15px; display: block; font-weight: normal;">The Completion Keyword is 'sheepdog'.</small>
+            </div>
+        </div>
+
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <script>
+        // Configuration - UPDATE THESE AFTER CLOUDFLARE DEPLOYMENT
+        const CONFIG = {
+            workerUrl: 'https://vocab-checker.mypixelacademy.workers.dev', // Cloudflare Worker URL
+            vocabularyBaseUrl: './vocab-lists/', // Where CSV files are stored on GitHub Pages
+            useLocalAPIKey: false, // Production mode - API key secured on Cloudflare
+            localAPIKey: '' // TEMPORARY - for local testing only
+        };
+
+        let vocabularyWords = [];
+        let validatedWords = new Set();
+        let listName = '';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get list parameter from URL (e.g., ?list=week1)
+            const urlParams = new URLSearchParams(window.location.search);
+            listName = urlParams.get('list') || 'week1'; // Default to week1
+
+            // Display list title
+            document.getElementById('list-title').textContent = `List: ${formatListName(listName)}`;
+
+            // Load vocabulary
+            await loadVocabulary(listName);
+        });
+
+        function formatListName(name) {
+            // Convert "week1" to "Week 1", etc.
+            return name.replace(/week(\d+)/i, 'Week $1')
+                       .replace(/unit(\d+)/i, 'Unit $1')
+                       .replace(/chapter(\d+)/i, 'Chapter $1');
+        }
+
+        async function loadVocabulary(listName) {
+            try {
+                const csvUrl = `${CONFIG.vocabularyBaseUrl}${listName}.csv`;
+                console.log('Loading vocabulary from:', csvUrl);
+
+                const response = await fetch(csvUrl);
+
+                if (!response.ok) {
+                    throw new Error(`Could not load vocabulary list "${listName}". Make sure the file exists.`);
+                }
+
+                const csvText = await response.text();
+                parseCSV(csvText);
+
+                if (vocabularyWords.length === 0) {
+                    throw new Error('No words found in vocabulary list.');
+                }
+
+                console.log(`Successfully loaded ${vocabularyWords.length} words`);
+                renderActivity();
+
+            } catch (error) {
+                console.error('Error loading vocabulary:', error);
+                showError(error.message);
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+
+            const wordIndex = headers.indexOf('word');
+            const hintIndex = headers.indexOf('hint');
+
+            if (wordIndex === -1) {
+                throw new Error('CSV must have a "word" column.');
+            }
+
+            vocabularyWords = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                if (values[wordIndex]) {
+                    vocabularyWords.push({
+                        word: values[wordIndex],
+                        hint: hintIndex !== -1 ? values[hintIndex] : ''
+                    });
+                }
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('error-screen').classList.add('visible');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function renderActivity() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('activity-screen').classList.add('visible');
+
+            updateProgress();
+
+            const vocabList = document.getElementById('vocab-list');
+            vocabList.innerHTML = '';
+
+            vocabularyWords.forEach((vocab, index) => {
+                const card = document.createElement('div');
+                card.className = 'vocab-card';
+                card.id = `card-${index}`;
+
+                card.innerHTML = `
+                    <div class="vocab-word">${vocab.word}</div>
+                    ${vocab.hint ? `<div class="vocab-hint">Hint: ${vocab.hint}</div>` : ''}
+                    <textarea class="sentence-input" id="input-${index}"
+                              placeholder="Write a sentence using '${vocab.word}'..."></textarea>
+                    <button class="btn check-button" onclick="checkSentence(${index})">Check Sentence</button>
+                    <button class="btn btn-secondary" onclick="clearSentence(${index})">Clear</button>
+                    <div class="feedback-box" id="feedback-${index}">
+                        <div class="feedback-title"></div>
+                        <div class="feedback-text"></div>
+                    </div>
+                `;
+
+                vocabList.appendChild(card);
+            });
+        }
+
+        async function checkSentence(index) {
+            const input = document.getElementById(`input-${index}`);
+            const sentence = input.value.trim();
+            const vocab = vocabularyWords[index];
+            const card = document.getElementById(`card-${index}`);
+            const feedbackBox = document.getElementById(`feedback-${index}`);
+
+            if (!sentence) {
+                showFeedback(index, 'warning', 'Missing Sentence', 'Please write a sentence first.');
+                return;
+            }
+
+            // Check if word is in sentence
+            if (!sentence.toLowerCase().includes(vocab.word.toLowerCase())) {
+                showFeedback(index, 'warning', 'Word Not Found', `Your sentence must include the word "${vocab.word}".`);
+                return;
+            }
+
+            // Disable button and show loading
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Checking...';
+            card.classList.add('loading');
+
+            try {
+                const validation = await validateWithClaude(vocab.word, sentence, vocab.hint);
+
+                if (validation.correct) {
+                    validatedWords.add(index);
+                    card.classList.add('validated');
+                    card.classList.remove('error');
+                    showFeedback(index, 'success', '✅ Correct!', validation.feedback);
+                    updateProgress();
+
+                    if (validatedWords.size === vocabularyWords.length) {
+                        setTimeout(() => {
+                            showCompletion();
+                        }, 1000);
+                    }
+                } else {
+                    card.classList.remove('validated');
+                    card.classList.add('error');
+                    showFeedback(index, 'error', '❌ Not Quite Right', validation.feedback);
+                }
+            } catch (error) {
+                showFeedback(index, 'error', 'Error', `Failed to validate: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Check Sentence';
+                card.classList.remove('loading');
+            }
+        }
+
+        async function validateWithClaude(word, sentence, hint) {
+            const prompt = `You are a vocabulary teacher checking if a student used a word correctly in a sentence.
+
+Word: "${word}"
+${hint ? `Definition/Hint: "${hint}"` : ''}
+Student's sentence: "${sentence}"
+
+Is the word "${word}" used correctly in this sentence? Consider:
+1. Is the word used with the correct meaning?
+2. Is it grammatically appropriate?
+3. Does the sentence demonstrate understanding of the word?
+
+Respond in this EXACT format:
+CORRECT: YES or NO
+FEEDBACK: [One clear sentence explaining why it's correct or how to improve]`;
+
+            let requestBody, headers;
+
+            if (CONFIG.useLocalAPIKey) {
+                // TEMPORARY: Direct Claude API call (for local testing only)
+                headers = {
+                    'Content-Type': 'application/json',
+                    'x-api-key': CONFIG.localAPIKey || localStorage.getItem('vocab_api_key') || '',
+                    'anthropic-version': '2023-06-01'
+                };
+                requestBody = {
+                    model: 'claude-3-haiku-20240307',
+                    max_tokens: 200,
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }]
+                };
+            } else {
+                // Production: Cloudflare Worker call
+                headers = {
+                    'Content-Type': 'application/json'
+                };
+                requestBody = {
+                    word: word,
+                    sentence: sentence,
+                    hint: hint
+                };
+            }
+
+            const response = await fetch(CONFIG.workerUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'API request failed');
+            }
+
+            const data = await response.json();
+            const responseText = data.content[0].text;
+
+            // Parse response
+            const correctMatch = responseText.match(/CORRECT:\s*(YES|NO)/i);
+            const feedbackMatch = responseText.match(/FEEDBACK:\s*(.+)/i);
+
+            return {
+                correct: correctMatch && correctMatch[1].toUpperCase() === 'YES',
+                feedback: feedbackMatch ? feedbackMatch[1].trim() : 'Unable to process feedback.'
+            };
+        }
+
+        function showFeedback(index, type, title, text) {
+            const feedbackBox = document.getElementById(`feedback-${index}`);
+            feedbackBox.className = `feedback-box visible ${type}`;
+            feedbackBox.querySelector('.feedback-title').textContent = title;
+            feedbackBox.querySelector('.feedback-text').textContent = text;
+        }
+
+        function clearSentence(index) {
+            document.getElementById(`input-${index}`).value = '';
+            document.getElementById(`feedback-${index}`).classList.remove('visible');
+
+            if (validatedWords.has(index)) {
+                validatedWords.delete(index);
+                document.getElementById(`card-${index}`).classList.remove('validated');
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const total = vocabularyWords.length;
+            const completed = validatedWords.size;
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = `${completed} / ${total}`;
+        }
+
+        function showCompletion() {
+            document.getElementById('completion-message').classList.add('visible');
+            createConfetti();
+            playCelebratorySound();
+        }
+
+        // Confetti animation
+        function createConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.classList.add('active');
+
+            const confettiPieces = [];
+            const confettiCount = 150;
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+
+            class ConfettiPiece {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = -20;
+                    this.size = Math.random() * 8 + 5;
+                    this.speedY = Math.random() * 3 + 2;
+                    this.speedX = Math.random() * 2 - 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.rotation = Math.random() * 360;
+                    this.rotationSpeed = Math.random() * 10 - 5;
+                }
+
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    this.rotation += this.rotationSpeed;
+                    this.speedY += 0.1;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation * Math.PI / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                    ctx.restore();
+                }
+            }
+
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    confettiPieces.push(new ConfettiPiece());
+                }, i * 10);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                confettiPieces.forEach((piece, index) => {
+                    piece.update();
+                    piece.draw();
+
+                    if (piece.y > canvas.height) {
+                        confettiPieces.splice(index, 1);
+                    }
+                });
+
+                if (confettiPieces.length > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    canvas.classList.remove('active');
+                }
+            }
+
+            animate();
+        }
+
+        function playCelebratorySound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((frequency, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+
+                    const startTime = audioContext.currentTime + (index * 0.15);
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.4);
+                });
+            } catch (error) {
+                console.log('Could not play sound:', error);
+            }
+        }
+    </script>
+</body>
+</html>

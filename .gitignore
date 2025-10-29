@@ -9,8 +9,6 @@ __pycache__/
 *.pyo
 
 # Don't commit Activities or Custscenes (only the cutscene HTML)
-Activities/
-Custscenes/
 
 # Keep only the main cutscene files
 cutscene_generator.py
