@@ -223,6 +223,10 @@
         </div>
     </div>
 
+    <audio id="background-music" loop>
+        <source src="../Music/Friendship (1).mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         const FRAMES = [
             {
@@ -273,6 +277,15 @@
         ];
 
         let currentFrame = 0;
+        let musicStarted = false;
+
+        function startMusic() {
+            if (!musicStarted) {
+                const music = document.getElementById('background-music');
+                music.play().catch(err => console.log('Music autoplay blocked', err));
+                musicStarted = true;
+            }
+        }
         let isTransitioning = false;
 
         function updateBackButton() {
@@ -394,6 +407,7 @@
 
         // Click to advance
         document.getElementById('cutscene-container').addEventListener('click', (e) => {
+            startMusic();
             if (!e.target.closest('#controls')) {
                 nextFrame();
             }
@@ -414,7 +428,7 @@
         // Begin activity button
         document.getElementById('begin-activity-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            window.location.href = 'VocabChecker_Activity.html';
+            window.location.href = '../Activities/VocabChecker/VocabChecker_Activity_v2.html?list=week1';
         });
 
         // Keyboard support
