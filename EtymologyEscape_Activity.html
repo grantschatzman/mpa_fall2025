@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etymology Escape! - Interactive Activity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #activity-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #background-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('Scenes/Campus Map.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+
+        .draggable-box {
+            position: absolute;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            z-index: 100;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .draggable-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+            z-index: 200;
+        }
+
+        .draggable-box.dragging {
+            opacity: 0.8;
+            z-index: 300;
+        }
+
+        .word-box {
+            background: #5DADE2;
+            border: 3px solid #2E86AB;
+        }
+
+        .etymology-box {
+            background: #C0504D;
+            border: 3px solid #8B3A3A;
+            font-size: 11px;
+            max-width: 220px;
+            line-height: 1.3;
+        }
+
+        /* Removed matched styling - no visual feedback for correct matches */
+
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 69, 69, 0.95);
+            color: #F5E6D3;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            max-width: 80%;
+        }
+
+        #match-counter {
+            position: absolute;
+            top: 100px;
+            right: 30px;
+            background: rgba(78, 201, 176, 0.9);
+            color: #1E1E1E;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 50;
+            display: none;
+        }
+
+        #check-button {
+            position: absolute;
+            top: 100px;
+            right: 30px;
+            background: rgba(78, 201, 176, 0.9);
+            color: #1E1E1E;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.2s ease;
+        }
+
+        #check-button:hover {
+            background: rgba(78, 201, 176, 1);
+            transform: scale(1.05);
+        }
+
+        #completion-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(78, 201, 176, 0.98);
+            color: #1E1E1E;
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 400;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            display: none;
+        }
+
+        #completion-message.visible {
+            display: block;
+            animation: celebrate 0.6s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 500;
+            display: none;
+        }
+
+        #confetti-canvas.active {
+            display: block;
+        }
+
+        #online-users {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(0,0,0,0.7);
+            color: #4EC9B0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 50;
+        }
+
+        .user-cursor {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid white;
+            pointer-events: none;
+            z-index: 250;
+            opacity: 0.7;
+            transition: left 0.1s ease, top 0.1s ease;
+        }
+
+        .user-label {
+            position: absolute;
+            top: 35px;
+            left: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="activity-container">
+        <div id="background-layer"></div>
+
+        <div id="instructions">
+            Drag the words to match them with their etymologies!<br>
+            <small>Click "Check" to see how many you got right</small>
+        </div>
+
+        <button id="check-button">Check Matches</button>
+        <div id="match-counter">Correct: <span id="match-count">0</span> / 8</div>
+
+        <div id="online-users">👥 <span id="user-count">1</span> user(s) online</div>
+
+        <!-- Word boxes (blue) - Left side in two columns, randomized order -->
+        <div class="draggable-box word-box" data-word="catechism" data-match="catechism" style="left: 80px; top: 140px;">catechism</div>
+        <div class="draggable-box word-box" data-word="roguish" data-match="roguish" style="left: 80px; top: 220px;">roguish</div>
+        <div class="draggable-box word-box" data-word="waif" data-match="waif" style="left: 80px; top: 300px;">waif</div>
+        <div class="draggable-box word-box" data-word="patriarchal" data-match="patriarchal" style="left: 80px; top: 380px;">patriarchal</div>
+        <div class="draggable-box word-box" data-word="emphatic" data-match="emphatic" style="left: 250px; top: 140px;">emphatic</div>
+        <div class="draggable-box word-box" data-word="birch" data-match="birch" style="left: 250px; top: 220px;">birch</div>
+        <div class="draggable-box word-box" data-word="marigold" data-match="marigold" style="left: 250px; top: 300px;">marigold</div>
+        <div class="draggable-box word-box" data-word="obdurate" data-match="obdurate" style="left: 250px; top: 380px;">obdurate</div>
+
+        <!-- Etymology boxes (red) - Right side in two columns, 4 boxes each -->
+        <div class="draggable-box etymology-box" data-match="emphatic" style="left: 650px; top: 140px;">From a Greek word meaning "show" or "indicate"</div>
+        <div class="draggable-box etymology-box" data-match="obdurate" style="left: 650px; top: 220px;">From a two-part Latin word meaning "hard" and "in opposition/against"</div>
+        <div class="draggable-box etymology-box" data-match="marigold" style="left: 650px; top: 300px;">Of Middle English origin with religious context, referring to the sacred Virgin</div>
+        <div class="draggable-box etymology-box" data-match="roguish" style="left: 650px; top: 380px;">Of 16th-century English origin, meaning "dishonest" or "mischievous"</div>
+        <div class="draggable-box etymology-box" data-match="waif" style="left: 900px; top: 140px;">From an old French word for "stray" or "unclaimed", with Scandinavian roots meaning "waving"</div>
+        <div class="draggable-box etymology-box" data-match="catechism" style="left: 900px; top: 220px;">From a Greek root meaning "to instruct"</div>
+        <div class="draggable-box etymology-box" data-match="patriarchal" style="left: 900px; top: 300px;">From a compound Greek word meaning "clan" and "command" or "rule"</div>
+        <div class="draggable-box etymology-box" data-match="birch" style="left: 900px; top: 380px;">From Old English, from the Proto-Germanic root birkijǭ</div>
+
+        <div id="completion-message">
+            🎉 All Words Matched! 🎉<br>
+            <small style="font-size: 18px; margin-top: 10px; display: block;">The Custodian thanks you for your help!</small>
+            <small style="font-size: 16px; margin-top: 15px; display: block; font-weight: normal;">The Completion Keyword is 'henpecked'.</small>
+        </div>
+
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Multi-user setup (Firebase configuration - will use a free tier database)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemoKey-ReplaceWithActualKey",
+            authDomain: "mpa-etymology.firebaseapp.com",
+            databaseURL: "https://mpa-etymology-default-rtdb.firebaseio.com",
+            projectId: "mpa-etymology",
+            storageBucket: "mpa-etymology.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase (wrapped in try-catch for offline use)
+        let database = null;
+        let sessionId = 'session-' + Date.now();
+        let userId = 'user-' + Math.random().toString(36).substr(2, 9);
+        let multiUserEnabled = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            multiUserEnabled = true;
+            console.log('Multi-user mode enabled');
+        } catch (error) {
+            console.log('Running in single-user mode (Firebase not configured)');
+        }
+
+        // Drag and drop functionality
+        let draggedElement = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let matchedPairs = new Set();
+        let isDragging = false; // Track whether any box is currently being dragged
+
+        const MATCH_DISTANCE = 100; // pixels - "close enough to touch"
+
+        function initDragAndDrop() {
+            const boxes = document.querySelectorAll('.draggable-box');
+
+            boxes.forEach(box => {
+                box.addEventListener('mousedown', startDrag);
+                box.addEventListener('touchstart', startDrag, { passive: false });
+            });
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            draggedElement = e.target.closest('.draggable-box');
+            draggedElement.classList.add('dragging');
+            isDragging = true; // Mark that dragging has started
+
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = draggedElement.getBoundingClientRect();
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+        }
+
+        function drag(e) {
+            if (!draggedElement) return;
+            e.preventDefault();
+
+            const touch = e.touches ? e.touches[0] : e;
+            const newX = touch.clientX - offsetX;
+            const newY = touch.clientY - offsetY;
+
+            draggedElement.style.left = newX + 'px';
+            draggedElement.style.top = newY + 'px';
+
+            // Sync position with other users
+            if (multiUserEnabled) {
+                syncPosition(draggedElement, newX, newY);
+            }
+
+            // Update cursor position for other users
+            if (multiUserEnabled) {
+                updateCursorPosition(touch.clientX, touch.clientY);
+            }
+        }
+
+        function endDrag(e) {
+            if (!draggedElement) return;
+            draggedElement.classList.remove('dragging');
+            isDragging = false; // Mark that dragging has ended
+
+            // Don't automatically check - player must click "Check" button
+            draggedElement = null;
+        }
+
+        function checkForMatches() {
+            // Clear previous matches and recount
+            matchedPairs.clear();
+
+            const boxes = document.querySelectorAll('.draggable-box');
+            const words = Array.from(boxes).filter(b => b.classList.contains('word-box'));
+            const etymologies = Array.from(boxes).filter(b => b.classList.contains('etymology-box'));
+
+            words.forEach(word => {
+                const wordMatch = word.dataset.match;
+                const wordRect = word.getBoundingClientRect();
+                const wordCenter = {
+                    x: wordRect.left + wordRect.width / 2,
+                    y: wordRect.top + wordRect.height / 2
+                };
+
+                etymologies.forEach(etym => {
+                    const etymMatch = etym.dataset.match;
+
+                    if (wordMatch === etymMatch) {
+                        const etymRect = etym.getBoundingClientRect();
+                        const etymCenter = {
+                            x: etymRect.left + etymRect.width / 2,
+                            y: etymRect.top + etymRect.height / 2
+                        };
+
+                        const distance = Math.sqrt(
+                            Math.pow(wordCenter.x - etymCenter.x, 2) +
+                            Math.pow(wordCenter.y - etymCenter.y, 2)
+                        );
+
+                        const pairKey = wordMatch;
+
+                        if (distance < MATCH_DISTANCE) {
+                            matchedPairs.add(pairKey);
+                        }
+                    }
+                });
+            });
+
+            // Update counter display
+            updateMatchCounter();
+        }
+
+        // Confetti animation
+        function createConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.classList.add('active');
+
+            const confettiPieces = [];
+            const confettiCount = 150;
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+
+            class ConfettiPiece {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = -20;
+                    this.size = Math.random() * 8 + 5;
+                    this.speedY = Math.random() * 3 + 2;
+                    this.speedX = Math.random() * 2 - 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.rotation = Math.random() * 360;
+                    this.rotationSpeed = Math.random() * 10 - 5;
+                }
+
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    this.rotation += this.rotationSpeed;
+                    this.speedY += 0.1; // gravity
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation * Math.PI / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                    ctx.restore();
+                }
+            }
+
+            // Create confetti pieces
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    confettiPieces.push(new ConfettiPiece());
+                }, i * 10);
+            }
+
+            // Animation loop
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                confettiPieces.forEach((piece, index) => {
+                    piece.update();
+                    piece.draw();
+
+                    // Remove pieces that fall off screen
+                    if (piece.y > canvas.height) {
+                        confettiPieces.splice(index, 1);
+                    }
+                });
+
+                if (confettiPieces.length > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    canvas.classList.remove('active');
+                }
+            }
+
+            animate();
+        }
+
+        // Celebratory sound using Web Audio API
+        function playCelebratorySound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Play a cheerful ascending arpeggio
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((frequency, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+
+                    const startTime = audioContext.currentTime + (index * 0.15);
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.4);
+                });
+            } catch (error) {
+                console.log('Could not play celebratory sound:', error);
+            }
+        }
+
+        function updateMatchCounter() {
+            document.getElementById('match-count').textContent = matchedPairs.size;
+
+            // Show counter, hide button temporarily
+            document.getElementById('match-counter').style.display = 'block';
+            document.getElementById('check-button').style.display = 'none';
+
+            // Hide counter after 3 seconds, show button again
+            setTimeout(() => {
+                document.getElementById('match-counter').style.display = 'none';
+                document.getElementById('check-button').style.display = 'block';
+            }, 3000);
+
+            if (matchedPairs.size === 8) {
+                setTimeout(() => {
+                    document.getElementById('completion-message').classList.add('visible');
+                    createConfetti(); // Trigger confetti animation
+                    playCelebratorySound(); // Play celebratory sound
+                }, 500);
+            } else {
+                document.getElementById('completion-message').classList.remove('visible');
+            }
+        }
+
+        // Multi-user functions (work even when Firebase is not configured)
+        function syncPosition(element, x, y) {
+            if (!multiUserEnabled || !database) return;
+
+            const boxId = Array.from(document.querySelectorAll('.draggable-box')).indexOf(element);
+            database.ref(`${sessionId}/boxes/${boxId}`).set({
+                x: x,
+                y: y,
+                userId: userId,
+                timestamp: Date.now()
+            });
+        }
+
+        function updateCursorPosition(x, y) {
+            if (!multiUserEnabled || !database) return;
+
+            database.ref(`${sessionId}/cursors/${userId}`).set({
+                x: x,
+                y: y,
+                timestamp: Date.now()
+            });
+        }
+
+        function listenToOtherUsers() {
+            if (!multiUserEnabled || !database) return;
+
+            // Listen for box position updates
+            database.ref(`${sessionId}/boxes`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                const boxes = document.querySelectorAll('.draggable-box');
+                Object.keys(data).forEach(boxId => {
+                    const update = data[boxId];
+                    if (update.userId !== userId && boxes[boxId]) {
+                        boxes[boxId].style.left = update.x + 'px';
+                        boxes[boxId].style.top = update.y + 'px';
+                    }
+                });
+                // Don't auto-check - player must click Check button
+            });
+
+            // Listen for other users' cursors
+            database.ref(`${sessionId}/cursors`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                // Remove old cursor elements
+                document.querySelectorAll('.user-cursor').forEach(c => c.remove());
+
+                Object.keys(data).forEach(uid => {
+                    if (uid !== userId) {
+                        const cursor = data[uid];
+                        showUserCursor(uid, cursor.x, cursor.y);
+                    }
+                });
+
+                // Update user count
+                document.getElementById('user-count').textContent = Object.keys(data).length;
+            });
+
+            // Mark this user as online
+            const userRef = database.ref(`${sessionId}/cursors/${userId}`);
+            userRef.set({ x: 0, y: 0, timestamp: Date.now() });
+            userRef.onDisconnect().remove();
+        }
+
+        function showUserCursor(uid, x, y) {
+            let cursor = document.getElementById(`cursor-${uid}`);
+            if (!cursor) {
+                cursor = document.createElement('div');
+                cursor.id = `cursor-${uid}`;
+                cursor.className = 'user-cursor';
+                cursor.style.background = `hsl(${parseInt(uid.substr(-6), 36) % 360}, 70%, 60%)`;
+
+                const label = document.createElement('div');
+                label.className = 'user-label';
+                label.textContent = 'User ' + uid.substr(-4);
+                cursor.appendChild(label);
+
+                document.getElementById('activity-container').appendChild(cursor);
+            }
+            cursor.style.left = x + 'px';
+            cursor.style.top = y + 'px';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initDragAndDrop();
+
+            if (multiUserEnabled) {
+                listenToOtherUsers();
+            }
+
+            // Add Check button click handler
+            document.getElementById('check-button').addEventListener('click', () => {
+                checkForMatches();
+            });
+        });
+
+        // Track mouse movement for cursor sync
+        if (multiUserEnabled) {
+            document.addEventListener('mousemove', (e) => {
+                updateCursorPosition(e.clientX, e.clientY);
+            });
+        }
+    </script>
+</body>
+</html>

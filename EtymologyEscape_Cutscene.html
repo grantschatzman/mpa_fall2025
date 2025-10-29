@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etymology Escape - Introduction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #cutscene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 1;
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        .character {
+            position: absolute;
+            max-height: 25vh;
+            width: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 100;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        .character.bottom-left-overlap {
+            bottom: 8vh;
+            left: 8vw;
+        }
+
+        .character.bottom-left {
+            bottom: 15vh;
+            left: 15vw;
+            max-height: 15vh;
+        }
+
+        #dialogue-box {
+            position: absolute;
+            max-width: 80%;
+            min-width: 50%;
+            padding: 25px 35px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 17px;
+            line-height: 1.7;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #dialogue-box.custodian {
+            background: rgba(139, 69, 69, 0.95);
+        }
+
+        #dialogue-box.bottom-center {
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .speaker-name {
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.9;
+        }
+
+        .dialogue-text {
+            text-align: left;
+        }
+
+        .dialogue-text em {
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .dialogue-text strong {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        #title-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 69, 0.95);
+            color: #F5E6D3;
+            padding: 60px 80px;
+            border-radius: 20px;
+            border: 5px solid #4EC9B0;
+            font-size: 64px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #title-box.visible {
+            opacity: 1;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 200;
+        }
+
+        .control-btn {
+            color: #F5E6D3;
+            font-size: 14px;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        .control-btn.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        #begin-activity-btn {
+            background: #4EC9B0;
+            color: #1E1E1E;
+            font-weight: bold;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #begin-activity-btn.visible {
+            opacity: 1;
+        }
+
+        #begin-activity-btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <img id="background" src="" alt="Background">
+        <div id="title-box"></div>
+        <div id="dialogue-box">
+            <div class="speaker-name"></div>
+            <div class="dialogue-text"></div>
+        </div>
+        <div id="character-container"></div>
+        <div id="controls">
+            <button id="back-btn" class="control-btn">◀ Back</button>
+            <div id="click-indicator" class="control-btn">▶ Continue</div>
+            <button id="begin-activity-btn">Begin Activity →</button>
+        </div>
+    </div>
+
+    <script>
+        const FRAMES = [
+            {
+                number: 1,
+                background: "Scenes/Wordworking Lab.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "The Custodian is running madly around the Wordworking Lab, robes flapping behind him and picking up prickly leaves. You approach him, and he stops, doubled over and panting as he catches his breath.",
+                speaker: null,
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 2,
+                background: "Scenes/Wordworking Lab.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "Oh, thank goodness you're here! The new batch of words has gotten out again, and I can't seem to chase them all down fast enough. They never <em>seem</em> naughty when they arrive, but they never miss a chance to run off in some new direction. The thing is, if they wander too far from their origins, they'll lose their meaning - and <em>then</em> what will become of them, I hate to imagine!",
+                speaker: "Custodian",
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 3,
+                background: "Scenes/Wordworking Lab.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "The Custodian pauses for a moment and then seems to remember something.<br><br>\"But of course, you're new here! Perhaps you didn't know that words had <strong>origins</strong>, just like the rest of us - histories and all that? Yes, well, there's a study of those histories, and it's called <strong>etymology</strong>. Look here, you don't have to be an expert, but perhaps you could help a little? See, we can't start our courses without our words in order.\"",
+                speaker: null,
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 4,
+                background: "Scenes/Wordworking Lab.png",
+                characters: [{file: "Custodian.png", position: "bottom-left-overlap"}],
+                dialogue: "If you can just help me <strong>match the words out here to their histories</strong> - even if you have to guess! - we can keep them from dissolving into incoherence. Hmm? Oh, right - incoherence, from the Latin 'in' meaning 'not' and 'cohaerens' meaning 'sticking together'. It means - oh, it means they'll fall apart without you! Just <strong>work together to put the words and their origins close together</strong> - close enough to touch a little, you see? - and they'll be just fine.",
+                speaker: "Custodian",
+                position: "bottom-center",
+                style: "custodian"
+            },
+            {
+                number: 5,
+                background: "Scenes/Campus Map.png",
+                characters: [{file: "Custodian.png", position: "bottom-left"}],
+                dialogue: null,
+                showTitle: true,
+                titleText: "Etymology Escape!",
+                isLastFrame: true
+            }
+        ];
+
+        let currentFrame = 0;
+        let isTransitioning = false;
+
+        function updateBackButton() {
+            const backBtn = document.getElementById('back-btn');
+            if (currentFrame === 0) {
+                backBtn.classList.add('disabled');
+            } else {
+                backBtn.classList.remove('disabled');
+            }
+        }
+
+        function loadFrame(frameIndex) {
+            if (frameIndex >= FRAMES.length) {
+                document.body.style.cursor = 'default';
+                document.getElementById('click-indicator').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('click-indicator').style.display = 'block';
+            document.body.style.cursor = 'pointer';
+
+            if (frameIndex < 0) {
+                frameIndex = 0;
+            }
+
+            isTransitioning = true;
+            const frame = FRAMES[frameIndex];
+
+            const bg = document.getElementById('background');
+            const dialogueBox = document.getElementById('dialogue-box');
+            const speakerName = dialogueBox.querySelector('.speaker-name');
+            const dialogueText = dialogueBox.querySelector('.dialogue-text');
+            const charContainer = document.getElementById('character-container');
+            const titleBox = document.getElementById('title-box');
+            const beginBtn = document.getElementById('begin-activity-btn');
+
+            // Clear previous frame
+            dialogueBox.classList.remove('visible', 'custodian', 'bottom-center');
+            charContainer.innerHTML = '';
+            titleBox.classList.remove('visible');
+            beginBtn.classList.remove('visible');
+
+            // Set background
+            if (frame.background) {
+                bg.src = frame.background;
+                setTimeout(() => {
+                    bg.classList.add('visible');
+                }, 50);
+            }
+
+            // Add characters
+            if (frame.characters && frame.characters.length > 0) {
+                setTimeout(() => {
+                    frame.characters.forEach((charData) => {
+                        const charImg = document.createElement('img');
+                        charImg.src = 'Sprites/' + charData.file;
+                        charImg.className = 'character ' + charData.position;
+                        charContainer.appendChild(charImg);
+                        setTimeout(() => charImg.classList.add('visible'), 100);
+                    });
+                }, 300);
+            }
+
+            // Show title if this is the title frame
+            if (frame.showTitle) {
+                setTimeout(() => {
+                    titleBox.textContent = frame.titleText;
+                    titleBox.classList.add('visible');
+
+                    // Show begin activity button
+                    setTimeout(() => {
+                        beginBtn.classList.add('visible');
+                        document.getElementById('click-indicator').style.display = 'none';
+                    }, 1000);
+                }, 500);
+            }
+
+            // Set dialogue
+            if (frame.dialogue) {
+                setTimeout(() => {
+                    dialogueText.innerHTML = frame.dialogue;
+
+                    if (frame.speaker) {
+                        speakerName.textContent = frame.speaker;
+                        speakerName.style.display = 'block';
+                    } else {
+                        speakerName.style.display = 'none';
+                    }
+
+                    dialogueBox.classList.add('visible', frame.style, frame.position);
+                }, 500);
+            }
+
+            updateBackButton();
+
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 1000);
+        }
+
+        function nextFrame() {
+            if (isTransitioning || currentFrame >= FRAMES.length - 1) return;
+            currentFrame++;
+            loadFrame(currentFrame);
+        }
+
+        function previousFrame() {
+            if (isTransitioning || currentFrame === 0) return;
+            currentFrame--;
+            loadFrame(currentFrame);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                loadFrame(0);
+            }, 500);
+        });
+
+        // Click to advance
+        document.getElementById('cutscene-container').addEventListener('click', (e) => {
+            if (!e.target.closest('#controls')) {
+                nextFrame();
+            }
+        });
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            previousFrame();
+        });
+
+        // Continue indicator
+        document.getElementById('click-indicator').addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextFrame();
+        });
+
+        // Begin activity button
+        document.getElementById('begin-activity-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = 'EtymologyEscape_Activity.html';
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                previousFrame();
+            }
+        });
+    </script>
+</body>
+</html>
