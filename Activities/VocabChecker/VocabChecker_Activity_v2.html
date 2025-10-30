@@ -37,9 +37,10 @@
         }
 
         .bev-icon {
-            width: 48px;
-            height: 48px;
+            width: 192px;
+            height: 192px;
             image-rendering: pixelated;
+            object-fit: contain;
         }
 
         #list-title {
@@ -334,7 +335,7 @@
             <div id="completion-message">
                 🎉 All Words Completed! 🎉<br>
                 <small style="font-size: 18px; margin-top: 10px; display: block;">Bev is proud of your vocabulary work!</small>
-                <small style="font-size: 16px; margin-top: 15px; display: block; font-weight: normal;">The Completion Keyword is 'sheepdog'.</small>
+                <small id="passkey-display" style="font-size: 20px; margin-top: 15px; display: block; font-weight: bold; color: #FFD700;"></small>
             </div>
         </div>
 
@@ -348,6 +349,16 @@
             vocabularyBaseUrl: './vocab-lists/', // Where CSV files are stored on GitHub Pages
             useLocalAPIKey: false, // Production mode - API key secured on Cloudflare
             localAPIKey: '' // TEMPORARY - for local testing only
+        };
+
+        // Completion Passkeys for each vocabulary list
+        const PASSKEYS = {
+            'week1': 'SHEEPDOG',
+            'week2': 'WORDWORK',
+            'week3': 'LANGUAGE',
+            'week4': 'MASTERY',
+            // Add more as needed
+            'default': 'COMPLETE'
         };
 
         let vocabularyWords = [];
@@ -612,7 +623,14 @@ FEEDBACK: [One clear sentence explaining why it's correct or how to improve]`;
         }
 
         function showCompletion() {
-            document.getElementById('completion-message').classList.add('visible');
+            const completionMessage = document.getElementById('completion-message');
+            const passkeyDisplay = document.getElementById('passkey-display');
+
+            // Get the passkey for this list
+            const passkey = PASSKEYS[listName] || PASSKEYS['default'];
+            passkeyDisplay.textContent = `Your Completion Passkey: ${passkey}`;
+
+            completionMessage.classList.add('visible');
             createConfetti();
             playCelebratorySound();
         }
