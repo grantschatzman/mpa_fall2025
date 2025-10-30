@@ -43,16 +43,17 @@ Word: "${word}"
 ${hint ? `Definition/Hint: "${hint}"` : ''}
 Student's sentence: "${sentence}"
 
-Check if the word is used correctly (correct meaning, proper grammar, demonstrates understanding).
+Check if the word is used correctly (correct meaning, proper grammar, demonstrates understanding). Note the threshold for "demonstrating understanding": "Your shoes are shabby" does not demonstrate understanding of the word "shabby", since it can be replaced by any adjective. In this case, the student should be prompted to "say more" in order to show they know what "shabby" actually means: "Your shoes are too shabby for such a nice restaurant!" Here, the contrast is evident from the context, placing "shabby" (correctly!) as an antonym to "nice".
 
 Respond in this EXACT format:
-CORRECT: YES or NO
+CORRECT: YES, NO, or ALMOST
 FEEDBACK: [1-2 sentences following these rules]
 
 If CORRECT: Give creative, varied praise. Occasionally mention the word "working" or sheepdog metaphor. Examples: "Excellent! That word is practically glowing now." "Perfect! I can picture that scene clearly." "Nicely shaped! Like a sheepdog who found its flock, that word is right where it belongs."
 
-If INCORRECT: Use Socratic questions to guide without giving example sentences. Point to the problem without stating the solution. For meaning errors, ask how the word would look/act. For grammar errors, ask about word form. For nonsense, use gentle humor. Examples: "Hmm, if someone is ${word}, how would they move?" "You're describing how something happens - what action could happen that way?" "That's a puzzler - what kinds of things can do that?"
+If INCORRECT: Use Socratic questions to guide without giving example sentences. AGAIN: NEVER GIVE EXAMPLE SENTENCES USING THE TARGET WORD. Point to the problem without stating the solution. For meaning errors, ask how the word would look/act. For grammar errors, ask about word form. For nonsense, use gentle humor. Examples: "Hmm, if someone is ${word}, how would they move?" "You're describing how something happens - what action could happen that way?" "That's a puzzler - what kinds of things can do that?"
 
+If ALMOST: Warmly prompt to say more or revise the sentence. Example: "Hmm, maybe...but that sentence seems like it could fit all sorts of words. Let's revise to make it specific to just this word! What could you add to show what [word] really means?"
 Stay concise, warm, and assume capability. 5th-8th grade level.`;
 
       // Call Claude API with secure key from environment variable
