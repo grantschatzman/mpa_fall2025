@@ -32,6 +32,11 @@ export default {
       // Route to appropriate handler
       let prompt, maxTokens;
 
+      // Handle submission to Google Sheets (no Claude API call needed)
+      if (activityType === 'submission') {
+        return await handleSubmission(body, env, corsHeaders);
+      }
+
       if (activityType === 'doNowWriting') {
         const validation = validateDoNowRequest(body);
         if (!validation.valid) {
@@ -245,5 +250,70 @@ Respond in this format:
 CELEBRATION: [2-3 sentences of warm, specific praise]
 
 Keep it positive and encouraging. 5th-8th grade level.`;
+  }
+}
+
+// Handle submission to Google Sheets
+async function handleSubmission(data, env, corsHeaders) {
+  try {
+    // Validate required fields
+    if (!data.studentName || !data.promptName || !data.promptText || !data.studentWriting) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing required fields' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get Google Sheets URL from environment variable
+    const sheetsUrl = env.GOOGLE_SHEETS_URL;
+    if (!sheetsUrl) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Sheets URL not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Forward the submission to Google Sheets
+    const sheetsResponse = await fetch(sheetsUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentName: data.studentName,
+        promptName: data.promptName,
+        promptText: data.promptText,
+        studentWriting: data.studentWriting,
+        wordCount: data.wordCount || 0
+      })
+    });
+
+    // Check if Sheets accepted it
+    if (!sheetsResponse.ok) {
+      const errorText = await sheetsResponse.text();
+      console.error('Google Sheets error:', errorText);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to submit to Google Sheets' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const sheetsResult = await sheetsResponse.json();
+
+    // Return success
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Submission received successfully'
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Submission error:', error);
+    return new Response(
+      JSON.stringify({ success: false, error: error.toString() }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 }

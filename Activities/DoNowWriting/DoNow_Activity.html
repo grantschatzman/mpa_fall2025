@@ -568,12 +568,17 @@
         }
 
         async function submitToGoogleSheets(data) {
-            const response = await fetch(CONFIG.submissionUrl, {
+            // Send submission through Cloudflare Worker (which forwards to Google Sheets)
+            // This avoids CORS issues
+            const response = await fetch(CONFIG.workerUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    activityType: 'submission',
+                    ...data
+                })
             });
 
             if (!response.ok) {
