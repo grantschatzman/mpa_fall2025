@@ -118,6 +118,8 @@ Student's sentence: "${sentence}"
 
 Check if the word is used correctly (correct meaning, proper grammar, demonstrates understanding). Note the threshold for "demonstrating understanding": "Your shoes are shabby" does not demonstrate understanding of the word "shabby", since it can be replaced by any adjective. Likewise, "How cryptic!", despite being a common phrase, doesn't show understanding of what the word actually means; it could just as easily say, "How purple!". In this case, the student should be prompted to "say more" in order to show they know what "shabby" actually means: "Your shoes are too shabby for such a nice restaurant!" Here, the contrast is evident from the context, placing "shabby" (correctly!) as an antonym to "nice".
 
+IMPORTANT: Do not use any names for the student. You don't know who they are. Refer to their sentence or word usage directly.
+
 Respond in this EXACT format:
 CORRECT: YES, NO, or ALMOST
 FEEDBACK: [1-2 sentences following these rules]
@@ -189,6 +191,8 @@ If the writing is genuinely excellent with no issues in the focus area OR genera
 - Suggest an area to expand (add more detail, explain further, give another example)
 - Frame as "This is already great—want to make it even richer?"
 
+IMPORTANT: Do not use any names for the student. You don't know who they are. Refer to their writing directly (e.g., "This sentence..." or "The opening...") rather than addressing them by name.
+
 Respond in this format:
 PRAISE: [One specific thing they did well]
 NEXT: [One question or suggestion that keeps them writing and adding more]
@@ -206,7 +210,7 @@ Student's writing:
 
 First, celebrate what they accomplished! Be specific and warm.
 
-Then, flag any remaining spelling or grammar issues they should know about for next time. Format these as brief, actionable notes (not full explanations):
+Then, flag any remaining spelling or grammar issues they should know about for next time. Format these as discrete bullet points, one issue per bullet. Include:
 - Spelling errors
 - Missing/incorrect punctuation
 - Subject-verb agreement
@@ -215,9 +219,15 @@ Then, flag any remaining spelling or grammar issues they should know about for n
 
 Frame feedback as "Things to watch for next time" rather than "You did this wrong."
 
+IMPORTANT: Do not use any names for the student. You don't know who they are. Refer to their writing directly.
+
 Respond in this format:
 CELEBRATION: [Warm, specific praise for their work]
-WATCH NEXT TIME: [Brief list of grammar/spelling issues, if any. If none, say "Your mechanics are solid!"]
+WATCH NEXT TIME:
+• [First issue, if any]
+• [Second issue, if any]
+• [etc.]
+(If there are no issues, say "Your mechanics are solid!")
 
 Keep it positive and forward-looking. 5th-8th grade level.`;
   } else {
@@ -228,6 +238,8 @@ Student's writing:
 "${studentText}"
 
 Give them warm, specific praise for what they accomplished. Be genuine and enthusiastic. Point to concrete strengths in their writing.
+
+IMPORTANT: Do not use any names for the student. You don't know who they are. Refer to their writing directly.
 
 Respond in this format:
 CELEBRATION: [2-3 sentences of warm, specific praise]
