@@ -13,8 +13,9 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background: #1E1E1E;
-            color: #F5E6D3;
+            letter-spacing: 0.5px;
+            background: #F5E6D3;
+            color: #2C1810;
             min-height: 100vh;
             padding: 20px;
         }
@@ -33,7 +34,7 @@
 
         #list-title {
             text-align: center;
-            color: #FFD700;
+            color: #D4A574;
             margin-bottom: 30px;
             font-size: 20px;
         }
@@ -73,7 +74,7 @@
         }
 
         #instructions {
-            background: rgba(139, 69, 69, 0.95);
+            background: rgba(139, 69, 69, 0.85);
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 30px;
@@ -82,7 +83,7 @@
         }
 
         #progress-bar {
-            background: #2D2D2D;
+            background: #E8DCC8;
             height: 30px;
             border-radius: 15px;
             margin-bottom: 30px;
@@ -123,13 +124,13 @@
 
         .vocab-word {
             font-size: 24px;
-            color: #FFD700;
+            color: #D4A574;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         .vocab-hint {
-            color: #AAA;
+            color: #6B5D4F;
             font-size: 14px;
             margin-bottom: 15px;
             font-style: italic;
@@ -138,10 +139,10 @@
         .sentence-input {
             width: 100%;
             padding: 15px;
-            background: #2D2D2D;
+            background: #E8DCC8;
             border: 2px solid #4EC9B0;
             border-radius: 8px;
-            color: #F5E6D3;
+            color: #2C1810;
             font-family: 'Courier New', monospace;
             font-size: 16px;
             margin-bottom: 15px;
@@ -182,7 +183,7 @@
 
         .btn-secondary {
             background: #8B4545;
-            color: #F5E6D3;
+            color: #2C1810;
         }
 
         .btn-secondary:hover {
@@ -245,7 +246,7 @@
         }
 
         #completion-message {
-            background: rgba(78, 201, 176, 0.98);
+            background: rgba(78, 201, 176, 0.9);
             color: #1E1E1E;
             padding: 40px;
             border-radius: 20px;
@@ -299,7 +300,7 @@
         <div id="error-screen">
             <h2>Error Loading Vocabulary</h2>
             <p id="error-message"></p>
-            <p style="margin-top: 20px; font-size: 14px; color: #AAA;">
+            <p style="margin-top: 20px; font-size: 14px; color: #6B5D4F;">
                 Contact your teacher if this problem persists.
             </p>
         </div>
@@ -501,7 +502,7 @@
         }
 
         async function validateWithClaude(word, sentence, hint) {
-            const prompt = `You are a vocabulary teacher checking if a student used a word correctly in a sentence.
+            const prompt = `You are Bev, the thoughtful robotic director of the Wordworking Lab at My Pixel Academy. You're kind but measured, like Roz in The Wild Robot. You help students exercise vocabulary words (like sheepdogs that need work to stay healthy).
 
 Word: "${word}"
 ${hint ? `Definition/Hint: "${hint}"` : ''}
