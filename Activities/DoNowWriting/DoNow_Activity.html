@@ -320,13 +320,17 @@
                 <div id="word-count">Words: <span id="word-count-num">0</span>/<span id="min-words">50</span></div>
             </div>
 
+            <div style="margin-bottom: 15px;">
+                <label for="student-name" style="display: block; font-weight: bold; margin-bottom: 5px; color: #8B4545;">Your Name:</label>
+                <input type="text" id="student-name" placeholder="Enter your name" style="width: 300px; padding: 10px; border: 2px solid #8B4545; border-radius: 8px; background: #E8DCC8; font-family: 'Courier New', monospace; font-size: 16px;">
+            </div>
+
             <textarea id="writing-area" placeholder="Start writing here..."></textarea>
 
             <div id="button-row">
                 <button class="btn" id="check-btn">Check My Writing</button>
                 <button class="btn btn-secondary" id="clear-btn">Clear</button>
-                <button class="btn btn-submit" id="submit-btn">Submit</button>
-                <button class="btn btn-submit" id="submit-fix-btn">Submit & Fix</button>
+                <button class="btn btn-submit" id="submit-teacher-btn">Submit to Teacher</button>
             </div>
 
             <div id="feedback-box">
@@ -341,7 +345,8 @@
         // Configuration
         const CONFIG = {
             workerUrl: 'https://vocab-checker.mypixelacademy.workers.dev',
-            promptsBaseUrl: './prompts/'
+            promptsBaseUrl: './prompts/',
+            submissionUrl: '' // TEACHER: Add your Google Apps Script Web App URL here
         };
 
         let promptData = null;
@@ -412,8 +417,7 @@
             // Set up buttons
             document.getElementById('check-btn').addEventListener('click', () => checkWriting('check'));
             document.getElementById('clear-btn').addEventListener('click', clearWriting);
-            document.getElementById('submit-btn').addEventListener('click', () => submitWriting(false));
-            document.getElementById('submit-fix-btn').addEventListener('click', () => submitWriting(true));
+            document.getElementById('submit-teacher-btn').addEventListener('click', submitToTeacher);
         }
 
         function formatFocusArea(area) {
@@ -495,41 +499,93 @@
             }
         }
 
-        async function submitWriting(includeGrammarCheck) {
+        async function submitToTeacher() {
+            const studentName = document.getElementById('student-name').value.trim();
             const text = document.getElementById('writing-area').value.trim();
 
-            if (!text) {
-                showFeedback({
-                    celebration: "You need to write something before submitting!"
-                }, 'submit');
+            // Validate name
+            if (!studentName) {
+                alert('Please enter your name before submitting.');
+                document.getElementById('student-name').focus();
                 return;
             }
 
-            // Disable buttons and show loading
-            const submitBtn = document.getElementById(includeGrammarCheck ? 'submit-fix-btn' : 'submit-btn');
+            // Validate writing
+            if (!text) {
+                alert('You need to write something before submitting!');
+                return;
+            }
+
+            // Count words
+            const wordCount = text.split(/\s+/).length;
+
+            // Show confirmation dialog
+            const confirmMessage = `You're about to submit your writing to your teacher.\n\nName: ${studentName}\nPrompt: ${formatFocusArea(promptData.focusArea)}\nWords: ${wordCount}\n\nYou'll get feedback first, then it will be sent. Continue?`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Disable button and show loading
+            const submitBtn = document.getElementById('submit-teacher-btn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
 
             try {
+                // First, get BevBot feedback with grammar check
                 const feedback = await callWorker({
                     activityType: 'doNowWriting',
                     mode: 'submit',
                     writingPrompt: promptData.writingPrompt,
                     studentText: text,
-                    includeGrammarCheck: includeGrammarCheck
+                    includeGrammarCheck: true // Always include grammar check for teacher submissions
                 });
 
+                // Show BevBot feedback
                 showFeedback(feedback, 'submit');
-                showCompletion();
+
+                // Then submit to Google Sheets
+                if (CONFIG.submissionUrl) {
+                    await submitToGoogleSheets({
+                        studentName: studentName,
+                        promptName: promptName,
+                        promptText: promptData.writingPrompt,
+                        studentWriting: text,
+                        wordCount: wordCount
+                    });
+
+                    showCompletion('Submitted to teacher successfully!');
+                } else {
+                    showCompletion('Note: Submission URL not configured. Ask your teacher for the link.');
+                }
 
             } catch (error) {
-                showFeedback({
-                    celebration: "Something went wrong: " + error.message
-                }, 'submit');
+                alert('Error submitting: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = includeGrammarCheck ? 'Submit & Fix' : 'Submit';
+                submitBtn.textContent = 'Submit to Teacher';
             }
+        }
+
+        async function submitToGoogleSheets(data) {
+            const response = await fetch(CONFIG.submissionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit to Google Sheets');
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Submission failed');
+            }
+
+            return result;
         }
 
         async function callWorker(data) {
@@ -620,9 +676,9 @@
             }
         }
 
-        function showCompletion() {
+        function showCompletion(message = '🎉 Submitted! Great work today! 🎉') {
             const completionMsg = document.getElementById('completion-message');
-            completionMsg.textContent = '🎉 Writing Submitted! Great work today! 🎉';
+            completionMsg.textContent = message;
             completionMsg.classList.add('visible');
             setTimeout(() => {
                 completionMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
