@@ -1,0 +1,13 @@
+{
+  "week": 1,
+  "writingPrompt": "Describe a storm using vivid sensory details.",
+  "focusArea": "imagery",
+  "timeLimit": 5,
+  "minWords": 50,
+  "rubricItems": [
+    "Uses at least 3 sensory details",
+    "Includes figurative language",
+    "Creates a vivid mental picture"
+  ],
+  "hints": "Think about what you see, hear, smell, feel, and taste during a storm."
+}

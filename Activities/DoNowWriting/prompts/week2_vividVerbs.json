@@ -1,0 +1,13 @@
+{
+  "week": 2,
+  "writingPrompt": "Describe your morning routine.",
+  "focusArea": "vividVerbs",
+  "timeLimit": 5,
+  "minWords": 60,
+  "rubricItems": [
+    "Use specific action words instead of 'is,' 'was,' 'went'",
+    "Show actions clearly",
+    "Make the reader see exactly what you're doing"
+  ],
+  "hints": "Instead of 'I went to the kitchen,' try 'I stumbled to the kitchen' or 'I rushed to the kitchen.'"
+}

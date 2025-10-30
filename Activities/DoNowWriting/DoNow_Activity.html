@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do Now Writing - Interactive Activity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            background: #F5E6D3;
+            color: #2C1810;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #app-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4EC9B0;
+            margin-bottom: 20px;
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .bev-icon {
+            width: 96px;
+            height: 96px;
+            image-rendering: pixelated;
+            object-fit: contain;
+        }
+
+        #loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 24px;
+            color: #4EC9B0;
+        }
+
+        #error-screen {
+            display: none;
+            background: rgba(192, 80, 77, 0.2);
+            border: 2px solid #C0504D;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #error-screen.visible {
+            display: block;
+        }
+
+        #error-screen h2 {
+            color: #C0504D;
+            margin-bottom: 15px;
+        }
+
+        #activity-screen {
+            display: none;
+        }
+
+        #activity-screen.visible {
+            display: block;
+        }
+
+        #prompt-box {
+            background: rgba(139, 69, 69, 0.85);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .prompt-label {
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: #D4A574;
+        }
+
+        .prompt-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .hint-text {
+            font-size: 14px;
+            font-style: italic;
+            color: #E8DCC8;
+            margin-top: 10px;
+        }
+
+        #meta-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(139, 69, 69, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        #focus-display {
+            color: #8B4545;
+            font-weight: bold;
+        }
+
+        #word-count {
+            color: #4EC9B0;
+            font-weight: bold;
+        }
+
+        #word-count.below-min {
+            color: #C0504D;
+        }
+
+        #word-count.at-min {
+            color: #4EC9B0;
+        }
+
+        #writing-area {
+            width: 100%;
+            min-height: 250px;
+            padding: 20px;
+            background: #E8DCC8;
+            border: 3px solid #8B4545;
+            border-radius: 12px;
+            color: #2C1810;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        #writing-area:focus {
+            outline: none;
+            border-color: #4EC9B0;
+            box-shadow: 0 0 10px rgba(78, 201, 176, 0.3);
+        }
+
+        #button-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #4EC9B0;
+            color: #1E1E1E;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        .btn-secondary {
+            background: #8B4545;
+            color: #F5E6D3;
+        }
+
+        .btn-secondary:hover {
+            background: #A05555;
+        }
+
+        .btn-submit {
+            background: #D4A574;
+            color: #2C1810;
+        }
+
+        .btn-submit:hover {
+            background: #E0B686;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(78, 201, 176, 0.3);
+            border-top-color: #4EC9B0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #feedback-box {
+            display: none;
+            background: rgba(78, 201, 176, 0.15);
+            border: 2px solid #4EC9B0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        #feedback-box.visible {
+            display: block;
+        }
+
+        #feedback-box.celebration {
+            background: rgba(212, 165, 116, 0.2);
+            border-color: #D4A574;
+        }
+
+        .feedback-section {
+            margin-bottom: 15px;
+        }
+
+        .feedback-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .feedback-label {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #8B4545;
+        }
+
+        .feedback-content {
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        #completion-message {
+            display: none;
+            background: rgba(78, 201, 176, 0.9);
+            color: #1E1E1E;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 30px 0;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        #completion-message.visible {
+            display: block;
+            animation: celebrate 0.6s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <h1>
+            <img src="../../Sprites/Bev.png" alt="Bev" class="bev-icon">
+            Do Now Writing
+        </h1>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen">
+            <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+            Loading writing prompt...
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error-screen">
+            <h2>Error Loading Prompt</h2>
+            <p id="error-message"></p>
+            <p style="margin-top: 20px; font-size: 14px; color: #6B5D4F;">
+                Contact your teacher if this problem persists.
+            </p>
+        </div>
+
+        <!-- Activity Screen -->
+        <div id="activity-screen">
+            <div id="prompt-box">
+                <div class="prompt-label">Today's Writing Prompt</div>
+                <div class="prompt-text" id="prompt-text"></div>
+                <div class="hint-text" id="hint-text"></div>
+            </div>
+
+            <div id="meta-info">
+                <div id="focus-display">Focus: <span id="focus-area"></span></div>
+                <div id="word-count">Words: <span id="word-count-num">0</span>/<span id="min-words">50</span></div>
+            </div>
+
+            <textarea id="writing-area" placeholder="Start writing here..."></textarea>
+
+            <div id="button-row">
+                <button class="btn" id="check-btn">Check My Writing</button>
+                <button class="btn btn-secondary" id="clear-btn">Clear</button>
+                <button class="btn btn-submit" id="submit-btn">Submit</button>
+                <button class="btn btn-submit" id="submit-fix-btn">Submit & Fix</button>
+            </div>
+
+            <div id="feedback-box">
+                <div id="feedback-content"></div>
+            </div>
+
+            <div id="completion-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            workerUrl: 'https://vocab-checker.mypixelacademy.workers.dev',
+            promptsBaseUrl: './prompts/'
+        };
+
+        let promptData = null;
+        let promptName = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            promptName = urlParams.get('prompt') || 'week1_imagery';
+
+            await loadPrompt(promptName);
+        });
+
+        async function loadPrompt(name) {
+            try {
+                const promptUrl = `${CONFIG.promptsBaseUrl}${name}.json`;
+                console.log('Loading prompt from:', promptUrl);
+
+                const response = await fetch(promptUrl);
+
+                if (!response.ok) {
+                    throw new Error(`Could not load prompt "${name}". Make sure the file exists.`);
+                }
+
+                promptData = await response.json();
+                console.log('Loaded prompt:', promptData);
+
+                renderActivity();
+
+            } catch (error) {
+                console.error('Error loading prompt:', error);
+                showError(error.message);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('error-screen').classList.add('visible');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function renderActivity() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('activity-screen').classList.add('visible');
+
+            // Set prompt text
+            document.getElementById('prompt-text').textContent = promptData.writingPrompt;
+
+            // Set hint if available
+            const hintEl = document.getElementById('hint-text');
+            if (promptData.hints) {
+                hintEl.textContent = `💡 Hint: ${promptData.hints}`;
+                hintEl.style.display = 'block';
+            } else {
+                hintEl.style.display = 'none';
+            }
+
+            // Set focus area
+            document.getElementById('focus-area').textContent = formatFocusArea(promptData.focusArea);
+
+            // Set min words
+            document.getElementById('min-words').textContent = promptData.minWords || 50;
+
+            // Set up word counter
+            const writingArea = document.getElementById('writing-area');
+            writingArea.addEventListener('input', updateWordCount);
+
+            // Set up buttons
+            document.getElementById('check-btn').addEventListener('click', () => checkWriting('check'));
+            document.getElementById('clear-btn').addEventListener('click', clearWriting);
+            document.getElementById('submit-btn').addEventListener('click', () => submitWriting(false));
+            document.getElementById('submit-fix-btn').addEventListener('click', () => submitWriting(true));
+        }
+
+        function formatFocusArea(area) {
+            const labels = {
+                imagery: 'Imagery & Sensory Details',
+                descriptive: 'Descriptive Language',
+                vividVerbs: 'Vivid Verbs',
+                sentenceVariety: 'Sentence Variety',
+                complexity: 'Adding Complexity (Clauses & Appositives)',
+                elaboration: 'Elaboration & Explanation',
+                evidence: 'Evidence & Examples',
+                grammar: 'Grammar & Mechanics',
+                verbTense: 'Verb Tense Consistency',
+                voice: 'Voice & Style',
+                organization: 'Organization & Flow',
+                precision: 'Precise Word Choice'
+            };
+            return labels[area] || area;
+        }
+
+        function updateWordCount() {
+            const text = document.getElementById('writing-area').value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            const minWords = promptData.minWords || 50;
+
+            document.getElementById('word-count-num').textContent = words;
+
+            const wordCountEl = document.getElementById('word-count');
+            if (words < minWords) {
+                wordCountEl.classList.add('below-min');
+                wordCountEl.classList.remove('at-min');
+            } else {
+                wordCountEl.classList.remove('below-min');
+                wordCountEl.classList.add('at-min');
+            }
+
+            return words;
+        }
+
+        async function checkWriting(mode) {
+            const text = document.getElementById('writing-area').value.trim();
+
+            if (!text) {
+                showFeedback({
+                    praise: "Your writing area is empty!",
+                    next: "Start by writing your thoughts about the prompt above. Don't worry about perfection—just get your ideas down first!"
+                }, 'check');
+                return;
+            }
+
+            const wordCount = updateWordCount();
+
+            // Disable button and show loading
+            const btn = document.getElementById('check-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Checking...';
+
+            try {
+                const feedback = await callWorker({
+                    activityType: 'doNowWriting',
+                    mode: 'check',
+                    writingPrompt: promptData.writingPrompt,
+                    focusArea: promptData.focusArea,
+                    studentText: text,
+                    rubricItems: promptData.rubricItems || [],
+                    wordCount: wordCount
+                });
+
+                showFeedback(feedback, 'check');
+
+            } catch (error) {
+                showFeedback({
+                    praise: "Hmm, something went wrong.",
+                    next: error.message
+                }, 'check');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Check My Writing';
+            }
+        }
+
+        async function submitWriting(includeGrammarCheck) {
+            const text = document.getElementById('writing-area').value.trim();
+
+            if (!text) {
+                showFeedback({
+                    celebration: "You need to write something before submitting!"
+                }, 'submit');
+                return;
+            }
+
+            // Disable buttons and show loading
+            const submitBtn = document.getElementById(includeGrammarCheck ? 'submit-fix-btn' : 'submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+            try {
+                const feedback = await callWorker({
+                    activityType: 'doNowWriting',
+                    mode: 'submit',
+                    writingPrompt: promptData.writingPrompt,
+                    studentText: text,
+                    includeGrammarCheck: includeGrammarCheck
+                });
+
+                showFeedback(feedback, 'submit');
+                showCompletion();
+
+            } catch (error) {
+                showFeedback({
+                    celebration: "Something went wrong: " + error.message
+                }, 'submit');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = includeGrammarCheck ? 'Submit & Fix' : 'Submit';
+            }
+        }
+
+        async function callWorker(data) {
+            const response = await fetch(CONFIG.workerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'API request failed');
+            }
+
+            const result = await response.json();
+            const responseText = result.content[0].text;
+
+            // Parse response based on mode
+            if (data.mode === 'check') {
+                const praiseMatch = responseText.match(/PRAISE:\s*(.+?)(?=NEXT:|$)/s);
+                const nextMatch = responseText.match(/NEXT:\s*(.+)/s);
+
+                return {
+                    praise: praiseMatch ? praiseMatch[1].trim() : 'Good work so far!',
+                    next: nextMatch ? nextMatch[1].trim() : 'Keep writing!'
+                };
+            } else {
+                const celebrationMatch = responseText.match(/CELEBRATION:\s*(.+?)(?=WATCH NEXT TIME:|$)/s);
+                const watchMatch = responseText.match(/WATCH NEXT TIME:\s*(.+)/s);
+
+                return {
+                    celebration: celebrationMatch ? celebrationMatch[1].trim() : 'Great work!',
+                    watchNextTime: watchMatch ? watchMatch[1].trim() : null
+                };
+            }
+        }
+
+        function showFeedback(feedback, mode) {
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackContent = document.getElementById('feedback-content');
+
+            feedbackBox.classList.remove('celebration');
+
+            if (mode === 'check') {
+                feedbackContent.innerHTML = `
+                    <div class="feedback-section">
+                        <div class="feedback-label">✨ What's Working</div>
+                        <div class="feedback-content">${feedback.praise}</div>
+                    </div>
+                    <div class="feedback-section">
+                        <div class="feedback-label">📝 Next Step</div>
+                        <div class="feedback-content">${feedback.next}</div>
+                    </div>
+                `;
+            } else {
+                feedbackBox.classList.add('celebration');
+                let html = `
+                    <div class="feedback-section">
+                        <div class="feedback-label">🎉 Celebration</div>
+                        <div class="feedback-content">${feedback.celebration}</div>
+                    </div>
+                `;
+
+                if (feedback.watchNextTime) {
+                    html += `
+                        <div class="feedback-section">
+                            <div class="feedback-label">👀 Watch Next Time</div>
+                            <div class="feedback-content">${feedback.watchNextTime}</div>
+                        </div>
+                    `;
+                }
+
+                feedbackContent.innerHTML = html;
+            }
+
+            feedbackBox.classList.add('visible');
+            feedbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function clearWriting() {
+            if (confirm('Are you sure you want to clear your writing? This cannot be undone.')) {
+                document.getElementById('writing-area').value = '';
+                document.getElementById('feedback-box').classList.remove('visible');
+                document.getElementById('completion-message').classList.remove('visible');
+                updateWordCount();
+            }
+        }
+
+        function showCompletion() {
+            const completionMsg = document.getElementById('completion-message');
+            completionMsg.textContent = '🎉 Writing Submitted! Great work today! 🎉';
+            completionMsg.classList.add('visible');
+            setTimeout(() => {
+                completionMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>

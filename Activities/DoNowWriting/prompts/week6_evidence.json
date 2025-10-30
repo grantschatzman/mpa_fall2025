@@ -1,0 +1,13 @@
+{
+  "week": 6,
+  "writingPrompt": "Argue that schools should/shouldn't have homework over weekends.",
+  "focusArea": "evidence",
+  "timeLimit": 5,
+  "minWords": 85,
+  "rubricItems": [
+    "State your claim clearly",
+    "Support with specific examples",
+    "Use concrete details, not vague statements"
+  ],
+  "hints": "Instead of 'homework is stressful,' try 'homework causes students to lose sleep because...'"
+}

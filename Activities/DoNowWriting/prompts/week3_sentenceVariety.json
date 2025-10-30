@@ -1,0 +1,13 @@
+{
+  "week": 3,
+  "writingPrompt": "Write about your favorite place to think.",
+  "focusArea": "sentenceVariety",
+  "timeLimit": 5,
+  "minWords": 75,
+  "rubricItems": [
+    "Mix short and long sentences",
+    "Vary how sentences begin",
+    "Create a natural rhythm"
+  ],
+  "hints": "Try combining short sentences with words like 'and,' 'but,' or 'because.'"
+}

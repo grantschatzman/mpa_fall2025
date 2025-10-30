@@ -1,0 +1,13 @@
+{
+  "week": 4,
+  "writingPrompt": "Introduce a fictional character who just arrived at your school.",
+  "focusArea": "complexity",
+  "timeLimit": 5,
+  "minWords": 80,
+  "rubricItems": [
+    "Add extra details with clauses (when, because, although)",
+    "Use appositives (noun phrases with commas)",
+    "Make sentences richer without making them confusing"
+  ],
+  "hints": "Example: 'Maya, a transfer student from Portland, walked nervously into homeroom.'"
+}
