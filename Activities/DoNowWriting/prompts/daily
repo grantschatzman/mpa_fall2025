@@ -1,0 +1,13 @@
+{
+  "week": 99,
+  "writingPrompt": "What do you think the best part of growing up probably is? What about the worst part?",
+  "focusArea": "elaboration",
+  "timeLimit": 5,
+  "minWords": 70,
+  "rubricItems": [
+    "Make your point clear",
+    "Explain your reasoning",
+    "Give at least one example"
+  ],
+  "hints": "Don't just state your opinion—explain why you think that way."
+}
