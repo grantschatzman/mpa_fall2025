@@ -382,13 +382,22 @@
 
             .character.bottom-left-overlap {
                 height: 14vh;
-                left: 1vw;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 10vh;
             }
 
             .character.bottom-left-small {
                 height: 7vh;
-                left: 1vw;
-                bottom: 1vh;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 5vh;
+            }
+
+            #nav-buttons {
+                bottom: auto;
+                top: 2vh;
+                right: 2vw;
             }
 
             .product-container {
@@ -432,7 +441,7 @@
             }
 
             #background-image {
-                object-position: center -10vh;
+                object-position: center center;
             }
         }
 
@@ -462,10 +471,16 @@
 
             .character.bottom-left-overlap {
                 height: 12vh;
+                bottom: 8vh;
             }
 
             .character.bottom-left-small {
                 height: 6vh;
+                bottom: 4vh;
+            }
+
+            #nav-buttons {
+                top: 1.5vh;
             }
 
             .product-container {
@@ -503,10 +518,21 @@
         @media (max-width: 768px) and (orientation: landscape) {
             .character.bottom-left-overlap {
                 height: 20vh;
+                left: 5vw;
+                transform: none;
+                bottom: 0;
             }
 
             .character.bottom-left-small {
                 height: 10vh;
+                left: 5vw;
+                transform: none;
+                bottom: 0;
+            }
+
+            #nav-buttons {
+                bottom: 2vh;
+                top: auto;
             }
 
             #dialogue-box {
@@ -516,6 +542,10 @@
 
             .product-container {
                 top: 5vh;
+            }
+
+            #background-image {
+                object-position: center -10vh;
             }
         }
     </style>
