@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grant's Christmas List Cutscene 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            background: #2c1810;
+        }
+
+        /* Main container */
+        #cutscene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background layer */
+        #background {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        #background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center -15vh;
+        }
+
+        /* Character sprites layer */
+        .character {
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 8;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        .character.bottom-left-overlap {
+            bottom: 0;
+            left: 2vw;
+            height: 40vh;
+        }
+
+        .character.bottom-left-small {
+            bottom: 2vh;
+            left: 2vw;
+            height: 20vh;
+        }
+
+        /* Title screen */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #title-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #title-text {
+            font-size: 3em;
+            color: #fff;
+            background: rgba(192, 80, 77, 0.95);
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .start-button {
+            font-size: 1.5em;
+            padding: 15px 40px;
+            background: #4CAF50;
+            color: white;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .start-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* Dialogue box */
+        #dialogue-box {
+            position: absolute;
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            background: rgba(192, 80, 77, 0.95);
+            color: #f5e6d3;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            line-height: 1.6;
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #speaker-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        #dialogue-text {
+            color: #fff;
+        }
+
+        /* Choice buttons */
+        #choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .choice-button {
+            padding: 12px 25px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .choice-button:hover {
+            background: rgba(76, 175, 80, 1);
+            transform: translateX(10px);
+        }
+
+        .choice-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #777;
+        }
+
+        /* Product display */
+        .product-container {
+            position: absolute;
+            top: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1000px;
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            z-index: 3;
+        }
+
+        .product-container.visible {
+            display: grid;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid #C0504D;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(192, 80, 77, 0.5);
+            border-color: #ffd700;
+        }
+
+        .product-card img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .product-card h3 {
+            text-align: center;
+            color: #C0504D;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        /* Navigation buttons */
+        #nav-buttons {
+            position: absolute;
+            bottom: 2vh;
+            right: 2vw;
+            z-index: 6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            background: rgba(192, 80, 77, 0.8);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .nav-button:hover {
+            background: rgba(192, 80, 77, 1);
+        }
+
+        .nav-button.hidden {
+            display: none;
+        }
+
+        /* Ending overlay */
+        #ending-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        #ending-overlay.visible {
+            display: flex;
+        }
+
+        #ending-text {
+            font-size: 2.5em;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 16;
+        }
+
+        /* Snowflakes */
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            z-index: 17;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #ffd700;
+            white-space: nowrap;
+            animation: typing 3s steps(100) forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            #title-text {
+                font-size: 1.5em;
+                padding: 15px 20px;
+                margin-bottom: 30px;
+            }
+
+            .start-button {
+                font-size: 1.2em;
+                padding: 12px 30px;
+            }
+
+            #dialogue-box {
+                font-size: 0.95em;
+                width: 95%;
+                padding: 15px 20px;
+                bottom: 3vh;
+            }
+
+            .character.bottom-left-overlap {
+                height: 30vh;
+                left: 1vw;
+            }
+
+            .character.bottom-left-small {
+                height: 15vh;
+                left: 1vw;
+            }
+
+            .product-container {
+                top: 5vh;
+                width: 95%;
+                gap: 20px;
+                grid-template-columns: 1fr;
+            }
+
+            .product-card {
+                padding: 15px;
+            }
+
+            .product-card img {
+                max-height: 200px;
+            }
+
+            .product-card h3 {
+                font-size: 0.85em;
+            }
+
+            .choice-button {
+                font-size: 0.9em;
+                padding: 10px 20px;
+            }
+
+            .nav-button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+
+            #ending-text {
+                font-size: 1.3em;
+                padding: 0 20px;
+            }
+
+            #background-image {
+                object-position: center -10vh;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 480px) {
+            #title-text {
+                font-size: 1.2em;
+                padding: 12px 15px;
+            }
+
+            .start-button {
+                font-size: 1em;
+                padding: 10px 25px;
+            }
+
+            #dialogue-box {
+                font-size: 0.85em;
+                padding: 12px 15px;
+            }
+
+            .character.bottom-left-overlap {
+                height: 25vh;
+            }
+
+            .character.bottom-left-small {
+                height: 12vh;
+            }
+
+            .product-card h3 {
+                font-size: 0.8em;
+            }
+
+            #ending-text {
+                font-size: 1.1em;
+            }
+        }
+
+        /* Landscape orientation on mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .character.bottom-left-overlap {
+                height: 50vh;
+            }
+
+            .character.bottom-left-small {
+                height: 25vh;
+            }
+
+            #dialogue-box {
+                bottom: 2vh;
+            }
+
+            .product-container {
+                top: 3vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <!-- Background -->
+        <div id="background">
+            <img id="background-image" src="" alt="Background">
+        </div>
+
+        <!-- Character sprites -->
+        <img id="mousifer-sprite" class="character" src="Sprites/Mousifer.png" alt="Mousifer">
+
+        <!-- Title screen -->
+        <div id="title-screen">
+            <div id="title-text">Grant's Christmas List Cutscene 2025</div>
+            <button class="start-button" onclick="startCutscene()">Start</button>
+        </div>
+
+        <!-- Dialogue box -->
+        <div id="dialogue-box">
+            <div id="speaker-name"></div>
+            <div id="dialogue-text"></div>
+            <div id="choice-buttons"></div>
+        </div>
+
+        <!-- Product container 4a - Adventure -->
+        <div id="product-container-4a" class="product-container">
+            <div class="product-card"
+                 data-dialogue="Oh, yes. This is a cutting-edge budget game emulator - no better value for playing the classic games that shaped their genres. GRANT would be very interested in this; I happen to know they lost their old gameboy emulator on the train recently. It may sound silly, but all those games are why I, and the whole Academy, exist in the first place. It's on super-early-bird sale, so you can save a bit if you pre-order."
+                 data-link="https://www.indiegogo.com/en/projects/ayaneo/pocket-air-mini-first-4-3-retro-screen-handheld/rewards#/section/rewards/reward-product-596309">
+                <img src="Detour_ChristmasWishlist/Pics/PocketAirMini.png" alt="Ayaneo Pocket Air Mini">
+                <h3>Ayaneo Pocket Air Mini 3G+64G<br>(color Retro Power)</h3>
+            </div>
+            <div class="product-card"
+                 data-dialogue="An SSD upgrade. That's a nice follow-up to the Steam Deck you helped buy a few years ago. (Hmm? How do I know that? I suppose I must have some of my creator's memories. Or maybe it's a script? I cannot be positive.) GRANT would be happy to receive this, but I suspect it is less of a priority; the Steam Deck works okay as it currently is."
+                 data-link="https://www.ifixit.com/products/steam-deck-ssd-upgrade-kit?variant=41633339375719">
+                <img src="Detour_ChristmasWishlist/Pics/SSD.png" alt="Steam Deck SSD Upgrade">
+                <h3>Steam Deck SSD Upgrade kit</h3>
+            </div>
+        </div>
+
+        <!-- Product container 4b - Games -->
+        <div id="product-container-4b" class="product-container">
+            <div class="product-card"
+                 data-dialogue="Oh, how sporty! This little packable duffel would be perfect for GRANT. I happen to know their current one has a faulty zipper. They've had their eyes on this one for years; I dare say it's the number two on their wishlist after the emulator."
+                 data-link="https://www.matadorequipment.com/products/freefly-duffle?_pos=1&_sid=1e1c2563d&_ss=r">
+                <img src="Detour_ChristmasWishlist/Pics/Freefly.jpg" alt="Matador Freefly Duffle">
+                <h3>Matador Freefly Duffle</h3>
+            </div>
+            <div class="product-card"
+                 data-dialogue="A nice little thing in a world of LEDs. It uses teeny bits of gas from camp stove fuel to add a little ambiance. GRANT would use this all the time, but probably not until Spring."
+                 data-link="https://www.amazon.com/Fire-Maple-Isobutane-Beautiful-Must-Have-Emergency/dp/B07TYDLNGK?th=1">
+                <img src="Detour_ChristmasWishlist/Pics/Lantern.png" alt="Fire Maple Camping Lantern">
+                <h3>Fire Maple Camping Lantern</h3>
+            </div>
+        </div>
+
+        <!-- Product container 4c - Comfort -->
+        <div id="product-container-4c" class="product-container">
+            <div class="product-card"
+                 data-dialogue="GRANT has used one of these calendars to bullet-journal for the past five years. Imagine looking at your wall and seeing five years of full life alongside each other! Plus, it's a great connection to Oklahoma."
+                 data-link="https://stfrancisofthewoods.app.neoncrm.com/np/clients/stfrancisofthewoods/product.jsp?product=2&">
+                <img src="Detour_ChristmasWishlist/Pics/Calendar.jpg" alt="St. Francis of the Woods Oklahoma Wildcrafting Calendar">
+                <h3>St. Francis of the Woods Oklahoma Wildcrafting Calendar</h3>
+            </div>
+            <div class="product-card"
+                 data-dialogue="Oh, that looks comfy. My database shows that loopwheel weaving is a rare but time-honored tradition for seamless shirt bodies. ... Wait, is this the shirt that chef wore on that stressful TV show? Something about bears?"
+                 data-link="https://bronsonshop.com/collections/us-cotton-tubular-t-shirt/products/loopwheel-tubular-athletic-t-shirt-apricot">
+                <img src="Detour_ChristmasWishlist/Pics/Loopwheel.png" alt="Bronson Mfg Loopwheel t-shirt in Apricot">
+                <h3>Bronson Mfg Loopwheel t-shirt in Apricot (Large)</h3>
+            </div>
+        </div>
+
+        <!-- Ending overlay -->
+        <div id="ending-overlay">
+            <div id="ending-text">Merry Christmas and much love.<br>See you soon</div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div id="nav-buttons">
+            <button id="back-button" class="nav-button hidden" onclick="goBack()">◀ Back</button>
+        </div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="audio-shop" src="Music/23 - Shop.mp3" loop></audio>
+    <audio id="audio-temmie" src="Music/43 - Temmie Village.mp3" loop></audio>
+    <audio id="audio-musicbox" src="Music/13 - Home (Music Box).mp3"></audio>
+
+    <script>
+        // Frame data structure
+        const frames = {
+            0: { // Title screen
+                showTitle: true,
+                music: null
+            },
+            1: { // Frame 2 - Mousifer Introduction
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-overlap" },
+                speaker: "Mousifer",
+                dialogue: "Greetings, student! ... Oh. You look a bit, mm, mature to be a student at the Academy. Usually, we reserve our merchandise for apprentice Shapers who have earned ShopPoints ... Oh! You're shopping for someone else?",
+                choices: [
+                    { text: "Looking for GRANT's Christmas Wishlist", nextFrame: 2 },
+                    { text: "Just loitering", nextFrame: 3 }
+                ],
+                music: "shop"
+            },
+            2: { // Frame 3a - Mousifer Offers Help
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-overlap" },
+                speaker: "Mousifer",
+                dialogue: "I would be happy to help! No one at the Academy knows this, but GRANT was actually my programmer. What sort of gift are you looking for?",
+                choices: [
+                    { text: "Something for adventure", nextFrame: 4 },
+                    { text: "Something for games", nextFrame: 7 },
+                    { text: "Something for comfort", nextFrame: 8 }
+                ],
+                music: "shop"
+            },
+            3: { // Frame 3b - Easter Egg / Loitering
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-overlap" },
+                speaker: "Mousifer",
+                dialogue: "Oh, of course. Please take your time. Loitering is what campuses are for, after all. Just let me know if you get tired of the music.",
+                timedChoice: { delay: 7000, text: "Okay okay list please", nextFrame: 2 },
+                music: "temmie"
+            },
+            4: { // Frame 4a - Adventure Products
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-small" },
+                showProducts: "4a",
+                music: "shop",
+                continueToFrame: 5
+            },
+            5: { // Frame 5 - Return to Category Selection
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-overlap" },
+                speaker: "Mousifer",
+                dialogue: "Can I help you find anything else?",
+                choices: [
+                    { text: "Something for adventure", nextFrame: 4 },
+                    { text: "Something for games", nextFrame: 7 },
+                    { text: "Something for comfort", nextFrame: 8 },
+                    { text: "No, thank you", nextFrame: 6 }
+                ],
+                music: "shop"
+            },
+            6: { // Frame 6 - Ending
+                background: "Scenes/Campus Map.png",
+                showEnding: true,
+                music: "musicbox"
+            },
+            7: { // Frame 4b - Games Products
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-small" },
+                showProducts: "4b",
+                music: "shop",
+                continueToFrame: 5
+            },
+            8: { // Frame 4c - Comfort Products
+                background: "Sprites/Bookshop.png",
+                character: { show: true, position: "bottom-left-small" },
+                showProducts: "4c",
+                music: "shop",
+                continueToFrame: 5
+            }
+        };
+
+        // State management
+        let currentFrame = 0;
+        let frameHistory = [];
+        let currentAudio = null;
+
+        // Audio elements
+        const audioElements = {
+            shop: document.getElementById('audio-shop'),
+            temmie: document.getElementById('audio-temmie'),
+            musicbox: document.getElementById('audio-musicbox')
+        };
+
+        // DOM elements
+        const titleScreen = document.getElementById('title-screen');
+        const dialogueBox = document.getElementById('dialogue-box');
+        const speakerName = document.getElementById('speaker-name');
+        const dialogueText = document.getElementById('dialogue-text');
+        const choiceButtons = document.getElementById('choice-buttons');
+        const background = document.getElementById('background');
+        const backgroundImage = document.getElementById('background-image');
+        const mousiferSprite = document.getElementById('mousifer-sprite');
+        const productContainer4a = document.getElementById('product-container-4a');
+        const productContainer4b = document.getElementById('product-container-4b');
+        const productContainer4c = document.getElementById('product-container-4c');
+        const endingOverlay = document.getElementById('ending-overlay');
+        const backButton = document.getElementById('back-button');
+
+        // Initialize
+        function init() {
+            showFrame(0);
+            setupProductHovers();
+        }
+
+        // Start cutscene
+        function startCutscene() {
+            playMusic('shop');
+            goToFrame(1);
+        }
+
+        // Show frame
+        function showFrame(frameNum) {
+            currentFrame = frameNum;
+            const frame = frames[frameNum];
+
+            // Hide all elements first
+            titleScreen.classList.remove('visible');
+            dialogueBox.classList.remove('visible');
+            productContainer4a.classList.remove('visible');
+            productContainer4b.classList.remove('visible');
+            productContainer4c.classList.remove('visible');
+            endingOverlay.classList.remove('visible');
+            mousiferSprite.classList.remove('visible');
+            backButton.classList.add('hidden');
+
+            // Show title screen
+            if (frame.showTitle) {
+                titleScreen.classList.add('visible');
+                background.classList.add('visible');
+                return;
+            }
+
+            // Show background
+            if (frame.background) {
+                backgroundImage.src = frame.background;
+                background.classList.add('visible');
+            }
+
+            // Show character
+            if (frame.character && frame.character.show) {
+                mousiferSprite.className = 'character ' + frame.character.position;
+                mousiferSprite.classList.add('visible');
+            }
+
+            // Play music
+            if (frame.music) {
+                playMusic(frame.music);
+            }
+
+            // Show dialogue
+            if (frame.dialogue) {
+                speakerName.textContent = frame.speaker || '';
+                dialogueText.textContent = frame.dialogue;
+                dialogueBox.classList.add('visible');
+
+                // Show choices
+                if (frame.choices) {
+                    setTimeout(() => showChoices(frame.choices), 1000);
+                }
+
+                // Timed choice
+                if (frame.timedChoice) {
+                    setTimeout(() => {
+                        showChoices([{ text: frame.timedChoice.text, nextFrame: frame.timedChoice.nextFrame }]);
+                    }, frame.timedChoice.delay);
+                }
+            }
+
+            // Show products
+            if (frame.showProducts) {
+                const containerId = 'product-container-' + frame.showProducts;
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.classList.add('visible');
+                }
+                setTimeout(() => {
+                    if (frame.continueToFrame) {
+                        backButton.classList.remove('hidden');
+                    }
+                }, 500);
+            }
+
+            // Show ending
+            if (frame.showEnding) {
+                showEnding();
+            }
+
+            // Show back button for most frames
+            if (frameNum > 1 && !frame.showProducts && !frame.showEnding) {
+                backButton.classList.remove('hidden');
+            }
+        }
+
+        // Show choices
+        function showChoices(choices) {
+            choiceButtons.innerHTML = '';
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = 'choice-button';
+                button.textContent = choice.text;
+
+                if (choice.nextFrame === 999) {
+                    button.classList.add('disabled');
+                    button.textContent += ' (Coming soon!)';
+                    button.onclick = () => {
+                        alert('This category will be available in a future update!');
+                    };
+                } else {
+                    button.onclick = () => goToFrame(choice.nextFrame);
+                }
+
+                choiceButtons.appendChild(button);
+            });
+        }
+
+        // Go to frame
+        function goToFrame(frameNum) {
+            frameHistory.push(currentFrame);
+            showFrame(frameNum);
+        }
+
+        // Go back
+        function goBack() {
+            if (frameHistory.length > 0) {
+                const previousFrame = frameHistory.pop();
+                showFrame(previousFrame);
+            }
+        }
+
+        // Play music
+        function playMusic(trackName) {
+            // Stop current audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            // Play new audio
+            if (audioElements[trackName]) {
+                currentAudio = audioElements[trackName];
+                currentAudio.volume = 0.5;
+                currentAudio.play().catch(e => {
+                    console.log('Audio autoplay blocked. Will play on user interaction.');
+                });
+            }
+        }
+
+        // Setup product click effects
+        function setupProductHovers() {
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dialogue = this.getAttribute('data-dialogue');
+                    const link = this.getAttribute('data-link');
+
+                    // Show dialogue with "Check it out" button
+                    speakerName.textContent = 'Mousifer';
+                    dialogueText.textContent = dialogue;
+                    choiceButtons.innerHTML = '';
+
+                    // Create "Check it out" button
+                    const checkItOutButton = document.createElement('button');
+                    checkItOutButton.className = 'choice-button';
+                    checkItOutButton.textContent = 'Check it out';
+                    checkItOutButton.onclick = () => {
+                        window.open(link, '_blank');
+                        setTimeout(() => {
+                            if (frames[currentFrame].continueToFrame) {
+                                goToFrame(frames[currentFrame].continueToFrame);
+                            }
+                        }, 300);
+                    };
+                    choiceButtons.appendChild(checkItOutButton);
+
+                    dialogueBox.classList.add('visible');
+                });
+            });
+        }
+
+        // Show ending sequence
+        function showEnding() {
+            endingOverlay.classList.add('visible');
+            createSnowflakes();
+
+            // Zoom out effect (simplified)
+            setTimeout(() => {
+                background.style.transition = 'transform 10s ease-out, opacity 3s ease-out';
+                background.style.transform = 'scale(0.5)';
+                setTimeout(() => {
+                    background.style.opacity = '0';
+                }, 7000);
+            }, 2000);
+        }
+
+        // Create snowflakes
+        function createSnowflakes() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.textContent = '❄';
+                    snowflake.style.left = Math.random() * 100 + 'vw';
+                    snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    snowflake.style.animationDelay = Math.random() + 's';
+                    endingOverlay.appendChild(snowflake);
+                }, i * 100);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                if (!backButton.classList.contains('hidden')) {
+                    e.preventDefault();
+                    goBack();
+                }
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
