@@ -366,11 +366,13 @@
             }
 
             #dialogue-box {
-                font-size: 0.85em;
-                width: 92%;
-                padding: 12px 15px;
-                bottom: 2vh;
-                max-height: 40vh;
+                font-size: 0.9em;
+                width: 90%;
+                padding: 15px 18px;
+                bottom: auto;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                max-height: 60vh;
                 overflow-y: auto;
             }
 
@@ -379,12 +381,12 @@
             }
 
             .character.bottom-left-overlap {
-                height: 28vh;
+                height: 14vh;
                 left: 1vw;
             }
 
             .character.bottom-left-small {
-                height: 14vh;
+                height: 7vh;
                 left: 1vw;
                 bottom: 1vh;
             }
@@ -448,10 +450,10 @@
             }
 
             #dialogue-box {
-                font-size: 0.75em;
-                padding: 10px 12px;
-                width: 94%;
-                max-height: 45vh;
+                font-size: 0.85em;
+                padding: 12px 15px;
+                width: 92%;
+                max-height: 65vh;
             }
 
             #speaker-name {
@@ -459,11 +461,11 @@
             }
 
             .character.bottom-left-overlap {
-                height: 24vh;
+                height: 12vh;
             }
 
             .character.bottom-left-small {
-                height: 11vh;
+                height: 6vh;
             }
 
             .product-container {
@@ -500,19 +502,20 @@
         /* Landscape orientation on mobile */
         @media (max-width: 768px) and (orientation: landscape) {
             .character.bottom-left-overlap {
-                height: 50vh;
+                height: 20vh;
             }
 
             .character.bottom-left-small {
-                height: 25vh;
+                height: 10vh;
             }
 
             #dialogue-box {
-                bottom: 2vh;
+                top: 50%;
+                max-height: 70vh;
             }
 
             .product-container {
-                top: 3vh;
+                top: 5vh;
             }
         }
     </style>
