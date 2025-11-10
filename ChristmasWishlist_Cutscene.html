@@ -383,16 +383,16 @@
 
             .character.bottom-left-overlap {
                 height: 30vh;
-                left: 50%;
-                transform: translateX(-50%);
+                left: 5%;
+                transform: none;
                 bottom: 0;
                 z-index: 5;
             }
 
             .character.bottom-left-small {
                 height: 15vh;
-                left: 50%;
-                transform: translateX(-50%);
+                left: 5%;
+                transform: none;
                 bottom: 0;
                 z-index: 5;
             }
@@ -404,7 +404,9 @@
             }
 
             #background-image {
-                object-position: center bottom;
+                object-position: 80% bottom;
+                transform: scale(2);
+                transform-origin: right bottom;
             }
 
             #background {
@@ -479,16 +481,22 @@
 
             .character.bottom-left-overlap {
                 height: 25vh;
+                left: 5%;
                 bottom: 0;
             }
 
             .character.bottom-left-small {
                 height: 12vh;
+                left: 5%;
                 bottom: 0;
             }
 
             #nav-buttons {
                 top: 1.5vh;
+            }
+
+            #background-image {
+                transform: scale(2);
             }
 
             .product-container {
