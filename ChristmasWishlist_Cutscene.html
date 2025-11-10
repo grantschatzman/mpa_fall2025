@@ -54,7 +54,7 @@
             position: absolute;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
-            z-index: 8;
+            z-index: 5;
         }
 
         .character.visible {
@@ -142,7 +142,7 @@
             border-radius: 15px;
             font-size: 1.2em;
             line-height: 1.6;
-            z-index: 5;
+            z-index: 4;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease-in-out;
@@ -370,10 +370,11 @@
                 width: 90%;
                 padding: 15px 18px;
                 bottom: auto;
-                top: 50%;
+                top: 40%;
                 transform: translate(-50%, -50%);
-                max-height: 60vh;
+                max-height: 55vh;
                 overflow-y: auto;
+                z-index: 4;
             }
 
             #speaker-name {
@@ -381,23 +382,33 @@
             }
 
             .character.bottom-left-overlap {
-                height: 14vh;
+                height: 30vh;
                 left: 50%;
                 transform: translateX(-50%);
-                bottom: 10vh;
+                bottom: 0;
+                z-index: 5;
             }
 
             .character.bottom-left-small {
-                height: 7vh;
+                height: 15vh;
                 left: 50%;
                 transform: translateX(-50%);
-                bottom: 5vh;
+                bottom: 0;
+                z-index: 5;
             }
 
             #nav-buttons {
                 bottom: auto;
                 top: 2vh;
                 right: 2vw;
+            }
+
+            #background-image {
+                object-position: center bottom;
+            }
+
+            #background {
+                z-index: 1;
             }
 
             .product-container {
@@ -439,10 +450,6 @@
                 word-wrap: break-word;
                 max-width: 90vw;
             }
-
-            #background-image {
-                object-position: center center;
-            }
         }
 
         /* Extra small devices */
@@ -462,7 +469,8 @@
                 font-size: 0.85em;
                 padding: 12px 15px;
                 width: 92%;
-                max-height: 65vh;
+                max-height: 55vh;
+                top: 38%;
             }
 
             #speaker-name {
@@ -470,13 +478,13 @@
             }
 
             .character.bottom-left-overlap {
-                height: 12vh;
-                bottom: 8vh;
+                height: 25vh;
+                bottom: 0;
             }
 
             .character.bottom-left-small {
-                height: 6vh;
-                bottom: 4vh;
+                height: 12vh;
+                bottom: 0;
             }
 
             #nav-buttons {
