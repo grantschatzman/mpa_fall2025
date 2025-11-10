@@ -698,7 +698,7 @@
                 character: { show: true, position: "bottom-left-overlap" },
                 speaker: "Mousifer",
                 dialogue: "Oh, of course. Please take your time. Loitering is what campuses are for, after all. Just let me know if you get tired of the music.",
-                timedChoice: { delay: 2500, text: "Okay okay list please", nextFrame: 2 },
+                timedChoice: { delay: 7000, text: "Okay okay list please", nextFrame: 2 },
                 music: "temmie"
             },
             4: { // Frame 4a - Adventure Products
@@ -795,6 +795,7 @@
             endingOverlay.classList.remove('visible');
             mousiferSprite.classList.remove('visible');
             backButton.classList.add('hidden');
+            choiceButtons.innerHTML = ''; // Clear any previous choice buttons
 
             // Reset background styles (in case returning from ending)
             background.style.transform = '';
