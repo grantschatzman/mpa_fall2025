@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midterms: Preparation - My Pixel Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            background: #1a1a1a;
+            color: #F5E6D3;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #cutscene-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Background */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: 1;
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        #background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform-origin: center center;
+        }
+
+        /* Parchment overlay for library scenes */
+        #parchment-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #F5E6D3 0%, #E8DCC8 100%);
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #parchment-overlay.visible {
+            opacity: 0.025;
+        }
+
+        /* Characters */
+        .character {
+            position: absolute;
+            image-rendering: pixelated;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 10;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        /* Character Positions */
+        .custodian-near-dormitory {
+            bottom: 8%;
+            left: 14%;
+            height: 20vh;
+        }
+
+        .bottom-left-overlap {
+            bottom: 0;
+            left: 2vw;
+            height: 50vh;
+        }
+
+        /* Title Page */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        #title-screen.visible {
+            display: flex;
+        }
+
+        #title-box {
+            background: rgba(139, 69, 69, 0.95);
+            border: 4px solid #8B4545;
+            border-radius: 20px;
+            padding: 50px 80px;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        #title-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: #F5E6D3;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #subtitle-text {
+            font-size: 24px;
+            color: #D4A574;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        #click-to-continue {
+            font-size: 18px;
+            color: #4EC9B0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Dialogue Box */
+        #dialogue-box {
+            position: absolute;
+            background: rgba(139, 69, 69, 0.95);
+            border: 3px solid #8B4545;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 80%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 20;
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #dialogue-box.bottom-center {
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.top-left {
+            top: 5vh;
+            left: 5vw;
+        }
+
+        #speaker-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #D4A574;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #dialogue-text {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #F5E6D3;
+        }
+
+        /* Navigation Buttons */
+        #nav-buttons {
+            position: absolute;
+            bottom: 2vh;
+            right: 2vw;
+            display: flex;
+            gap: 15px;
+            z-index: 50;
+        }
+
+        .nav-button {
+            background: rgba(78, 201, 176, 0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .nav-button:hover {
+            background: rgba(78, 201, 176, 1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(78, 201, 176, 0.4);
+        }
+
+        .nav-button:active {
+            transform: translateY(-1px);
+        }
+
+        .nav-button.hidden {
+            display: none;
+        }
+
+        /* Special Animations */
+        @keyframes slowZoom {
+            from { transform: scale(0.5); }
+            to { transform: scale(1.3); }
+        }
+
+        .zoom-in-slow #background-image {
+            animation: slowZoom 50s ease-in-out forwards;
+            transform-origin: top center;
+        }
+
+        .frame4-library #background-image {
+            transform: scale(.70) translateY(-20px); 
+            transform-origin: top center;
+        }
+        /* Red tint overlay for ominous library scenes */
+        #red-tint-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(139, 0, 0, 0) 0%, rgba(80, 0, 0, 0.4) 100%);
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        #red-tint-overlay.visible {
+            opacity: 1;
+        }
+
+        /* Different intensity levels */
+        #red-tint-overlay.intensity-1 { opacity: 0.2; }
+        #red-tint-overlay.intensity-2 { opacity: 0.4; }
+        #red-tint-overlay.intensity-3 { opacity: 0.6; }
+        #red-tint-overlay.intensity-4 { opacity: 0.8; }
+
+        /* Task List Box */
+        #task-list-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(78, 201, 176, 0.95);
+            border: 4px solid #4EC9B0;
+            border-radius: 20px;
+            padding: 40px 60px;
+            max-width: 80%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            z-index: 30;
+        }
+
+        #task-list-box.visible {
+            opacity: 1;
+        }
+
+        #task-list-header {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #task-list {
+            font-size: 18px;
+            line-height: 2;
+            color: #1a1a1a;
+        }
+
+        #task-list li {
+            margin-bottom: 15px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            #title-text {
+                font-size: 32px;
+            }
+
+            #subtitle-text {
+                font-size: 18px;
+            }
+
+            #title-box {
+                padding: 30px 40px;
+            }
+
+            #dialogue-box {
+                max-width: 90%;
+                padding: 20px;
+            }
+
+            #dialogue-text {
+                font-size: 14px;
+            }
+
+            .nav-button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .custodian-near-dormitory {
+                height: 10vh;
+            }
+
+            .bottom-left-overlap {
+                height: 22vh;
+            }
+
+            #task-list-box {
+                max-width: 90%;
+                padding: 30px 40px;
+            }
+
+            #task-list-header {
+                font-size: 22px;
+            }
+
+            #task-list {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <!-- Background -->
+        <div id="background">
+            <img id="background-image" src="" alt="Background">
+        </div>
+
+        <!-- Parchment Overlay (for library scenes) -->
+        <div id="parchment-overlay"></div>
+
+        <!-- Red Tint Overlay (for ominous library scenes) -->
+        <div id="red-tint-overlay"></div>
+
+        <!-- Task List Box (final frame) -->
+        <div id="task-list-box">
+            <div id="task-list-header">You Must Choose Roles and Work Together</div>
+            <ul id="task-list">
+                <li><strong>Create a setting</strong> that either makes the creature more peaceful or weaker</li>
+                <li><strong>Focus on the natural environment</strong> that will either pacify or weaken them</li>
+                <li><strong>Create a character to encounter the creature</strong>, a foil, whether as a friend or an enemy</li>
+                <li><strong>Write a careful description</strong> for a scene about how the encounter should go</li>
+            </ul>
+        </div>
+
+        <!-- Title Screen -->
+        <div id="title-screen" class="visible">
+            <div id="title-box">
+                <div id="title-text">Midterms: Preparation</div>
+                <div id="subtitle-text">A My Pixel Academy Story</div>
+                <div id="click-to-continue">Click or press any key to continue...</div>
+            </div>
+        </div>
+
+        <!-- Characters -->
+        <img class="character" id="custodian" src="Sprites/Custodian.png" alt="Custodian">
+
+        <!-- Dialogue Box -->
+        <div id="dialogue-box">
+            <div id="speaker-name"></div>
+            <div id="dialogue-text"></div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div id="nav-buttons">
+            <button class="nav-button" id="back-button" onclick="goBack()">◀ Back</button>
+            <button class="nav-button" id="forward-button" onclick="goForward()">Continue ▶</button>
+        </div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="music-player" preload="auto"></audio>
+
+    <script>
+        // Frame data structure
+        const frames = {
+            0: { // Title Page
+                showTitle: true,
+                music: null
+            },
+            1: { // Scene 1 - Frame 2 in storyboard
+                background: "Scenes/Campus Map.png",
+                character: { show: true, id: "custodian", position: "custodian-near-dormitory" },
+                speaker: "",
+                dialogue: "You emerge from the Dormitory to find the Custodian waiting for you, his face wrinkled with worry, his eyes lacking their normal twinkle.",
+                dialoguePosition: "top-left",
+                music: "Music/Empty Town.mp3",
+                parchment: false
+            },
+            2: { // Frame 2b
+                background: "Scenes/Campus Map.png",
+                character: { show: true, id: "custodian", position: "custodian-near-dormitory" },
+                speaker: "Custodian",
+                dialogue: "Students, greetings. I've been following your progress, and I am impressed with how you've taken to your Shaping studies. You have learned more than you realize.",
+                dialoguePosition: "bottom-center",
+                parchment: false
+            },
+            3: { // Frame 2c
+                background: "Scenes/Campus Map.png",
+                character: { show: true, id: "custodian", position: "custodian-near-dormitory" },
+                speaker: "Custodian",
+                dialogue: "Typically, this is the time of the year where students busy themselves in the Library preparing to demonstrate their learning in Midterm exams. And while I would like nothing more than to afford you the same opportunity, there is … well, a situation.",
+                dialoguePosition: "bottom-center",
+                parchment: false
+            },
+            4: { // Frame 2d
+                background: "Scenes/Campus Map.png",
+                character: { show: true, id: "custodian", position: "custodian-near-dormitory" },
+                speaker: "Custodian",
+                dialogue: "You see, the Library has been overtaken by monsters, and they're eating all the books.",
+                dialoguePosition: "bottom-center",
+                musicFadeOut: "Music/Empty Town.mp3",
+                parchment: false
+            },
+            5: { // Frame 3 - Library scene
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "You know now about the Wellspring - the great source of knowledge and creativity that empowered the Four Founders to Shape this great academy out of pure will and imagination.",
+                dialoguePosition: "bottom-center",
+                music: "Music/01 - ANOTHER HIM.mp3",
+                parchment: true,
+                zoom: true
+            },
+            6: { // Frame 3b
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "Well, it appears the Founders were not the only ones interested in the Wellspring. Deep below the earth, at the source of the spring, creatures of all kinds have long fed from its waters. Now that this Academy has been Shaped with the Wellspring's power - every brick and book of it - they seem to have developed a new hunger.",
+                dialoguePosition: "bottom-center",
+                parchment: true,
+                zoom: true
+            },
+            7: { // Frame 3c
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "The creatures have emerged from the earth beneath the Library, and they're eating all the books.",
+                dialoguePosition: "bottom-center",
+                musicFadeOut: "Music/01 - ANOTHER HIM.mp3",
+                parchment: true,
+                zoom: true
+            },
+            8: { // Frame 4 - Stay at library with red tint
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "My dear students, the Academy needs your help. For now, we've barricaded the creatures in the Library, but that won't last long. With the Four Founders away, you are the only ones with the power to stop the creatures before break free and, perhaps, consume the entire campus.",
+                dialoguePosition: "bottom-center",
+                music: "Music/The Legend.mp3",
+                parchment: false,
+                redTint: 1,
+                frame4Library: true
+            },
+            9: { // Frame 4b - Library with darker red tint
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "Little is known about the creatures, but some appear to have taken on the appearance of characters from the library books, including Queen Luxa of Regalia and Marilla Cuthbert of Avonlea. If the creatures have taken on the appearance of these characters, logically, it stands to reason that they may have similar traits, as well.",
+                dialoguePosition: "bottom-center",
+                parchment: false,
+                redTint: 2,
+                frame4Library: true
+            },
+            10: { // Frame 4c - Library with red tint
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "Using your knowledge of these characters and their traits, you must work together to plan our defense. Your Shaping powers will let you do more than you realize.",
+                dialoguePosition: "bottom-center",
+                parchment: false,
+                redTint: 2,
+                frame4Library: true
+            },
+            11: { // Frame 4d - Library with darker red tint
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "First, you must decide where the encounter will take place: one of you must <b>create a setting that either makes the creature more peaceful or weaker</b>. Another must <b>focus on the natural environment</b> that will either pacify or weaken them. A third must then <b>create a character to encounter the creature, a foil</b>, whether as a friend or an enemy. Finally, a fourth will need to <b>write a careful description for a scene about how the encounter should go</b>.",
+                dialoguePosition: "bottom-center",
+                parchment: false,
+                redTint: 3,
+                frame4Library: true
+            },
+            12: { // Frame 4e - Library with maximum red tint
+                background: "Sprites/Library.png",
+                character: { show: true, id: "custodian", position: "bottom-left-overlap" },
+                speaker: "Custodian",
+                dialogue: "Please, unite your efforts to work together in harmony, as the Four Founders once did. You may be the only ones that can save the Academy.",
+                dialoguePosition: "bottom-center",
+                musicFadeOut: "Music/The Legend.mp3",
+                parchment: false,
+                redTint: 4,
+                frame4Library: true
+            },
+            13: { // Final instruction frame - Library on dark background, no music, no character
+                background: "Sprites/Library.png",
+                character: { show: false },
+                showTaskList: true,
+                dialoguePosition: "bottom-center",
+                parchment: false,
+                darkBackground: true
+            }
+        };
+
+        // State
+        let currentFrame = 0;
+        let frameHistory = [];
+        let currentMusic = null;
+        let musicFading = false;
+
+        // Elements
+        const titleScreen = document.getElementById('title-screen');
+        const background = document.getElementById('background');
+        const backgroundImage = document.getElementById('background-image');
+        const parchmentOverlay = document.getElementById('parchment-overlay');
+        const redTintOverlay = document.getElementById('red-tint-overlay');
+        const dialogueBox = document.getElementById('dialogue-box');
+        const speakerName = document.getElementById('speaker-name');
+        const dialogueText = document.getElementById('dialogue-text');
+        const musicPlayer = document.getElementById('music-player');
+        const backButton = document.getElementById('back-button');
+        const forwardButton = document.getElementById('forward-button');
+        const custodianSprite = document.getElementById('custodian');
+        const taskListBox = document.getElementById('task-list-box');
+
+        // Initialize
+        function init() {
+            // Title screen click handler
+            titleScreen.addEventListener('click', startCutscene);
+            document.addEventListener('keydown', handleTitleKeypress);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', handleKeyPress);
+
+            // Hide back button on first frame
+            backButton.classList.add('hidden');
+        }
+
+        function handleTitleKeypress(e) {
+            if (currentFrame === 0) {
+                startCutscene();
+            }
+        }
+
+        function startCutscene() {
+            titleScreen.classList.remove('visible');
+            document.removeEventListener('keydown', handleTitleKeypress);
+            goForward();
+        }
+
+        // Navigation
+        function goForward() {
+            if (currentFrame < Object.keys(frames).length - 1) {
+                frameHistory.push(currentFrame);
+                currentFrame++;
+                showFrame(currentFrame);
+            }
+        }
+
+        function goBack() {
+            if (frameHistory.length > 0) {
+                currentFrame = frameHistory.pop();
+                showFrame(currentFrame);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (currentFrame === 0) return; // Title screen handled separately
+
+            switch(e.key) {
+                case 'ArrowRight':
+                case ' ':
+                case 'Enter':
+                    goForward();
+                    break;
+                case 'ArrowLeft':
+                case 'Backspace':
+                    e.preventDefault();
+                    goBack();
+                    break;
+            }
+        }
+
+        // Display frame
+        function showFrame(frameNum) {
+            const frame = frames[frameNum];
+
+            // Hide all elements first
+            background.classList.remove('visible');
+            dialogueBox.classList.remove('visible');
+            custodianSprite.classList.remove('visible');
+            parchmentOverlay.classList.remove('visible');
+            background.classList.remove('zoom-in-slow');
+            taskListBox.classList.remove('visible');
+
+            // Remove red tint overlay
+            redTintOverlay.classList.remove('visible', 'intensity-1', 'intensity-2', 'intensity-3', 'intensity-4');
+
+            // Remove dark background styling if present
+            document.getElementById('cutscene-container').style.background = '#1a1a1a';
+
+            // Update back button visibility
+            if (frameHistory.length > 0) {
+                backButton.classList.remove('hidden');
+            } else {
+                backButton.classList.add('hidden');
+            }
+
+            // Show title screen
+            if (frame.showTitle) {
+                titleScreen.classList.add('visible');
+                return;
+            }
+
+            // Apply dark background if specified
+            if (frame.darkBackground) {
+                document.getElementById('cutscene-container').style.background = '#0a0a0a';
+            }
+
+            // Show background
+            if (frame.background) {
+                backgroundImage.src = frame.background;
+                background.classList.add('visible');
+            }
+
+            // Show parchment overlay
+            if (frame.parchment) {
+                parchmentOverlay.classList.add('visible');
+            }
+
+            // Apply zoom effect
+            if (frame.zoom) {
+                background.classList.add('zoom-in-slow');
+            }
+
+              // Apply frame 4 library positioning
+            if (frame.frame4Library) {
+                background.classList.add('frame4-library');
+            }
+
+            // Apply red tint overlay with intensity
+            if (frame.redTint) {
+                redTintOverlay.classList.add('visible', 'intensity-' + frame.redTint);
+            }
+
+            // Show task list (final frame)
+            if (frame.showTaskList) {
+                setTimeout(() => {
+                    taskListBox.classList.add('visible');
+                }, 500);
+            }
+
+            // Show character
+            if (frame.character && frame.character.show) {
+                const characterElement = document.getElementById(frame.character.id);
+                characterElement.className = 'character ' + frame.character.position + ' visible';
+            }
+
+            // Show dialogue
+            if (frame.dialogue) {
+                speakerName.textContent = frame.speaker || '';
+                dialogueText.innerHTML = frame.dialogue;
+
+                // Position dialogue box
+                dialogueBox.className = 'visible';
+                if (frame.dialoguePosition === 'top-left') {
+                    dialogueBox.classList.add('top-left');
+                } else {
+                    dialogueBox.classList.add('bottom-center');
+                }
+
+                setTimeout(() => {
+                    dialogueBox.classList.add('visible');
+                }, 300);
+            }
+
+            // Music management
+            if (frame.music && currentMusic !== frame.music) {
+                playMusic(frame.music);
+            }
+
+            if (frame.musicFadeOut && currentMusic === frame.musicFadeOut) {
+                fadeOutMusic();
+            }
+        }
+
+        // Music functions
+        function playMusic(track) {
+            if (musicFading) return;
+
+            if (currentMusic) {
+                fadeOutMusic(() => {
+                    loadAndPlayMusic(track);
+                });
+            } else {
+                loadAndPlayMusic(track);
+            }
+        }
+
+        function loadAndPlayMusic(track) {
+            currentMusic = track;
+            musicPlayer.src = track;
+            musicPlayer.volume = 0;
+            musicPlayer.play();
+
+            // Fade in
+            let volume = 0;
+            const fadeIn = setInterval(() => {
+                if (volume < 0.6) {
+                    volume += 0.02;
+                    musicPlayer.volume = Math.min(volume, 0.6);
+                } else {
+                    clearInterval(fadeIn);
+                }
+            }, 100);
+        }
+
+        function fadeOutMusic(callback) {
+            if (!currentMusic) {
+                if (callback) callback();
+                return;
+            }
+
+            musicFading = true;
+            let volume = musicPlayer.volume;
+
+            const fadeOut = setInterval(() => {
+                if (volume > 0.02) {
+                    volume -= 0.02;
+                    musicPlayer.volume = Math.max(volume, 0);
+                } else {
+                    clearInterval(fadeOut);
+                    musicPlayer.pause();
+                    musicPlayer.currentTime = 0;
+                    currentMusic = null;
+                    musicFading = false;
+                    if (callback) callback();
+                }
+            }, 100);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
