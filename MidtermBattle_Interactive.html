@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midterm: Creature Encounter - My Pixel Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            background: #1a1a1a;
+            color: #F5E6D3;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Background */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        /* Dark overlay for shadow effect */
+        #dark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #dark-overlay.visible {
+            opacity: 1;
+        }
+
+        /* Flash effect for light burst */
+        #flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        /* Title Screen */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        #title-screen.hidden {
+            display: none;
+        }
+
+        #title-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: #F5E6D3;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        #character-selection {
+            display: flex;
+            gap: 60px;
+            margin-top: 30px;
+        }
+
+        .character-choice {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+
+        .character-choice:hover {
+            transform: scale(1.1);
+        }
+
+        .character-choice img {
+            height: 200px;
+            image-rendering: pixelated;
+            margin-bottom: 15px;
+        }
+
+        .character-label {
+            font-size: 24px;
+            color: #D4A574;
+            font-weight: bold;
+        }
+
+        /* Door Health Bar */
+        #door-health-container {
+            position: absolute;
+            top: 13vh;
+            left: 52%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1px;
+            z-index: 15;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .door-health {
+            height: 60px;
+            width: 90px;
+            image-rendering: pixelated;
+            transition: transform 0.2s ease;
+        }
+
+        /* Creature Sprite */
+        #creature-sprite {
+            position: absolute;
+            bottom: 1%;
+            left: 10%;
+            height: 50vh;
+            image-rendering: pixelated;
+            z-index: 10;
+            cursor: pointer;
+            transition: filter 0.3s ease;
+        }
+
+        #creature-sprite.attacking {
+            filter: drop-shadow(0 0 20px red);
+            animation: pulse-red 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { filter: drop-shadow(0 0 20px red); }
+            50% { filter: drop-shadow(0 0 40px red); }
+        }
+
+        /* Creature Health Bar */
+        #creature-health-container {
+            position: absolute;
+            bottom: calc(5% + 40vh + 5px);
+            left: 15%;
+            display: flex;
+            gap: 1px;
+            z-index: 15;
+            transform: translateX(0);
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .creature-health {
+            height: 60px;
+            width: 90px;
+            image-rendering: pixelated;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .creature-health:hover {
+            transform: scale(1.2);
+        }
+
+        /* Action Buttons */
+        #action-buttons {
+            position: absolute;
+            right: 5vw;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 15;
+        }
+
+        .action-button {
+            background: rgba(78, 201, 176, 0.9);
+            border: 3px solid #4EC9B0;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            min-width: 250px;
+            text-align: center;
+        }
+
+        .action-button:hover {
+            background: rgba(78, 201, 176, 1);
+            transform: translateX(-10px);
+            box-shadow: 0 5px 15px rgba(78, 201, 176, 0.5);
+        }
+
+        .action-button.used {
+            background: rgba(100, 100, 100, 0.5);
+            border-color: #666;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .action-button.used:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .action-button.hidden {
+            display: none;
+        }
+
+        #action-buttons.hidden {
+            display: none;
+        }
+
+        /* Prompt Box */
+        #prompt-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 69, 0.95);
+            border: 4px solid #8B4545;
+            border-radius: 20px;
+            padding: 40px 60px;
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            z-index: 20;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #prompt-box.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #prompt-text {
+            font-size: 32px;
+            color: #F5E6D3;
+            margin-bottom: 20px;
+        }
+
+        #prompt-instructions {
+            font-size: 18px;
+            color: #D4A574;
+            line-height: 1.6;
+            display: none;
+        }
+
+        #back-button {
+            background: rgba(200, 100, 100, 0.9);
+            border: 3px solid #8B4545;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #F5E6D3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+        }
+
+        #back-button:hover {
+            background: rgba(200, 100, 100, 1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(200, 100, 100, 0.5);
+        }
+
+        /* Revision Mode Back Button */
+        #revision-back-button {
+            position: absolute;
+            bottom: 5vh;
+            left: 85%;
+            transform: translateX(-50%);
+            background: rgba(23, 31, 114, 0.9);
+            border: 3px solid #d3d3d3;
+            border-radius: 10px;
+            padding: 8px 22px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #F5E6D3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 25;
+        }
+
+        #revision-back-button.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #revision-back-button:hover {
+            background: rgba(200, 100, 100, 1);
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(200, 100, 100, 0.5);
+        }
+
+        /* Result Message */
+        #result-message {
+            position: absolute;
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 69, 69, 0.95);
+            border: 3px solid #8B4545;
+            border-radius: 15px;
+            padding: 20px 40px;
+            font-size: 20px;
+            color: #F5E6D3;
+            text-align: center;
+            max-width: 80%;
+            opacity: 0;
+            z-index: 25;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #result-message.visible {
+            opacity: 1;
+        }
+
+        /* End Screen */
+        #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #end-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #end-title {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        #end-message {
+            font-size: 24px;
+            color: #D4A574;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        #end-message p {
+            margin-bottom: 20px;
+        }
+
+        .victory {
+            color: #4EC9B0;
+        }
+
+        .defeat {
+            color: #CC6666;
+        }
+
+        /* End Screen Button */
+        #end-button {
+            background: rgba(78, 201, 176, 0.9);
+            border: 3px solid #4EC9B0;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            margin-top: 40px;
+        }
+
+        #end-button:hover {
+            background: rgba(78, 201, 176, 1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(78, 201, 176, 0.5);
+        }
+
+        /* Sprite fade and dissolve effects */
+        .fade-to-friendly {
+            animation: fadeSprite 1.5s ease-in-out forwards;
+        }
+
+        .dissolve {
+            animation: dissolveSprite 2.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeSprite {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            51% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes dissolveSprite {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); filter: blur(10px); }
+        }
+
+        /* Black flash overlay */
+        #black-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            opacity: 0;
+            z-index: 50;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background -->
+        <div id="background">
+            <img id="background-image" src="Scenes/Library_Interior_Closed.png" alt="Library Interior">
+        </div>
+
+        <!-- Overlays -->
+        <div id="dark-overlay"></div>
+        <div id="flash-overlay"></div>
+        <div id="black-flash"></div>
+
+        <!-- Title Screen -->
+        <div id="title-screen">
+            <div id="title-text">Midterm: Creature Encounter</div>
+            <div>Choose Your Opponent:</div>
+            <div id="character-selection">
+                <div class="character-choice" onclick="selectCreature('marilla')">
+                    <img src="Sprites/Marilla_Back.png" alt="Marilla">
+                    <div class="character-label">Marilla</div>
+                </div>
+                <div class="character-choice" onclick="selectCreature('luxa')">
+                    <img src="Sprites/Luxa_Back.png" alt="Luxa">
+                    <div class="character-label">Luxa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Door Health Bar -->
+        <div id="door-health-container"></div>
+
+        <!-- Creature Sprite -->
+        <img id="creature-sprite" src="" alt="Creature">
+
+        <!-- Creature Health Bar -->
+        <div id="creature-health-container"></div>
+
+        <!-- Action Buttons -->
+        <div id="action-buttons">
+            <button class="action-button" onclick="useAction('setting')">Shape Setting</button>
+            <button class="action-button" onclick="useAction('environment')">Shape Natural Environment</button>
+            <button class="action-button" onclick="useAction('character')">Shape Character</button>
+            <button class="action-button" onclick="useAction('scenario')">Shape Scenario</button>
+        </div>
+
+        <!-- Prompt Box -->
+        <div id="prompt-box">
+            <div id="prompt-text">Is it effective?</div>
+            <div id="prompt-instructions">
+                Press <strong>R</strong> to Revise<br>
+                Press <strong>D</strong> to Defeat the Creature<br>
+                Press <strong>F</strong> to Befriend the Creature
+            </div>
+            <button id="back-button" onclick="backFromPrompt()">Back</button>
+        </div>
+
+        <!-- Result Message -->
+        <div id="result-message"></div>
+
+        <!-- Revision Mode Back Button -->
+        <button id="revision-back-button" onclick="returnToActions()">Return to Actions</button>
+
+        <!-- End Screen -->
+        <div id="end-screen">
+            <div id="end-title"></div>
+            <div id="end-message"></div>
+            <button id="end-button" onclick="returnToCustodian()">Return to the Custodian</button>
+        </div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="music-player" loop preload="auto">
+        <source src="Music/45 - NGAHHH!!.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Game State
+        let gameState = {
+            creature: null, // 'marilla' or 'luxa'
+            doorHealth: 4,
+            creatureHealth: 4,
+            goodHealth: 0,
+            currentAction: null,
+            usedActions: [],
+            inRevision: false,
+            gameOver: false
+        };
+
+        // Elements
+        const titleScreen = document.getElementById('title-screen');
+        const creatureSprite = document.getElementById('creature-sprite');
+        const darkOverlay = document.getElementById('dark-overlay');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const blackFlash = document.getElementById('black-flash');
+        const backgroundImage = document.getElementById('background-image');
+        const promptBox = document.getElementById('prompt-box');
+        const resultMessage = document.getElementById('result-message');
+        const endScreen = document.getElementById('end-screen');
+        const endTitle = document.getElementById('end-title');
+        const endMessage = document.getElementById('end-message');
+        const musicPlayer = document.getElementById('music-player');
+        const actionButtons = document.getElementById('action-buttons');
+        const revisionBackButton = document.getElementById('revision-back-button');
+
+        // Select creature and start game
+        function selectCreature(creature) {
+            gameState.creature = creature;
+            titleScreen.classList.add('hidden');
+
+            // Set creature sprite
+            if (creature === 'marilla') {
+                creatureSprite.src = 'Sprites/Marilla_Evil.png';
+            } else {
+                creatureSprite.src = 'Sprites/Luxa_Evil.png';
+            }
+
+            // Initialize health bars
+            initializeHealthBars();
+
+            // Start music
+            musicPlayer.volume = 0.6;
+            musicPlayer.play();
+        }
+
+        // Initialize health bars
+        function initializeHealthBars() {
+            const doorHealthContainer = document.getElementById('door-health-container');
+            const creatureHealthContainer = document.getElementById('creature-health-container');
+
+            // Door health
+            doorHealthContainer.innerHTML = '';
+            for (let i = 0; i < gameState.doorHealth; i++) {
+                const healthIcon = document.createElement('img');
+                healthIcon.src = 'Sprites/DoorHealth.png';
+                healthIcon.className = 'door-health';
+                doorHealthContainer.appendChild(healthIcon);
+            }
+
+            // Creature health (all bad initially)
+            creatureHealthContainer.innerHTML = '';
+            for (let i = 0; i < gameState.creatureHealth; i++) {
+                const healthIcon = document.createElement('img');
+                healthIcon.src = 'Sprites/Heart_Bad.png';
+                healthIcon.className = 'creature-health';
+                healthIcon.dataset.index = i;
+                healthIcon.onclick = function() {
+                    convertHealthToGood(this);
+                };
+                creatureHealthContainer.appendChild(healthIcon);
+            }
+
+            // Make creature sprite clickable - returns to actions in revision mode
+            creatureSprite.onclick = () => {
+                if (gameState.inRevision) {
+                    returnToActions();
+                }
+            };
+        }
+
+        // Update health bars
+        function updateHealthBars() {
+            const doorHealthContainer = document.getElementById('door-health-container');
+            const creatureHealthContainer = document.getElementById('creature-health-container');
+
+            // Update door health
+            doorHealthContainer.innerHTML = '';
+            for (let i = 0; i < gameState.doorHealth; i++) {
+                const healthIcon = document.createElement('img');
+                healthIcon.src = 'Sprites/DoorHealth.png';
+                healthIcon.className = 'door-health';
+                doorHealthContainer.appendChild(healthIcon);
+            }
+
+            // Check for defeat
+            if (gameState.doorHealth <= 0) {
+                endGame('defeat');
+            }
+
+            // Check for victory
+            if (gameState.creatureHealth === 0) {
+                if (gameState.goodHealth >= 3) {
+                    endGame('victory-befriend');
+                } else {
+                    endGame('victory-destroy');
+                }
+            }
+        }
+
+        // Use action button
+        function useAction(action) {
+            if (gameState.usedActions.includes(action) || gameState.inRevision) return;
+
+            gameState.currentAction = action;
+
+            // Show dark overlay and prompt
+            darkOverlay.classList.add('visible');
+            promptBox.classList.add('visible');
+        }
+
+        // Keyboard input handler
+        document.addEventListener('keydown', function(e) {
+            const key = e.key.toUpperCase();
+
+            // During prompt
+            if (promptBox.classList.contains('visible')) {
+                if (key === 'R') {
+                    handleRevision();
+                } else if (key === 'D') {
+                    handleDefeat();
+                } else if (key === 'F') {
+                    handleBefriend();
+                }
+            }
+
+            // During revision scenario
+           else if (gameState.inRevision) {
+                if (key === 'D') {
+                    attackDoor();
+                } else if (key === 'R') {
+                    returnToActions();
+                }
+            }
+        });
+
+        // Back from prompt without action
+        function backFromPrompt() {
+            hidePrompt();
+            gameState.currentAction = null;
+        }
+
+        // Handle Revision (R pressed)
+        function handleRevision() {
+            hidePrompt();
+            enterRevisionMode();
+            showResult("The " + gameState.currentAction + " isn't clear enough! Quick, revise!");
+        }
+
+        // Handle Defeat (D pressed)
+        function handleDefeat() {
+            hidePrompt();
+            flashLight();
+
+            // Mark action as used
+            gameState.usedActions.push(gameState.currentAction);
+            markActionUsed(gameState.currentAction);
+
+            // Remove rightmost bad health
+            removeCreatureHealth();
+
+            showResult("It worked! You're fighting on your territory, now. The creature seems bothered.");
+
+            gameState.currentAction = null;
+        }
+
+        // Handle Befriend (F pressed)
+        function handleBefriend() {
+            hidePrompt();
+            flashLight();
+
+            // Mark action as used
+            gameState.usedActions.push(gameState.currentAction);
+            markActionUsed(gameState.currentAction);
+
+            // Convert rightmost bad health to good
+            convertRightmostHealth();
+
+            showResult("It worked! You're on your chosen territory, now. The creature seems to relax a little.");
+
+            gameState.currentAction = null;
+        }
+
+        // Enter revision mode
+        function enterRevisionMode() {
+            gameState.inRevision = true;
+            actionButtons.classList.add('hidden');
+            creatureSprite.classList.add('attacking');
+            revisionBackButton.classList.add('visible');
+        }
+
+        // Return to action selection
+        function returnToActions() {
+            gameState.inRevision = false;
+            actionButtons.classList.remove('hidden');
+            creatureSprite.classList.remove('attacking');
+            revisionBackButton.classList.remove('visible');
+            hideResult();
+        }
+
+        // Attack door (reduce door health) - keyboard D only in revision mode
+        function attackDoor() {
+            if (!gameState.inRevision) return;
+
+            gameState.doorHealth--;
+            updateHealthBars();
+            flashScreen();
+        }
+
+        // Convert health icon to good (click on bad health)
+        function convertHealthToGood(element) {
+            if (!gameState.inRevision) return;
+            if (element.src.includes('Heart_Good')) return; // Already good
+
+            element.src = 'Sprites/Heart_Good.png';
+            gameState.creatureHealth--;
+            gameState.goodHealth++;
+
+            updateHealthBars();
+        }
+
+        // Remove rightmost bad health
+        function removeCreatureHealth() {
+            const healthIcons = document.querySelectorAll('.creature-health');
+            for (let i = healthIcons.length - 1; i >= 0; i--) {
+                if (healthIcons[i].src.includes('Heart_Bad')) {
+                    healthIcons[i].remove();
+                    gameState.creatureHealth--;
+                    updateHealthBars();
+                    return;
+                }
+            }
+        }
+
+        // Convert rightmost bad health to good
+        function convertRightmostHealth() {
+            const healthIcons = document.querySelectorAll('.creature-health');
+            for (let i = healthIcons.length - 1; i >= 0; i--) {
+                if (healthIcons[i].src.includes('Heart_Bad')) {
+                    healthIcons[i].src = 'Sprites/Heart_Good.png';
+                    gameState.creatureHealth--;
+                    gameState.goodHealth++;
+                    updateHealthBars();
+                    return;
+                }
+            }
+        }
+
+        // Mark action button as used
+        function markActionUsed(action) {
+            const buttons = document.querySelectorAll('.action-button');
+            const actionMap = {
+                'setting': 0,
+                'environment': 1,
+                'character': 2,
+                'scenario': 3
+            };
+            buttons[actionMap[action]].classList.add('used');
+        }
+
+        // Hide prompt
+        function hidePrompt() {
+            darkOverlay.classList.remove('visible');
+            promptBox.classList.remove('visible');
+        }
+
+        // Flash light effect
+        function flashLight() {
+            flashOverlay.style.opacity = '1';
+            setTimeout(() => {
+                flashOverlay.style.opacity = '0';
+            }, 300);
+        }
+
+        // Flash screen effect
+        function flashScreen() {
+            flashOverlay.style.opacity = '0.5';
+            setTimeout(() => {
+                flashOverlay.style.opacity = '0';
+            }, 150);
+        }
+
+        // Show result message
+        function showResult(message) {
+            resultMessage.textContent = message;
+            resultMessage.classList.add('visible');
+            setTimeout(() => {
+                hideResult();
+            }, 3000);
+        }
+
+        // Hide result message
+        function hideResult() {
+            resultMessage.classList.remove('visible');
+        }
+
+        // Music transition functions
+        async function switchMusic(newMusicFile) {
+            // Instantly cut current music
+            musicPlayer.pause();
+            musicPlayer.currentTime = 0;
+
+            // Load new music
+            musicPlayer.src = newMusicFile;
+            musicPlayer.volume = 0;
+            musicPlayer.loop = true;
+
+            // Try to play the new music
+            try {
+                await musicPlayer.play();
+
+                // Fade in over 2 seconds
+                let volume = 0;
+                const fadeInterval = setInterval(() => {
+                    volume += 0.6 / 30; // 40 steps over 2 seconds (50ms intervals)
+                    if (volume >= 0.6) {
+                        volume = 0.6;
+                        clearInterval(fadeInterval);
+                    }
+                    musicPlayer.volume = volume;
+                }, 50);
+            } catch (error) {
+                console.log("Music playback failed:", error);
+                // If autoplay is blocked, try to play at full volume
+                musicPlayer.volume = 0.6;
+            }
+        }
+
+        // Black flash effect
+        function blackFlashEffect(duration) {
+            return new Promise((resolve) => {
+                blackFlash.style.opacity = '1';
+                setTimeout(() => {
+                    blackFlash.style.opacity = '0';
+                    resolve();
+                }, duration);
+            });
+        }
+
+        // End game
+        async function endGame(type) {
+            if (gameState.gameOver) return;
+            gameState.gameOver = true;
+
+            // Hide revision mode elements if active
+            if (gameState.inRevision) {
+                returnToActions();
+            }
+
+            setTimeout(async () => {
+                if (type === 'victory-befriend') {
+                    // Victory - Befriending
+                    // Switch music to Memory
+                    await switchMusic('Music/34 - Memory.mp3');
+
+                    // Hide health bars
+                    document.getElementById('creature-health-container').style.opacity = '0';
+                    document.getElementById('door-health-container').style.opacity = '0';
+
+                    // Fade creature sprite (Evil -> Friendly)
+                    creatureSprite.classList.add('fade-to-friendly');
+
+                    // Change to friendly sprite at midpoint of animation (750ms)
+                    setTimeout(() => {
+                        if (gameState.creature === 'marilla') {
+                            creatureSprite.src = 'Sprites/Marilla_Friendly.png';
+                        } else {
+                            creatureSprite.src = 'Sprites/Luxa_Friendly.png';
+                        }
+                    }, 750);
+
+                    // Change background to Library_Interior_Open with fade
+                    setTimeout(() => {
+                        backgroundImage.style.opacity = '0';
+                        setTimeout(() => {
+                            backgroundImage.src = 'Scenes/Library_Interior_Open.png';
+                            backgroundImage.style.opacity = '1';
+                        }, 800);
+                    }, 500);
+
+                    // Show end screen after sprite transition completes
+                    setTimeout(() => {
+                        // Move creature sprite above end screen with new position
+                        creatureSprite.style.zIndex = '150';
+                        creatureSprite.style.bottom = '5%';
+                        creatureSprite.style.left = '1%';
+                        creatureSprite.style.height = '40vh';
+
+                        endTitle.textContent = 'You did it!';
+                        endTitle.className = 'victory';
+                        endMessage.innerHTML = `
+                            <p>A shadow fades from the creature's face, and any trace of aggression vanishes. You see its wide eyes looking at you calmly, almost expectantly, like it's waiting for you to tell it what to do. It seems you've made a new friend - a helpful one, at that.</p>
+                            <p>You may report your victory to the Custodian. You have earned the ability to bring the creature to any part of the Academy.</p>
+                        `;
+                        endScreen.classList.add('visible');
+                    }, 6000);
+
+                } else if (type === 'victory-destroy') {
+                    // Victory - Destroying
+                    // Switch music to Good Night
+                    await switchMusic('Music/101 - Good Night.mp3');
+
+                    // Hide health bars
+                    document.getElementById('creature-health-container').style.opacity = '0';
+                    document.getElementById('door-health-container').style.opacity = '0';
+
+                    // Dissolve creature sprite
+                    creatureSprite.classList.add('dissolve');
+
+                    // Change background to Library_Interior_Open with fade
+                    setTimeout(() => {
+                        backgroundImage.style.opacity = '0';
+                        setTimeout(() => {
+                            backgroundImage.src = 'Scenes/Library_Interior_Open.png';
+                            backgroundImage.style.opacity = '1';
+                        }, 800);
+                    }, 500);
+
+                    // Show end screen after dissolve completes
+                    setTimeout(() => {
+                        endTitle.textContent = 'You did it!';
+                        endTitle.className = 'victory';
+                        endMessage.innerHTML = `
+                            <p>The creature dissolves, unable to hold its character form in the face of so much hostility. Just before it fades completely, you catch a glimpse of its unshadowed face. It looks a little...sad.</p>
+                            <p>You may report your victory to the Custodian.</p>
+                        `;
+                        endScreen.classList.add('visible');
+                    }, 3000);
+
+                } else if (type === 'defeat') {
+                    // Defeat
+                    // Cut music immediately before black flash
+                    musicPlayer.pause();
+                    musicPlayer.currentTime = 0;
+
+                    // Start black flash and change background during it
+                    blackFlash.style.opacity = '1';
+
+                    // Change background while screen is black (300ms in)
+                    setTimeout(() => {
+                        backgroundImage.src = 'Scenes/Library_Interior_Open.png';
+                        backgroundImage.style.opacity = '0';
+                        creatureSprite.style.display = 'none';
+                        document.getElementById('creature-health-container').style.display = 'none';
+                        document.getElementById('door-health-container').style.display = 'none';
+                    }, 300);
+
+                    // Wait for full black flash duration, then fade out
+                    await new Promise(resolve => setTimeout(resolve, 2400));
+                    blackFlash.style.opacity = '0';
+
+                    // Fade in the new background (already changed during black)
+                    setTimeout(() => {
+                        backgroundImage.style.opacity = '1';
+                    }, 100);
+
+                    // Switch music to Determination (fade in)
+                    await switchMusic('Music/11 - Determination.mp3');
+
+                    // Show end screen
+                    setTimeout(() => {
+                        endTitle.textContent = 'Defeat';
+                        endTitle.className = 'defeat';
+                        endMessage.innerHTML = `
+                            <p>Your preparation wasn't sufficient. The creature bursts through the door and escapes into the Academy grounds. It could be anywhere.</p>
+                            <p>It's time to revise. You'll have to report your defeat to the Custodian and take shelter in the Dormitory while planning how to recapture it.</p>
+                        `;
+                        endScreen.classList.add('visible');
+                    }, 500);
+                }
+            }, 500);
+        }
+
+        // Return to Custodian (reload page)
+        function returnToCustodian() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
