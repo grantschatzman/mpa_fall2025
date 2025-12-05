@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>After the Battle - Cutscene Storyboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #cutscene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        .character {
+            position: absolute;
+            bottom: 0;
+            max-height: 80%;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        .character.left {
+            left: 10%;
+        }
+
+        .character.center {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .character.right {
+            right: 10%;
+        }
+
+        .custodian-large {
+            max-height: 90% !important;
+        }
+
+        .custodian-medium {
+            max-height: 70% !important;
+        }
+
+        .custodian-small {
+            max-height: 50% !important;
+        }
+
+        .custodian-adjusted {
+            max-height: 40% !important;  /* 50% of default 80% */
+            left: -5% !important;  /* 15% more left from original 10% */
+        }
+        
+        .masterofcrit-adjusted {
+            max-height: 50% !important;  /* Adjust to your preferred size */
+            left: 25% !important;        /* Adjust to your preferred position */
+        }
+
+        .flash-effect {
+            animation: flashInOut 0.6s ease-out forwards;
+        }
+
+        @keyframes flashInOut {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+        }
+        
+        #dialogue-box {
+            position: absolute;
+            max-width: 80%;
+            padding: 20px 30px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 18px;
+            line-height: 1.6;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #dialogue-box.custodian {
+            background: #8B4545;
+        }
+
+        #dialogue-box.narrator {
+            background: #3D5A6B;
+        }
+
+        #dialogue-box.top {
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.bottom {
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.top-left {
+            top: 10%;
+            left: 10%;
+        }
+
+        .speaker-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #click-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #F5E6D3;
+            font-size: 14px;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+            z-index: 200;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .fade-out {
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        /* Controls */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 200;
+        }
+
+        .control-btn {
+            color: #F5E6D3;
+            font-size: 14px;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        .control-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Volume Control */
+        #volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        #volume-control:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        #volume-icon {
+            color: #F5E6D3;
+            font-size: 16px;
+            min-width: 20px;
+        }
+
+        #volume-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(245, 230, 211, 0.3);
+            outline: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #F5E6D3;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #FFF;
+        }
+
+        #volume-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #F5E6D3;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #volume-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: #FFF;
+        }
+
+        /* Title page styling */
+        #title-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 69, 0.95);
+            color: #F5E6D3;
+            padding: 40px 60px;
+            border-radius: 15px;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #title-box.visible {
+            opacity: 1;
+        }
+
+        /* Ending Message Box */
+        #ending-message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(78, 201, 176, 0.95);
+            border: 4px solid #4EC9B0;
+            border-radius: 20px;
+            padding: 50px 70px;
+            max-width: 70%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            z-index: 150;
+            text-align: center;
+        }
+
+        #ending-message-box.visible {
+            opacity: 1;
+        }
+
+        #ending-message-text {
+            font-size: 24px;
+            line-height: 1.8;
+            color: #1a1a1a;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <img id="background" src="" alt="Background">
+        <div id="title-box">After the Battle</div>
+        <div id="ending-message-box">
+            <div id="ending-message-text">Adventures will continue at My Pixel Academy in the new semester.<br><br>In the meantime, go forth and write!</div>
+        </div>
+        <div id="character-container"></div>
+        <div id="dialogue-box">
+            <div class="speaker-name"></div>
+            <div class="dialogue-text"></div>
+        </div>
+        <div id="controls">
+            <div id="volume-control">
+                <span id="volume-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="60">
+            </div>
+            <button id="back-btn" class="control-btn">◀ Back</button>
+            <div id="click-indicator" class="control-btn">▶ Continue</div>
+        </div>
+
+    <script>
+        const ASSET_BASE = ".";
+
+        const frames = [
+        {
+                "number": 1,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [],
+                "dialogue": null,
+                "speaker": null,
+                "dialoguePosition": null,
+                "dialogueStyle": null,
+                "transitionIn": "Fade in from black (1s)",
+                "transitionOut": "Fade to Frame 2 (0.5s)",
+                "musicCue": "None (starts on Frame 2)"
+        },
+        {
+                "number": 2,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [],
+                "dialogue": "Daylight dazzles your eyes, briefly peppering your vision with dark speckles as you walk back outside to the Academy grounds. In the strangeness of the battle, whipped between the dim interior of the Library and your own Shaped settings, you had lost track of time.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Rounded rectangle, dark red/maroon background, cream text",
+                "transitionIn": "Fade in (0.5s)",
+                "transitionOut": "Continue to Frame 3 (0.3s)",
+                "musicCue": "Track 1 starts on frame load, fade in over 2 seconds to 60% volume"
+        },
+        {
+                "number": 3,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "Waiting just outside the door is the Custodian, who for a split second seems startled.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 3b (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 4,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "You can almost swear you see a flash of something like lightning in his eyes, and his robes seem to billow for a moment despite the windless day, but his face quickly settles into its usual, kind smile.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Quick transition (0.2s)",
+                "transitionOut": "Continue to Frame 4 (0.4s)",
+                "musicCue": null
+        },
+        {
+                "number": 5,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "Ah, you've done it, students! I had only a little - er, no doubt, no doubt at all that you were fully prepared for the challenge. Tell me, what has become of the creature? ... Oh! I see! This is greater than we could have hoped. Where once we had an enemy, now we have an ally - and that is always an occasion for rejoicing.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.4s)",
+                "transitionOut": "Continue to Frame 5 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 6,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "Of course, with so many books eaten, we'll have to begin replenishing the Library. I dare say you've all earned yourselves the right to add one of your own writings to our great collection of stories and knowledge - a great honor, very great indeed. Bring me your writing after the holidays, and we'll find a place for it here.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 6 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 7,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "Now, with the creatures safely driven off--",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 7 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 8,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "A thud sounds from the Library behind you, and the Custodian freezes. It is followed by another, and another, a steady rhythm: *Thud. Thud. Thud.* The Custodian's eyes flash, and his robes begin to billow around him. From a basement window, pressed low into the ground, sounds a groan - pained, but unmistakably human.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Quick cut (0.2s)",
+                "transitionOut": "Continue to Frame 7b (0.3s)",
+                "musicCue": "Begin fadeout of Track 1 - 3 seconds"
+        },
+        {
+                "number": 9,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/Codex_TeaStained.png"
+                ],
+                "dialogue": "Students, behind me.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 7c (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 10,
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/Flash.png"
+                ],
+                "dialogue": "As you step back, you see him draw a small, tea-stained notebook, no larger than the palm of your hand, from his robes. It glows with a rich power that belies its size as, with a brief *ripppp*, the Custodian whips out a page, and the basement window dematerializes in a single flash like a thousand tiny stars winking once, then vanishing.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Flash effect (0.2s)",
+                "transitionOut": "White flash fade to Frame 8 (1s)",
+                "musicCue": "Track 2 begins fade in - 2 seconds"
+        },
+        {
+                "number": 11,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "Where the window once stood is now an arched opening into the dim Library basement, lined with shelves of books and small, lamp-lit study desks.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade in from white flash (1s)",
+                "transitionOut": "Continue to Frame 9 (0.3s)",
+                "musicCue": "Track 2 at 60% volume"
+        },
+        {
+                "number": 12,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "And at one of those desks, swathed in a dark, hooded robe.",
+                "speaker": "",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 10 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 13,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "Could it be? One of the four lost Founders, here in the Library after all this time? ... But it is! The Master of Critical Thinking! But Master, what distresses you so?",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 11 (0.3s)",
+                "musicCue": "Begin fadeout of Track 2 - 2 seconds"
+        },
+        {
+                "number": 14,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "A groan rises from the figure again, not nearly so haunting now that you see the slouched little character it comes from.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 11b (0.3s)",
+                "musicCue": "Track 3 begins fade in - 2 seconds"
+        },
+        {
+                "number": 15,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "Not right. None of them quite right.",
+                "speaker": "Master of Critical Thinking",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark purple/gray background (different style for Founder), cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 12 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 16,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "But whatever do you mean?",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 13 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 17,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "Imperfect paragraphs. Unproven thesis statements. These use too much research with no original ideas, or else argue their own fanciful opinions without solid evidence. Those ought to be longer, or else shorter. All of them, all of them have to be fixed.",
+                "speaker": "Master of Critical Thinking",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark purple/gray background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 14 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 18,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "But...you mean to say, you've been down here all this time? What has become of the other Founders?",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 15 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 19,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "All gone to pursue their own studies. Craft, off to study how Shaping works with scrolls, wax tablets, and Etch-a-Sketches - things other than Codexes, you see. Creativity left the planet to see if her Shaping would work differently outside the limits of Earth's gravity and atmosphere. And Collaboration ... well, he opposed our splitting up in the first place. Probably sulking somewhere about how our greatest work was always achieved together.",
+                "speaker": "Master of Critical Thinking",
+                "dialoguePosition": "Top-center (to allow for longer text)",
+                "dialogueStyle": "Dark purple/gray background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 16 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 20,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Back.png"
+                ],
+                "dialogue": "The figure begins to groan again and smack their head again with renewed intensity until the Custodian rushes forward to gently stop them.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 17 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 21,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "They turn toward you, and you see for the first time their face - not a single set of eyes, nose, and mouth, but a constantly shifting set of patterns, numbers, and logical symbols, like a never-ending math problem flowing through a screen.",
+                "speaker": "",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 17b (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 22,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "Now I see he was right. Together, we used to make such wonderful things. But now, alone, all I can see are infinite problems, a thousand things to consider on every page. And I...I can't seem write my own.",
+                "speaker": "Master of Critical Thinking",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark purple/gray background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 18 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 23,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png",
+                        "Sprites/Codex_Drained.png"
+                ],
+                "dialogue": "You notice then that one of the books on the desk is a Codex much like your own. Instead of glowing with power, though, it looks dull, almost gray, like a picture fading into the past. The Codex of Critical Thinking ... drained of power?",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve with focus effect (0.5s)",
+                "transitionOut": "Continue to Frame 19 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 24,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "The Custodian notices the book, too, and carefully tucks it into his robes before gently taking the Founder by the hand.",
+                "speaker": "",
+                "dialoguePosition": "Top-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 20 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 25,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "Not to worry, Master. I'm sure your friends are out there.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 21 (0.5s)",
+                "musicCue": null
+        },
+        {
+                "number": 26,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "...",
+                "speaker": "",
+                "dialoguePosition": "Center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Slow fade (0.5s)",
+                "transitionOut": "Continue to Frame 22 (0.5s)",
+                "musicCue": null
+        },
+        {
+                "number": 27,
+                "background": "Scenes/Library_Basement.png",
+                "characters": [
+                        "Sprites/Custodian.png",
+                        "Sprites/MasterOfCrit_Front.png"
+                ],
+                "dialogue": "And I believe I have just the right group of young Shapers to help find them.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Fade in from blur (0.5s)",
+                "transitionOut": "Fade to black (2s)",
+                "musicCue": null
+        }
+,
+        {
+                "number": 28,
+                "background": null,
+                "characters": [],
+                "dialogue": null,
+                "speaker": null,
+                "dialoguePosition": null,
+                "dialogueStyle": null,
+                "showEndingMessage": true,
+                "transitionIn": "Fade from black (2s)",
+                "transitionOut": null,
+                "musicCue": "Track 3 fade out over 4 seconds"
+        }
+];
+
+        const assets = {};
+
+        let currentFrame = 0;
+        let audioTracks = {};
+        let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
+
+        const musicFiles = ["005 - By Your Side..mp3", "086 - World_s End Valentine.mp3", "018 - Poems In The Fog.mp3"];
+        // Preload audio tracks
+        function initAudio() {
+
+            musicFiles.forEach(file => {
+                const audio = new Audio(ASSET_BASE + "/Music/" + file);
+                audio.loop = false;
+                audio.volume = 0;
+                audioTracks[file] = audio;
+            });
+        }
+
+        function fadeAudio(audio, targetVolume, duration) {
+            const steps = 60;
+            const stepTime = (duration * 1000) / steps;
+            const adjustedTarget = targetVolume * masterVolume;
+            const volumeStep = (adjustedTarget - audio.volume) / steps;
+            let step = 0;
+
+            const interval = setInterval(() => {
+                step++;
+                audio.volume = Math.max(0, Math.min(1, audio.volume + volumeStep));
+
+                if (step >= steps) {
+                    clearInterval(interval);
+                    if (targetVolume === 0) {
+                        audio.pause();
+                    }
+                }
+            }, stepTime);
+        }
+
+        function handleMusicCue(cue) {
+            if (!cue) return;
+
+            // Parse track number from cue (e.g., "Track 1 starts", "Fade in Track 2")
+            const trackMatch = cue.match(/Track (\d+)/i);
+            if (!trackMatch) return;
+
+            const trackIndex = parseInt(trackMatch[1]) - 1;
+            if (trackIndex < 0 || trackIndex >= musicFiles.length) return;
+
+            const trackFile = musicFiles[trackIndex];
+            const audio = audioTracks[trackFile];
+            if (!audio) return;
+
+            // Handle different music cue types
+            if (cue.includes("starts") || cue.includes("Fade in") || cue.includes("fade in")) {
+                audio.currentTime = 0;
+                audio.play();
+                fadeAudio(audio, 0.6, 2);
+            } else if (cue.includes("fadeout") || cue.includes("Fade out") || cue.includes("Begin fadeout")) {
+                fadeAudio(audio, 0, 2);
+            } else if (cue.includes("Play to end")) {
+                // Track already playing, just schedule fadeout before end
+                audio.onended = null;
+                setTimeout(() => {
+                    fadeAudio(audio, 0, 3);
+                }, Math.max(0, (audio.duration - 3) * 1000));
+            }
+        }
+
+        function loadFrame(frameIndex) {
+            if (frameIndex >= frames.length) {
+                // End of cutscene
+                document.body.style.cursor = 'default';
+                document.getElementById('click-indicator').style.display = 'none';
+                return;
+            }
+
+            const frame = frames[frameIndex];
+            const bg = document.getElementById('background');
+            const dialogueBox = document.getElementById('dialogue-box');
+            const speakerName = dialogueBox.querySelector('.speaker-name');
+            const dialogueText = dialogueBox.querySelector('.dialogue-text');
+            const charContainer = document.getElementById('character-container');
+            const titleBox = document.getElementById('title-box');
+  
+
+            // Handle title display (frame 0 is title screen)
+            if (frameIndex === 0) {
+                titleBox.classList.add('visible');
+                dialogueBox.classList.remove('visible');
+            } else {
+                titleBox.classList.remove('visible');
+            }
+
+            // Handle ending message display
+            const endingMessageBox = document.getElementById('ending-message-box');
+            if (frame.showEndingMessage) {
+                endingMessageBox.classList.add('visible');
+                dialogueBox.classList.remove('visible');
+                bg.style.background = '#000';  // Black background
+                bg.classList.remove('visible');
+            } else {
+                endingMessageBox.classList.remove('visible');
+            }
+
+            // Clear previous characters
+            charContainer.innerHTML = '';
+
+            // Set background
+            if (frame.background) {
+                bg.src = ASSET_BASE + "/" + frame.background;
+                bg.classList.add('visible');
+            }
+
+            // Add characters
+            if (frame.characters && frame.characters.length > 0) {
+                frame.characters.forEach((charFile, index) => {
+                    const charImg = document.createElement('img');
+                    charImg.src = ASSET_BASE + "/" + charFile;
+                    
+                      // Apply character-specific adjustments
+                        if (charFile.includes('Custodian.png')) {
+                            charImg.className = 'character visible left custodian-adjusted';
+                        } else if (charFile.includes('MasterOfCrit')) {
+                            charImg.className = 'character visible left masterofcrit-adjusted';
+                        } else {
+                            charImg.className = 'character visible left';
+                        }
+                    
+                    charContainer.appendChild(charImg);
+                });
+            }
+
+            // Set dialogue
+            if (frame.dialogue) {
+                dialogueText.textContent = frame.dialogue;
+
+                if (frame.speaker) {
+                    speakerName.textContent = frame.speaker;
+                    speakerName.style.display = 'block';
+                } else {
+                    speakerName.style.display = 'none';
+                }
+
+                // Apply style
+                dialogueBox.className = 'visible';
+                if (frame.dialogueStyle && frame.dialogueStyle.includes('red')) {
+                    dialogueBox.classList.add('custodian');
+                } else if (frame.dialogueStyle && frame.dialogueStyle.includes('teal')) {
+                    dialogueBox.classList.add('narrator');
+                } else {
+                    dialogueBox.classList.add('narrator');
+                }
+
+                // Apply position (force top for basement scenes)
+                if (frame.background && frame.background.includes('Library_Basement')) {
+                    dialogueBox.classList.add('top');
+                } else if (frame.dialoguePosition && frame.dialoguePosition.includes('top')) {
+                    if (frame.dialoguePosition.includes('left')) {
+                        dialogueBox.classList.add('top-left');
+                    } else {
+                        dialogueBox.classList.add('top');
+                    }
+                } else {
+                    dialogueBox.classList.add('bottom');
+                }
+            } else {
+                dialogueBox.classList.remove('visible');
+            }
+
+            // Handle music cues
+            if (frame.musicCue) {
+                handleMusicCue(frame.musicCue);
+            }
+n            // Update back button state
+            updateBackButton();
+        }
+
+        function nextFrame() {
+            currentFrame++;
+            loadFrame(currentFrame);
+        }
+
+        function previousFrame() {
+            if (currentFrame === 0) return;
+            currentFrame--;
+            loadFrame(currentFrame);
+        }
+
+        function updateBackButton() {
+            const backBtn = document.getElementById('back-btn');
+            if (currentFrame === 0) {
+                backBtn.classList.add('disabled');
+            } else {
+                backBtn.classList.remove('disabled');
+            }
+        }
+
+        // Initialize
+        initAudio();
+
+        // Start first frame after brief delay
+        setTimeout(() => {
+            loadFrame(0);
+        }, 500);
+
+        // Click to advance (but not if clicking controls)
+        document.getElementById('cutscene-container').addEventListener('click', (e) => {
+            if (!e.target.closest('#controls')) {
+                nextFrame();
+            }
+        });
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            previousFrame();
+        });
+
+        // Continue indicator
+        document.getElementById('click-indicator').addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextFrame();
+        });
+
+
+        // Volume Control
+        function updateVolume(newVolume) {
+            masterVolume = newVolume;
+            localStorage.setItem('cutsceneMasterVolume', newVolume);
+            
+            // Update all currently playing audio
+            Object.values(audioTracks).forEach(audio => {
+                if (!audio.paused) {
+                    audio.volume = Math.min(1, audio.volume / (audio.volume / masterVolume));
+                }
+            });
+            
+            // Update volume icon
+            updateVolumeIcon(newVolume);
+        }
+
+        function updateVolumeIcon(volume) {
+            const icon = document.getElementById('volume-icon');
+            if (volume === 0) {
+                icon.textContent = '🔇';
+            } else if (volume < 0.3) {
+                icon.textContent = '🔈';
+            } else if (volume < 0.7) {
+                icon.textContent = '🔉';
+            } else {
+                icon.textContent = '🔊';
+            }
+        }
+
+        // Initialize volume slider
+        const volumeSlider = document.getElementById('volume-slider');
+        volumeSlider.value = masterVolume * 100;
+        updateVolumeIcon(masterVolume);
+
+        volumeSlider.addEventListener('input', (e) => {
+            const newVolume = e.target.value / 100;
+            updateVolume(newVolume);
+        });
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                previousFrame();
+            }
+        });
+    </script>
+</body>
+</html>
