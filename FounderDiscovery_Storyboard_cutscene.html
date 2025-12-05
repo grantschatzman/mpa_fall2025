@@ -78,13 +78,13 @@
         }
 
         .custodian-adjusted {
-            max-height: 40% !important;  /* 50% of default 80% */
-            left: -5% !important;  /* 15% more left from original 10% */
+            max-height: 40% !important;
+            left: -5% !important;
         }
-        
+
         .masterofcrit-adjusted {
-            max-height: 50% !important;  /* Adjust to your preferred size */
-            left: 25% !important;        /* Adjust to your preferred position */
+            max-height: 50% !important;
+            left: 25% !important;
         }
 
         .flash-effect {
@@ -96,7 +96,7 @@
             30% { opacity: 1; }
             70% { opacity: 1; }
         }
-        
+
         #dialogue-box {
             position: absolute;
             max-width: 80%;
@@ -325,6 +325,48 @@
             color: #1a1a1a;
             font-style: italic;
         }
+
+        /* Choice Buttons */
+        #choice-container {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 120;
+        }
+
+        #choice-container.visible {
+            opacity: 1;
+        }
+
+        .choice-button {
+            background: rgba(139, 69, 69, 0.95);
+            border: 3px solid #8B4545;
+            border-radius: 12px;
+            padding: 20px 40px;
+            color: #F5E6D3;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .choice-button:hover {
+            background: rgba(139, 69, 69, 1);
+            border-color: #F5E6D3;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(139, 69, 69, 0.5);
+        }
+
+        .choice-button:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -338,6 +380,10 @@
         <div id="dialogue-box">
             <div class="speaker-name"></div>
             <div class="dialogue-text"></div>
+        </div>
+        <div id="choice-container">
+            <button class="choice-button" data-choice="befriended">Befriended</button>
+            <button class="choice-button" data-choice="destroyed">Destroyed</button>
         </div>
         <div id="controls">
             <div id="volume-control">
@@ -410,16 +456,47 @@
                 "characters": [
                         "Sprites/Custodian.png"
                 ],
-                "dialogue": "Ah, you've done it, students! I had only a little - er, no doubt, no doubt at all that you were fully prepared for the challenge. Tell me, what has become of the creature? ... I see ... Destroyed, then. Well, we must never take joy in destruction, but the Academy is safe for now.",
+                "dialogue": "Ah, you've done it, students! I had only a little - er, no doubt, no doubt at all that you were fully prepared for the challenge. Tell me, what has become of the creature?",
                 "speaker": "Custodian",
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.4s)",
-                "transitionOut": "Continue to Frame 5 (0.3s)",
+                "transitionOut": "Continue to Frame 6 (0.3s)",
+                "musicCue": null,
+                "showChoices": true
+        },
+        {
+                "number": "6a",
+                "branch": "befriended",
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "... Oh! I see! This is greater than we could have hoped. Where once we had an enemy, now we have an ally - and that is always an occasion for rejoicing.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Quick transition (0.2s)",
+                "transitionOut": "Continue to Frame 7 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 6,
+                "number": "6b",
+                "branch": "destroyed",
+                "background": "Scenes/Library_Exterior_Closeup.png",
+                "characters": [
+                        "Sprites/Custodian.png"
+                ],
+                "dialogue": "... I see ... Destroyed, then. Well, we must never take joy in destruction, but the Academy is safe for now.",
+                "speaker": "Custodian",
+                "dialoguePosition": "Bottom-center",
+                "dialogueStyle": "Dark red/maroon background, cream text",
+                "transitionIn": "Quick transition (0.2s)",
+                "transitionOut": "Continue to Frame 7 (0.3s)",
+                "musicCue": null
+        },
+        {
+                "number": 7,
                 "background": "Scenes/Library_Exterior_Closeup.png",
                 "characters": [
                         "Sprites/Custodian.png"
@@ -429,11 +506,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 6 (0.3s)",
+                "transitionOut": "Continue to Frame 8 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 7,
+                "number": 8,
                 "background": "Scenes/Library_Exterior_Closeup.png",
                 "characters": [
                         "Sprites/Custodian.png"
@@ -443,11 +520,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 7 (0.3s)",
+                "transitionOut": "Continue to Frame 9 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 8,
+                "number": 9,
                 "background": "Scenes/Library_Exterior_Closeup.png",
                 "characters": [
                         "Sprites/Custodian.png"
@@ -457,11 +534,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Quick cut (0.2s)",
-                "transitionOut": "Continue to Frame 7b (0.3s)",
+                "transitionOut": "Continue to Frame 10 (0.3s)",
                 "musicCue": "Begin fadeout of Track 1 - 3 seconds"
         },
         {
-                "number": 9,
+                "number": 10,
                 "background": "Scenes/Library_Exterior_Closeup.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -472,11 +549,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 7c (0.3s)",
+                "transitionOut": "Continue to Frame 11 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 10,
+                "number": 11,
                 "background": "Scenes/Library_Exterior_Closeup.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -487,11 +564,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Flash effect (0.2s)",
-                "transitionOut": "White flash fade to Frame 8 (1s)",
+                "transitionOut": "White flash fade to Frame 12 (1s)",
                 "musicCue": "Track 2 begins fade in - 2 seconds"
         },
         {
-                "number": 11,
+                "number": 12,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png"
@@ -501,11 +578,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade in from white flash (1s)",
-                "transitionOut": "Continue to Frame 9 (0.3s)",
+                "transitionOut": "Continue to Frame 13 (0.3s)",
                 "musicCue": "Track 2 at 60% volume"
         },
         {
-                "number": 12,
+                "number": 13,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -516,11 +593,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 10 (0.3s)",
+                "transitionOut": "Continue to Frame 14 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 13,
+                "number": 14,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -531,11 +608,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 11 (0.3s)",
+                "transitionOut": "Continue to Frame 15 (0.3s)",
                 "musicCue": "Begin fadeout of Track 2 - 2 seconds"
         },
         {
-                "number": 14,
+                "number": 15,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -546,11 +623,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 11b (0.3s)",
+                "transitionOut": "Continue to Frame 16 (0.3s)",
                 "musicCue": "Track 3 begins fade in - 2 seconds"
         },
         {
-                "number": 15,
+                "number": 16,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -561,11 +638,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark purple/gray background (different style for Founder), cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 12 (0.3s)",
+                "transitionOut": "Continue to Frame 17 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 16,
+                "number": 17,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -576,11 +653,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 13 (0.3s)",
+                "transitionOut": "Continue to Frame 18 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 17,
+                "number": 18,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -591,11 +668,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark purple/gray background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 14 (0.3s)",
+                "transitionOut": "Continue to Frame 19 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 18,
+                "number": 19,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -606,11 +683,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 15 (0.3s)",
+                "transitionOut": "Continue to Frame 20 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 19,
+                "number": 20,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -621,11 +698,11 @@
                 "dialoguePosition": "Top-center (to allow for longer text)",
                 "dialogueStyle": "Dark purple/gray background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 16 (0.3s)",
+                "transitionOut": "Continue to Frame 21 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 20,
+                "number": 21,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -636,11 +713,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 17 (0.3s)",
+                "transitionOut": "Continue to Frame 22 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 21,
+                "number": 22,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -651,11 +728,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 17b (0.3s)",
+                "transitionOut": "Continue to Frame 23 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 22,
+                "number": 23,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -666,11 +743,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark purple/gray background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 18 (0.3s)",
+                "transitionOut": "Continue to Frame 24 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 23,
+                "number": 24,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -682,11 +759,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve with focus effect (0.5s)",
-                "transitionOut": "Continue to Frame 19 (0.3s)",
+                "transitionOut": "Continue to Frame 25 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 24,
+                "number": 25,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -697,11 +774,11 @@
                 "dialoguePosition": "Top-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 20 (0.3s)",
+                "transitionOut": "Continue to Frame 26 (0.3s)",
                 "musicCue": null
         },
         {
-                "number": 25,
+                "number": 26,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -712,11 +789,11 @@
                 "dialoguePosition": "Bottom-center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Fade/dissolve (0.3s)",
-                "transitionOut": "Continue to Frame 21 (0.5s)",
+                "transitionOut": "Continue to Frame 27 (0.5s)",
                 "musicCue": null
         },
         {
-                "number": 26,
+                "number": 27,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -727,11 +804,11 @@
                 "dialoguePosition": "Center",
                 "dialogueStyle": "Dark red/maroon background, cream text",
                 "transitionIn": "Slow fade (0.5s)",
-                "transitionOut": "Continue to Frame 22 (0.5s)",
+                "transitionOut": "Continue to Frame 28 (0.5s)",
                 "musicCue": null
         },
         {
-                "number": 27,
+                "number": 28,
                 "background": "Scenes/Library_Basement.png",
                 "characters": [
                         "Sprites/Custodian.png",
@@ -744,10 +821,9 @@
                 "transitionIn": "Fade in from blur (0.5s)",
                 "transitionOut": "Fade to black (2s)",
                 "musicCue": null
-        }
-,
+        },
         {
-                "number": 28,
+                "number": 29,
                 "background": null,
                 "characters": [],
                 "dialogue": null,
@@ -764,13 +840,14 @@
         const assets = {};
 
         let currentFrame = 0;
+        let playerChoice = null;
         let audioTracks = {};
         let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
 
         const musicFiles = ["005 - By Your Side..mp3", "086 - World_s End Valentine.mp3", "018 - Poems In The Fog.mp3"];
+
         // Preload audio tracks
         function initAudio() {
-
             musicFiles.forEach(file => {
                 const audio = new Audio(ASSET_BASE + "/Music/" + file);
                 audio.loop = false;
@@ -838,13 +915,23 @@
             }
 
             const frame = frames[frameIndex];
+
+            // Handle branching - skip frames that don't match player choice
+            if (frame.branch && frame.branch !== playerChoice) {
+                loadFrame(frameIndex + 1);
+                return;
+            }
+
             const bg = document.getElementById('background');
             const dialogueBox = document.getElementById('dialogue-box');
             const speakerName = dialogueBox.querySelector('.speaker-name');
             const dialogueText = dialogueBox.querySelector('.dialogue-text');
             const charContainer = document.getElementById('character-container');
             const titleBox = document.getElementById('title-box');
-  
+            const choiceContainer = document.getElementById('choice-container');
+
+            // Hide choices by default
+            choiceContainer.classList.remove('visible');
 
             // Handle title display (frame 0 is title screen)
             if (frameIndex === 0) {
@@ -879,16 +966,16 @@
                 frame.characters.forEach((charFile, index) => {
                     const charImg = document.createElement('img');
                     charImg.src = ASSET_BASE + "/" + charFile;
-                    
-                      // Apply character-specific adjustments
-                        if (charFile.includes('Custodian.png')) {
-                            charImg.className = 'character visible left custodian-adjusted';
-                        } else if (charFile.includes('MasterOfCrit')) {
-                            charImg.className = 'character visible left masterofcrit-adjusted';
-                        } else {
-                            charImg.className = 'character visible left';
-                        }
-                    
+
+                    // Apply character-specific adjustments
+                    if (charFile.includes('Custodian.png')) {
+                        charImg.className = 'character visible left custodian-adjusted';
+                    } else if (charFile.includes('MasterOfCrit')) {
+                        charImg.className = 'character visible left masterofcrit-adjusted';
+                    } else {
+                        charImg.className = 'character visible left';
+                    }
+
                     charContainer.appendChild(charImg);
                 });
             }
@@ -930,21 +1017,42 @@
                 dialogueBox.classList.remove('visible');
             }
 
+            // Show choices if this frame has them
+            if (frame.showChoices) {
+                setTimeout(() => {
+                    choiceContainer.classList.add('visible');
+                }, 500);
+            }
+
             // Handle music cues
             if (frame.musicCue) {
                 handleMusicCue(frame.musicCue);
             }
-n            // Update back button state
+
+            // Update back button state
             updateBackButton();
         }
 
         function nextFrame() {
+            // Don't advance if choices are visible and not selected
+            const choiceContainer = document.getElementById('choice-container');
+            if (choiceContainer.classList.contains('visible') && !playerChoice) {
+                return;
+            }
+
             currentFrame++;
             loadFrame(currentFrame);
         }
 
         function previousFrame() {
             if (currentFrame === 0) return;
+
+            // If going back from a branching frame, reset choice
+            const prevFrame = frames[currentFrame - 1];
+            if (prevFrame && prevFrame.showChoices) {
+                playerChoice = null;
+            }
+
             currentFrame--;
             loadFrame(currentFrame);
         }
@@ -968,7 +1076,7 @@ n            // Update back button state
 
         // Click to advance (but not if clicking controls)
         document.getElementById('cutscene-container').addEventListener('click', (e) => {
-            if (!e.target.closest('#controls')) {
+            if (!e.target.closest('#controls') && !e.target.closest('#choice-container')) {
                 nextFrame();
             }
         });
@@ -985,19 +1093,28 @@ n            // Update back button state
             nextFrame();
         });
 
+        // Choice buttons
+        document.querySelectorAll('.choice-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playerChoice = button.dataset.choice;
+                document.getElementById('choice-container').classList.remove('visible');
+                nextFrame();
+            });
+        });
 
         // Volume Control
         function updateVolume(newVolume) {
             masterVolume = newVolume;
             localStorage.setItem('cutsceneMasterVolume', newVolume);
-            
+
             // Update all currently playing audio
             Object.values(audioTracks).forEach(audio => {
                 if (!audio.paused) {
                     audio.volume = Math.min(1, audio.volume / (audio.volume / masterVolume));
                 }
             });
-            
+
             // Update volume icon
             updateVolumeIcon(newVolume);
         }
@@ -1024,6 +1141,7 @@ n            // Update back button state
             const newVolume = e.target.value / 100;
             updateVolume(newVolume);
         });
+
         // Keyboard support
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
