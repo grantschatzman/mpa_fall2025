@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Term: A New Discovery - Cutscene</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #cutscene-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease;
+            image-rendering: pixelated;
+        }
+
+        #background.visible {
+            opacity: 1;
+        }
+
+        .character {
+            position: absolute;
+            bottom: 0;
+            max-height: 80%;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease, left 0.5s ease, right 0.5s ease;
+            image-rendering: pixelated;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        /* Character Positioning Classes */
+        .founder-at-center {
+            left: 50%;
+            transform: translateX(-50%);
+            max-height: 40vh !important;
+            bottom: 10%;
+        }
+
+        .founder-at-left {
+            left: 5%;
+            max-height: 40vh !important;
+            bottom: 10%;
+        }
+
+        .custodian-entrance-right {
+            right: 5%;
+            max-height: 45vh !important;
+            bottom: 8%;
+        }
+
+        .custodian-at-right {
+            right: 5%;
+            max-height: 45vh !important;
+            bottom: 8%;
+        }
+
+        .custodian-at-right-forward {
+            right: 5%;
+            max-height: 45vh !important;
+            bottom: 8%;
+            transform: scale(1.05);
+        }
+
+        .custodian-at-right-approaching {
+            right: 8%;
+            max-height: 45vh !important;
+            bottom: 8%;
+        }
+
+        .custodian-at-center {
+            left: 50%;
+            transform: translateX(-50%);
+            max-height: 45vh !important;
+            bottom: 8%;
+        }
+
+        /* Pattern Flow Animation for CT's Face */
+        @keyframes pattern-flow {
+            0% {
+                filter: hue-rotate(0deg) brightness(1);
+            }
+            50% {
+                filter: hue-rotate(30deg) brightness(1.2);
+            }
+            100% {
+                filter: hue-rotate(0deg) brightness(1);
+            }
+        }
+
+        .pattern-face {
+            animation: pattern-flow 3s ease-in-out infinite;
+        }
+
+        /* Dream Blur Effect */
+        .dream-blur {
+            filter: blur(2px) brightness(0.9);
+        }
+
+        /* Interrupt Flash Effect */
+        @keyframes interrupt-flash {
+            0% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .interrupt-effect {
+            animation: interrupt-flash 0.4s ease-out;
+        }
+
+        /* Golden Glow Overlay */
+        #golden-glow-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 215, 0, 0.15) 0%,
+                transparent 70%
+            );
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #golden-glow-overlay.visible {
+            opacity: 1;
+        }
+
+        #golden-glow-overlay.intense {
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 215, 0, 0.25) 0%,
+                transparent 70%
+            );
+        }
+
+        #dialogue-box {
+            position: absolute;
+            max-width: 85%;
+            padding: 25px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 18px;
+            line-height: 1.6;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #dialogue-box.custodian {
+            background: rgba(139, 69, 69, 0.95);
+        }
+
+        #dialogue-box.narrator {
+            background: rgba(61, 90, 107, 0.95);
+        }
+
+        #dialogue-box.ct-founder {
+            background: rgba(75, 75, 95, 0.95);
+            border: 2px solid rgba(150, 150, 200, 0.5);
+        }
+
+        #dialogue-box.top {
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.bottom {
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dialogue-box.center {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .speaker-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #D4A574;
+        }
+
+        /* Title box styling */
+        #title-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 69, 0.95);
+            color: #F5E6D3;
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #title-box.visible {
+            opacity: 1;
+        }
+
+        #title-main {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        #title-subtitle {
+            font-size: 24px;
+            letter-spacing: 2px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        /* Controls */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 200;
+        }
+
+        .control-btn {
+            color: #F5E6D3;
+            font-size: 14px;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        .control-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Volume Control */
+        #volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        #volume-control:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+            border-color: #F5E6D3;
+        }
+
+        #volume-icon {
+            color: #F5E6D3;
+            font-size: 16px;
+            min-width: 20px;
+        }
+
+        #volume-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(245, 230, 211, 0.3);
+            outline: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #F5E6D3;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #FFF;
+        }
+
+        #volume-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #F5E6D3;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #volume-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: #FFF;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #dialogue-box {
+                max-width: 90%;
+                font-size: 16px;
+                padding: 20px;
+            }
+
+            .speaker-name {
+                font-size: 16px;
+            }
+
+            #title-main {
+                font-size: 32px;
+            }
+
+            #title-subtitle {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="cutscene-container">
+        <img id="background" src="" alt="Background">
+        <div id="golden-glow-overlay"></div>
+        <div id="title-box">
+            <div id="title-main">Spring Term: A New Discovery</div>
+            <div id="title-subtitle">A My Pixel Academy Story</div>
+        </div>
+        <div id="character-container"></div>
+        <div id="dialogue-box">
+            <div class="speaker-name"></div>
+            <div class="dialogue-text"></div>
+        </div>
+        <div id="controls">
+            <div id="volume-control">
+                <span id="volume-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="60">
+            </div>
+            <button id="back-btn" class="control-btn">◀ Back</button>
+            <div id="click-indicator" class="control-btn">▶ Continue</div>
+        </div>
+    </div>
+
+    <script>
+        const ASSET_BASE = ".";
+
+        const frames = [
+            {
+                "number": 0,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [],
+                "dialogue": null,
+                "speaker": null,
+                "dialoguePosition": null,
+                "dialogueStyle": null,
+                "showTitle": true,
+                "transitionIn": "Fade in from black (1s)",
+                "transitionOut": "Fade to Frame 2 (0.5s)",
+                "musicCue": null
+            },
+            {
+                "number": 1,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-center", "class": "pattern-face"}
+                ],
+                "dialogue": "You're in the Library, speaking quietly with the Master of Critical Thinking. They're telling you all about their plan to go find the other Founders when the Custodian bursts in, looking a little out of breath.",
+                "speaker": "",
+                "dialoguePosition": "top",
+                "dialogueStyle": "narrator",
+                "transitionIn": "Fade in (0.5s)",
+                "transitionOut": "Continue to Frame 3 (0.3s)",
+                "musicCue": "Track 1 starts on frame load, fade in over 2 seconds to 60% volume"
+            },
+            {
+                "number": 2,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-entrance-right"}
+                ],
+                "dialogue": "Students! My, my, welcome back! I hope the Master of Critical Thinking here isn't working your brains into too much confusion so soon after everything that's happened.",
+                "speaker": "Custodian",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "custodian",
+                "transitionIn": "Quick fade (0.3s)",
+                "transitionOut": "Continue to Frame 4 (0.5s)",
+                "musicCue": null
+            },
+            {
+                "number": 3,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-entrance-right"}
+                ],
+                "dialogue": "...",
+                "subtext": "You remember everything that's happened.",
+                "speaker": "",
+                "dialoguePosition": "center",
+                "dialogueStyle": "narrator",
+                "visualEffect": "dream-blur",
+                "transitionIn": "Slow fade (0.5s)",
+                "transitionOut": "Fade back to clarity (0.5s)",
+                "musicCue": null
+            },
+            {
+                "number": 4,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right"}
+                ],
+                "dialogue": "Dear Custodian, please. You and the students can call me CT, just like my friends, the other Founders, always do. Or...always did. After all you've done for me, it's the least I could do.",
+                "speaker": "CT",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "ct-founder",
+                "transitionIn": "Fade in (0.5s)",
+                "transitionOut": "Continue to Frame 6 (0.3s)",
+                "musicCue": null
+            },
+            {
+                "number": 5,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right"}
+                ],
+                "dialogue": "I was just telling the students here how vital it is that we find Creativity at once. Without Tivity, as you know, my powers can't be properly harnessed. And...well...it's lonely.",
+                "speaker": "CT",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "ct-founder",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 7 (0.3s)",
+                "musicCue": null
+            },
+            {
+                "number": 6,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right"}
+                ],
+                "dialogue": "But we'll find her! Last I knew, she was going to practice shaping on other planets. Which means, students, that to find her, we'll have to journey to OUTER SP--",
+                "speaker": "CT",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "ct-founder",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Quick transition to Frame 8 (0.2s)",
+                "musicCue": null
+            },
+            {
+                "number": 7,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right-forward", "class": "interrupt-effect"}
+                ],
+                "dialogue": "AHEM COUGH AHEM so sorry to interrupt, but before anybody goes on any great adventures, I wonder if the students here wouldn't mind helping reset the Academy's defenses?",
+                "speaker": "Custodian",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "custodian",
+                "transitionIn": "Quick cut (0.2s)",
+                "transitionOut": "Continue to Frame 9 (0.3s)",
+                "musicCue": null
+            },
+            {
+                "number": 8,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right"}
+                ],
+                "dialogue": "After that last monster attack, I've found a way to activate the defensive energy within Shaped books to keep any other hungry creatures away. But for it to work, we need...well, books.",
+                "speaker": "Custodian",
+                "dialoguePosition": "top",
+                "dialogueStyle": "custodian",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 10 (0.3s)",
+                "musicCue": null
+            },
+            {
+                "number": 9,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-right-approaching"}
+                ],
+                "dialogue": "I don't suppose you all have finished any new writing that might help our defenses while you're off on a journey? Well, anyway, it's time I shared some exciting news with you.",
+                "speaker": "Custodian",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "custodian",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 11 (0.3s)",
+                "musicCue": null
+            },
+            {
+                "number": 10,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-center"}
+                ],
+                "dialogue": "One of our brave students, with the help of a monster they befriended, has discovered a new building on the edge of campus - something the Founders must have Shaped for us, but was always before hidden in the fog.",
+                "speaker": "Custodian",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "custodian",
+                "goldenGlow": "subtle",
+                "transitionIn": "Fade/dissolve (0.3s)",
+                "transitionOut": "Continue to Frame 12 (0.5s)",
+                "musicCue": null
+            },
+            {
+                "number": 11,
+                "background": "Scenes/Library_Interior_Open.png",
+                "characters": [
+                    {"sprite": "Sprites/MasterOfCrit_Front.png", "position": "founder-at-left", "class": "pattern-face"},
+                    {"sprite": "Sprites/Custodian.png", "position": "custodian-at-center"}
+                ],
+                "dialogue": "Why don't you all go explore the new Scriptorium? It's a wonderful place to focus. You can take the time you need to write and revise. Once we have some new books for the Library, the campus should be safe while you're on your adventure.",
+                "speaker": "Custodian",
+                "dialoguePosition": "bottom",
+                "dialogueStyle": "custodian",
+                "goldenGlow": "intense",
+                "transitionIn": "Fade/dissolve (0.5s)",
+                "transitionOut": "Fade to black (2s)",
+                "musicCue": "Begin fadeout of Track 1 - 3 seconds"
+            }
+        ];
+
+        const assets = {};
+        let currentFrame = 0;
+        let audioTracks = {};
+        let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
+
+        const musicFiles = ["013 - A Home For Flowers (Tulip).mp3"];
+
+        // Preload audio tracks
+        function initAudio() {
+            musicFiles.forEach(file => {
+                const audio = new Audio(ASSET_BASE + "/Music/" + file);
+                audio.loop = false;
+                audio.volume = 0;
+                audioTracks[file] = audio;
+            });
+        }
+
+        function fadeAudio(audio, targetVolume, duration) {
+            const steps = 60;
+            const stepTime = (duration * 1000) / steps;
+            const adjustedTarget = targetVolume * masterVolume;
+            const volumeStep = (adjustedTarget - audio.volume) / steps;
+            let step = 0;
+
+            const interval = setInterval(() => {
+                step++;
+                audio.volume = Math.max(0, Math.min(1, audio.volume + volumeStep));
+
+                if (step >= steps) {
+                    clearInterval(interval);
+                    if (targetVolume === 0) {
+                        audio.pause();
+                    }
+                }
+            }, stepTime);
+        }
+
+        function handleMusicCue(cue) {
+            if (!cue) return;
+
+            // Parse track number from cue
+            const trackMatch = cue.match(/Track (\d+)/i);
+            if (!trackMatch) return;
+
+            const trackIndex = parseInt(trackMatch[1]) - 1;
+            if (trackIndex < 0 || trackIndex >= musicFiles.length) return;
+
+            const trackFile = musicFiles[trackIndex];
+            const audio = audioTracks[trackFile];
+            if (!audio) return;
+
+            // Handle different music cue types
+            if (cue.includes("starts") || cue.includes("Fade in") || cue.includes("fade in")) {
+                audio.currentTime = 0;
+                audio.play();
+                fadeAudio(audio, 0.6, 2);
+            } else if (cue.includes("fadeout") || cue.includes("Fade out") || cue.includes("Begin fadeout")) {
+                fadeAudio(audio, 0, 3);
+            }
+        }
+
+        function loadFrame(frameIndex) {
+            if (frameIndex >= frames.length) {
+                // End of cutscene
+                document.body.style.cursor = 'default';
+                document.getElementById('click-indicator').style.display = 'none';
+                return;
+            }
+
+            const frame = frames[frameIndex];
+
+            const bg = document.getElementById('background');
+            const dialogueBox = document.getElementById('dialogue-box');
+            const speakerName = dialogueBox.querySelector('.speaker-name');
+            const dialogueText = dialogueBox.querySelector('.dialogue-text');
+            const charContainer = document.getElementById('character-container');
+            const titleBox = document.getElementById('title-box');
+            const goldenGlowOverlay = document.getElementById('golden-glow-overlay');
+
+            // Handle title display (frame 0 is title screen)
+            if (frame.showTitle) {
+                titleBox.classList.add('visible');
+                dialogueBox.classList.remove('visible');
+            } else {
+                titleBox.classList.remove('visible');
+            }
+
+            // Clear previous characters
+            charContainer.innerHTML = '';
+
+            // Set background
+            if (frame.background) {
+                bg.src = ASSET_BASE + "/" + frame.background;
+                bg.classList.add('visible');
+
+                // Apply visual effects to background
+                if (frame.visualEffect === 'dream-blur') {
+                    bg.classList.add('dream-blur');
+                } else {
+                    bg.classList.remove('dream-blur');
+                }
+            }
+
+            // Handle golden glow overlay
+            if (frame.goldenGlow) {
+                goldenGlowOverlay.classList.add('visible');
+                if (frame.goldenGlow === 'intense') {
+                    goldenGlowOverlay.classList.add('intense');
+                } else {
+                    goldenGlowOverlay.classList.remove('intense');
+                }
+            } else {
+                goldenGlowOverlay.classList.remove('visible');
+                goldenGlowOverlay.classList.remove('intense');
+            }
+
+            // Add characters
+            if (frame.characters && frame.characters.length > 0) {
+                frame.characters.forEach((char) => {
+                    const charImg = document.createElement('img');
+                    charImg.src = ASSET_BASE + "/" + char.sprite;
+                    charImg.className = 'character visible ' + char.position;
+                    if (char.class) {
+                        charImg.className += ' ' + char.class;
+                    }
+                    charContainer.appendChild(charImg);
+                });
+            }
+
+            // Set dialogue
+            if (frame.dialogue) {
+                let dialogueContent = frame.dialogue;
+                if (frame.subtext) {
+                    dialogueContent += '<br><br><em style="font-size: 14px; opacity: 0.8;">' + frame.subtext + '</em>';
+                }
+                dialogueText.innerHTML = dialogueContent;
+
+                if (frame.speaker) {
+                    speakerName.textContent = frame.speaker;
+                    speakerName.style.display = 'block';
+                } else {
+                    speakerName.style.display = 'none';
+                }
+
+                // Apply style
+                dialogueBox.className = 'visible';
+                if (frame.dialogueStyle) {
+                    dialogueBox.classList.add(frame.dialogueStyle);
+                }
+
+                // Apply position
+                if (frame.dialoguePosition) {
+                    dialogueBox.classList.add(frame.dialoguePosition);
+                }
+            } else {
+                dialogueBox.classList.remove('visible');
+            }
+
+            // Handle music cues
+            if (frame.musicCue) {
+                handleMusicCue(frame.musicCue);
+            }
+
+            // Update back button state
+            updateBackButton();
+        }
+
+        function nextFrame() {
+            currentFrame++;
+            if (currentFrame >= frames.length) {
+                // Fade out completely at the end
+                document.getElementById('background').classList.remove('visible');
+                document.getElementById('dialogue-box').classList.remove('visible');
+                document.getElementById('character-container').innerHTML = '';
+                return;
+            }
+            loadFrame(currentFrame);
+        }
+
+        function previousFrame() {
+            if (currentFrame === 0) return;
+            currentFrame--;
+            loadFrame(currentFrame);
+        }
+
+        function updateBackButton() {
+            const backBtn = document.getElementById('back-btn');
+            if (currentFrame === 0) {
+                backBtn.classList.add('disabled');
+            } else {
+                backBtn.classList.remove('disabled');
+            }
+        }
+
+        // Initialize
+        initAudio();
+
+        // Start first frame after brief delay
+        setTimeout(() => {
+            loadFrame(0);
+        }, 500);
+
+        // Click to advance (but not if clicking controls)
+        document.getElementById('cutscene-container').addEventListener('click', (e) => {
+            if (!e.target.closest('#controls')) {
+                nextFrame();
+            }
+        });
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            previousFrame();
+        });
+
+        // Continue indicator
+        document.getElementById('click-indicator').addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextFrame();
+        });
+
+        // Volume Control
+        function updateVolume(newVolume) {
+            masterVolume = newVolume;
+            localStorage.setItem('cutsceneMasterVolume', newVolume);
+
+            // Update all currently playing audio
+            Object.values(audioTracks).forEach(audio => {
+                if (!audio.paused) {
+                    audio.volume = Math.min(1, newVolume * 0.6);
+                }
+            });
+
+            // Update volume icon
+            updateVolumeIcon(newVolume);
+        }
+
+        function updateVolumeIcon(volume) {
+            const icon = document.getElementById('volume-icon');
+            if (volume === 0) {
+                icon.textContent = '🔇';
+            } else if (volume < 0.3) {
+                icon.textContent = '🔈';
+            } else if (volume < 0.7) {
+                icon.textContent = '🔉';
+            } else {
+                icon.textContent = '🔊';
+            }
+        }
+
+        // Initialize volume slider
+        const volumeSlider = document.getElementById('volume-slider');
+        volumeSlider.value = masterVolume * 100;
+        updateVolumeIcon(masterVolume);
+
+        volumeSlider.addEventListener('input', (e) => {
+            const newVolume = e.target.value / 100;
+            updateVolume(newVolume);
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                previousFrame();
+            }
+        });
+    </script>
+</body>
+</html>
