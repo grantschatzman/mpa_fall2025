@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Launch: Craft Intro — My Pixel Academy</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #cutscene-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Background ── */
+        #background {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #0a0a0a;
+            image-rendering: pixelated;
+        }
+
+        /* ── Library glow (Scene 1) ──
+           TO REPOSITION: change the two lines marked ← ADJUST below.
+           Both use calc(X% - halfSize). The % is where the glow CENTER sits
+           on screen — left: calc(X% - 160px) moves it left/right,
+           bottom: calc(Y% - 160px) moves it up/down (higher % = higher up).
+           Current center: 50% from left, 42% from bottom.  ── */
+        #library-glow {
+            position: absolute;
+            width: 320px;    /* glow diameter — change here AND in the calc()s below */
+            height: 320px;
+            left: calc(50% - 160px);    /* ← ADJUST horizontal position */
+            bottom: calc(42% - 160px);  /* ← ADJUST vertical position   */
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+            mix-blend-mode: screen;
+        }
+
+        #library-glow.active {
+            display: block;
+            background: radial-gradient(circle, rgba(255,220,80,1.0) 0%, rgba(255,160,20,0.65) 40%, rgba(255,100,10,0.2) 68%, transparent 80%);
+            animation: glowIntro 7s ease forwards;
+        }
+
+        #library-glow.steady {
+            display: block;
+            background: radial-gradient(circle, rgba(255,215,60,0.9) 0%, rgba(255,150,20,0.5) 42%, rgba(255,100,10,0.15) 68%, transparent 80%);
+            animation: glowPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes glowIntro {
+            0%   { opacity: 0;   transform: scale(0.3); }
+            25%  { opacity: 0.4; transform: scale(0.7); }
+            55%  { opacity: 0.8; transform: scale(0.95); }
+            65%  { opacity: 1;   transform: scale(1.25); filter: brightness(2.2); }
+            72%  { opacity: 0.9; transform: scale(1.35); filter: brightness(2.6); }
+            80%  { opacity: 0.75; transform: scale(1.1);  filter: brightness(1.2); }
+            100% { opacity: 0.85; transform: scale(1.0); filter: brightness(1); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.7;  transform: scale(0.94); }
+            50%       { opacity: 1.0; transform: scale(1.08); filter: brightness(1.3); }
+        }
+
+        /* ── Characters ── */
+        #character-container {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .character {
+            position: absolute;
+            bottom: 0;
+            max-height: 65vh;
+            width: auto;
+            image-rendering: pixelated;
+        }
+
+        /* Craft Yard Custodian size — reduced to ~35% of normal (65vh → 23vh).
+           TO ADJUST: change the max-height value on the line marked ← ADJUST below. */
+        .character.char-small {
+            max-height: 23vh;  /* ← ADJUST to resize Custodian in CraftYard scenes */
+        }
+
+        .pos-left   { left: 5%; }
+        .pos-center { left: 50%; transform: translateX(-50%); }
+        .pos-right  { right: 5%; }
+
+        /* Vertically + horizontally centered (used for scene4 Custodian).
+           TO ADJUST vertical position: change the top: 50% value below. */
+        .pos-center-mid {
+            left: 50%;
+            top: 50%;           /* ← ADJUST vertical position */
+            bottom: auto;
+            transform: translate(-50%, -50%);
+        }
+
+        /* ── Speech bubble (Scene 2) ── */
+        #bubble-wrap {
+            position: absolute;
+            top: 16%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            display: none;
+        }
+
+        #bubble-wrap.active {
+            display: block;
+            animation: bubbleWobble 0.42s ease-in-out infinite;
+        }
+
+        .bubble {
+            background: rgba(255,252,240,0.97);
+            border: 3px solid #8B4545;
+            border-radius: 20px;
+            padding: 11px 22px;
+            font-size: 19px;
+            font-weight: bold;
+            color: #2C1810;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 9px solid transparent;
+            border-top-color: #8B4545;
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -11px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-top-color: rgba(255,252,240,0.97);
+            z-index: 1;
+        }
+
+        @keyframes bubbleWobble {
+            0%, 100% { transform: translateX(-50%) rotate(-2deg); }
+            50%       { transform: translateX(-50%) rotate(2deg) scale(1.02); }
+        }
+
+        /* ── Dialogue box ── */
+        #dialogue-box {
+            position: absolute;
+            max-width: 76%;
+            min-width: 38%;
+            padding: 20px 28px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 17px;
+            line-height: 1.65;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 40;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
+        #dialogue-box.visible { opacity: 1; }
+
+        #dialogue-box.style-custodian { background: rgba(139,69,69,0.95); border: 2px solid #A05555; }
+        #dialogue-box.style-narrator  { background: rgba(61,90,107,0.95);  border: 2px solid #4A6E7E; }
+
+        #dialogue-box.pos-top    { top: 8%;    left: 50%; transform: translateX(-50%); }
+        #dialogue-box.pos-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+
+        #speaker-name {
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #D4A574;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .emphasis-blue { color: #4EC9B0; font-weight: bold; }
+
+        /* ── Choice buttons ── */
+        #choice-container {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: column;
+            gap: 13px;
+            align-items: stretch;
+            z-index: 50;
+            min-width: 340px;
+            max-width: 70%;
+        }
+
+        #choice-container.visible { display: flex; }
+
+        .choice-btn {
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 13px 28px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+
+        .choice-btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(78,201,176,0.5);
+        }
+
+        /* ── Skip button ── */
+        #skip-btn {
+            position: absolute;
+            bottom: 46px;
+            right: 22px;
+            color: #4EC9B0;
+            font-size: 11px;
+            opacity: 0;
+            z-index: 60;
+            pointer-events: none;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: opacity 0.3s ease;
+        }
+
+        #skip-btn.visible { opacity: 0.65; pointer-events: auto; }
+        #skip-btn:hover   { opacity: 1; }
+
+        /* ── Click indicator ── */
+        #click-indicator {
+            position: absolute;
+            bottom: 18px;
+            right: 22px;
+            color: #F5E6D3;
+            font-size: 13px;
+            opacity: 0;
+            z-index: 60;
+            transition: opacity 0.3s ease;
+            animation: indicPulse 1.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        #click-indicator.visible { opacity: 0.75; }
+
+        @keyframes indicPulse {
+            0%, 100% { opacity: 0.35; }
+            50%       { opacity: 0.85; }
+        }
+
+        /* ── Back button ── */
+        #back-btn {
+            position: absolute;
+            bottom: 18px;
+            left: 22px;
+            background: rgba(139,69,69,0.8);
+            border: 2px solid #8B4545;
+            border-radius: 8px;
+            color: #F5E6D3;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 8px 16px;
+            cursor: pointer;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, background 0.2s;
+        }
+
+        #back-btn.visible { opacity: 0.8; pointer-events: auto; }
+        #back-btn:hover   { background: rgba(160,85,85,0.95); opacity: 1; }
+
+        /* ── Title screen ── */
+        #title-screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+        }
+
+        #title-screen.active { display: flex; }
+
+        #title-box {
+            background: rgba(139,69,69,0.95);
+            border: 2px solid #A05555;
+            border-radius: 18px;
+            padding: 44px 60px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+        }
+
+        #title-label {
+            font-size: 13px;
+            letter-spacing: 4px;
+            color: #D4A574;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        #title-main {
+            font-size: 36px;
+            font-weight: bold;
+            color: #F5E6D3;
+            margin-bottom: 14px;
+            letter-spacing: 2px;
+        }
+
+        #title-sub {
+            font-size: 16px;
+            color: rgba(245,230,211,0.7);
+            margin-bottom: 28px;
+        }
+
+        #title-prompt {
+            font-size: 12px;
+            color: #4EC9B0;
+            animation: indicPulse 1.8s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+
+        /* ── Transition overlay ── */
+        #transition-overlay {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 1;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE 5 — Spacecraft selection
+        ═══════════════════════════════════════════ */
+        #spacecraft-scene {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+            background: rgba(8,8,18,0.5);
+            gap: 10px;
+        }
+
+        #spacecraft-scene.active { display: flex; }
+
+        #sc-header-box {
+            background: rgba(14,14,20,0.88);
+            border: 2px solid rgba(78,201,176,0.35);
+            border-radius: 12px;
+            padding: 18px 38px;
+            text-align: center;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #sc-header {
+            color: #F5E6D3;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 14px rgba(78,201,176,0.6);
+            margin-bottom: 8px;
+        }
+
+        #sc-sub {
+            color: #D4A574;
+            font-size: 13px;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        #spacecraft-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 26px 34px;
+            justify-items: center;
+        }
+
+        .spacecraft-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .spacecraft-img {
+            max-width: 220px;
+            max-height: 180px;
+            width: auto;
+            height: auto;
+            image-rendering: pixelated;
+            transition: transform 0.22s ease, filter 0.22s ease;
+        }
+
+        .spacecraft-slot:hover .spacecraft-img { transform: scale(1.08); }
+
+        .spacecraft-slot[data-craft="cn"]:hover .spacecraft-img {
+            filter: drop-shadow(0 0 16px rgba(78,201,176,0.9));
+        }
+        .spacecraft-slot[data-craft="ss"]:hover .spacecraft-img {
+            filter: drop-shadow(0 0 16px rgba(212,165,116,0.9));
+        }
+        .spacecraft-slot[data-craft="pe"]:hover .spacecraft-img {
+            filter: drop-shadow(0 0 16px rgba(192,80,77,0.9));
+        }
+        .spacecraft-slot[data-craft="aw"]:hover .spacecraft-img {
+            filter: drop-shadow(0 0 16px rgba(61,90,107,0.9));
+        }
+
+        .sc-craft-name {
+            color: #F5E6D3;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: rgba(14,14,20,0.85);
+            border: 1px solid rgba(78,201,176,0.3);
+            border-radius: 6px;
+            padding: 5px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* ── Checklist panel ── */
+        #checklist-panel {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+        }
+
+        #checklist-panel.active { display: flex; }
+
+        #checklist-box {
+            background: rgba(22,22,22,0.98);
+            border: 3px solid #4EC9B0;
+            border-radius: 18px;
+            padding: 34px 42px;
+            max-width: 660px;
+            width: 90%;
+            max-height: 82vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 40px rgba(78,201,176,0.22);
+        }
+
+        #checklist-craft-label {
+            color: #4EC9B0;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        #checklist-title {
+            color: #F5E6D3;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(78,201,176,0.3);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+            flex-shrink: 0;
+        }
+
+        #checklist-items {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 6px;
+        }
+
+        #checklist-items::-webkit-scrollbar { width: 5px; }
+        #checklist-items::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 4px; }
+        #checklist-items::-webkit-scrollbar-thumb { background: #4EC9B0; border-radius: 4px; }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            margin-bottom: 13px;
+            color: #F5E6D3;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .cl-bullet { color: #4EC9B0; flex-shrink: 0; margin-top: 2px; }
+        .checklist-item strong { color: #F5E6D3; font-weight: bold; }
+        .checklist-item em     { font-style: italic; color: #D4A574; }
+
+        #checklist-close {
+            margin-top: 20px;
+            flex-shrink: 0;
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        #checklist-close:hover { background: #5DDAC7; transform: scale(1.03); }
+    </style>
+</head>
+<body>
+<div id="cutscene-container">
+    <img id="background" src="" alt="">
+    <div id="library-glow"></div>
+    <div id="character-container"></div>
+
+    <div id="bubble-wrap">
+        <div class="bubble">Hemm hrmm hrmm</div>
+    </div>
+
+    <div id="dialogue-box">
+        <div id="speaker-name"></div>
+        <div id="dialogue-text"></div>
+    </div>
+
+    <div id="choice-container"></div>
+
+    <!-- Title screen -->
+    <div id="title-screen">
+        <div id="title-box">
+            <div id="title-label">My Pixel Academy</div>
+            <div id="title-main">Prepare to Launch</div>
+            <div id="title-sub">A My Pixel Academy Story</div>
+            <div id="title-prompt">&#9660; click anywhere to begin</div>
+        </div>
+    </div>
+
+    <!-- Scene 5 -->
+    <div id="spacecraft-scene">
+        <div id="sc-header-box">
+            <div id="sc-header">Launch Bay</div>
+            <div id="sc-sub">Hover to inspect &middot; click to open launch checklist</div>
+        </div>
+        <div id="spacecraft-grid">
+            <div class="spacecraft-slot" data-craft="cn">
+                <img class="spacecraft-img" src="./Scenes/Craft1_CN.png" alt="">
+                <div class="sc-craft-name">Creative Nonfiction</div>
+            </div>
+            <div class="spacecraft-slot" data-craft="ss">
+                <img class="spacecraft-img" src="./Scenes/Craft2_SS.png" alt="">
+                <div class="sc-craft-name">Short Story</div>
+            </div>
+            <div class="spacecraft-slot" data-craft="pe">
+                <img class="spacecraft-img" src="./Scenes/Craft3_PE.png" alt="">
+                <div class="sc-craft-name">Persuasive Essay</div>
+            </div>
+            <div class="spacecraft-slot" data-craft="aw">
+                <img class="spacecraft-img" src="./Scenes/Craft4_AW.png" alt="">
+                <div class="sc-craft-name">Academic Writing</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklist panel -->
+    <div id="checklist-panel">
+        <div id="checklist-box">
+            <div id="checklist-craft-label"></div>
+            <div id="checklist-title">Launch Checklist</div>
+            <div id="checklist-items"></div>
+            <button id="checklist-close">◀ Return to Launch Bay</button>
+        </div>
+    </div>
+
+    <div id="skip-btn">skip to assignment ▶</div>
+    <div id="click-indicator">▼ click to continue</div>
+    <button id="back-btn">◀ Back</button>
+    <div id="transition-overlay"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// MUSIC
+// ─────────────────────────────────────────────
+const audioCache = {};
+let currentMusicFile = null;
+
+function getAudio(file) {
+    if (!audioCache[file]) {
+        audioCache[file] = new Audio('./' + file);
+        audioCache[file].volume = 0;
+    }
+    return audioCache[file];
+}
+
+function ramp(a, target, ms) {
+    clearInterval(a._ramp);
+    const steps = 40;
+    const dt = ms / steps;
+    const dv = (target - a.volume) / steps;
+    let n = 0;
+    a._ramp = setInterval(() => {
+        n++;
+        a.volume = Math.max(0, Math.min(1, a.volume + dv));
+        if (n >= steps) {
+            clearInterval(a._ramp);
+            if (target === 0) a.pause();
+        }
+    }, dt);
+}
+
+function musicPlay(file, ms = 2000) {
+    if (currentMusicFile === file) return;
+    if (currentMusicFile) ramp(getAudio(currentMusicFile), 0, ms);
+    const a = getAudio(file);
+    a.currentTime = 0;
+    a.volume = 0;
+    a.play().catch(() => {
+        // Autoplay blocked — start on first interaction
+        const resume = () => { a.play().then(() => ramp(a, 0.6, ms)).catch(() => {}); };
+        document.addEventListener('click', resume, { once: true });
+        document.addEventListener('keydown', resume, { once: true });
+    });
+    ramp(a, 0.6, ms);
+    currentMusicFile = file;
+}
+
+function musicStop(file, ms = 2000) {
+    const a = audioCache[file];
+    if (!a) return;
+    ramp(a, 0, ms);
+    if (currentMusicFile === file) currentMusicFile = null;
+}
+
+function playSFX(file, delay = 0) {
+    setTimeout(() => {
+        const s = new Audio('./' + file);
+        s.volume = 0.8;
+        s.play().catch(() => {});
+    }, delay);
+}
+
+// ─────────────────────────────────────────────
+// TYPEWRITER
+// ─────────────────────────────────────────────
+const SPD = { normal: 28, slow: 90, fast: 8 };
+
+function segmentText(raw) {
+    // Break raw text (with speed markers and limited HTML) into typed segments
+    const segs = [];
+    let cur = { text: '', speed: SPD.normal, em: false, spanClass: null };
+
+    const push = () => {
+        if (cur.text) { segs.push({ ...cur }); cur = { ...cur, text: '' }; }
+    };
+
+    let i = 0;
+    const s = String(raw);
+    while (i < s.length) {
+        if (s.startsWith('(...)', i))   { push(); cur.speed = SPD.slow;   i += 5; }
+        else if (s.startsWith('(/...)', i)) { push(); cur.speed = SPD.normal; i += 6; }
+        else if (s.startsWith('(---)', i))  { push(); cur.speed = SPD.fast;   i += 5; }
+        else if (s.startsWith('(/---)', i)) { push(); cur.speed = SPD.normal; i += 6; }
+        else if (s.startsWith('<em>', i))   { push(); cur.em = true;  i += 4; }
+        else if (s.startsWith('</em>', i))  { push(); cur.em = false; i += 5; }
+        else if (s.startsWith('<span class="', i)) {
+            const e = s.indexOf('">', i + 13);
+            if (e !== -1) { push(); cur.spanClass = s.slice(i + 13, e); i = e + 2; }
+            else i++;
+        }
+        else if (s.startsWith('</span>', i)) { push(); cur.spanClass = null; i += 7; }
+        else { cur.text += s[i]; i++; }
+    }
+    push();
+    return segs;
+}
+
+// Typewriter state
+let TW = { segs: [], segIdx: 0, charIdx: 0, timer: null, done: false,
+           container: null, cb: null, curEl: null, curSig: null };
+
+function sig(seg) { return `${seg.em}_${seg.spanClass}`; }
+
+function getOrMakeEl(seg) {
+    const s = sig(seg);
+    if (s === TW.curSig) return TW.curEl;
+    // New element
+    let el = TW.container;
+    if (seg.spanClass) {
+        const span = document.createElement('span');
+        span.className = seg.spanClass;
+        TW.container.appendChild(span);
+        el = span;
+    }
+    if (seg.em) {
+        const em = document.createElement('em');
+        (seg.spanClass ? TW.container.lastChild : TW.container).appendChild(em);
+        el = em;
+    }
+    if (!seg.em && !seg.spanClass) el = TW.container;
+    TW.curEl = el;
+    TW.curSig = s;
+    return el;
+}
+
+function appendChar(el, char) {
+    const last = el.lastChild;
+    if (last && last.nodeType === Node.TEXT_NODE) last.textContent += char;
+    else el.appendChild(document.createTextNode(char));
+}
+
+function typeStep() {
+    if (TW.segIdx >= TW.segs.length) {
+        TW.done = true;
+        if (TW.cb) TW.cb();
+        return;
+    }
+    const seg = TW.segs[TW.segIdx];
+    const el = getOrMakeEl(seg);
+    appendChar(el, seg.text[TW.charIdx]);
+    TW.charIdx++;
+    if (TW.charIdx >= seg.text.length) { TW.segIdx++; TW.charIdx = 0; }
+    TW.timer = setTimeout(typeStep, seg.speed);
+}
+
+function startTypewriter(container, raw, cb) {
+    clearTimeout(TW.timer);
+    TW.segs = segmentText(raw);
+    TW.segIdx = 0; TW.charIdx = 0; TW.done = false;
+    TW.container = container; TW.cb = cb;
+    TW.curEl = container; TW.curSig = null;
+    container.innerHTML = '';
+    typeStep();
+}
+
+function skipTypewriter() {
+    if (TW.done) return false;
+    clearTimeout(TW.timer);
+    // Rebuild full content instantly
+    TW.container.innerHTML = '';
+    TW.curEl = TW.container; TW.curSig = null;
+    for (const seg of TW.segs) {
+        const el = getOrMakeEl(seg);
+        appendChar(el, seg.text); // append whole string at once
+        // Reset for next segment
+        TW.curSig = null;
+    }
+    TW.done = true;
+    if (TW.cb) TW.cb();
+    return true;
+}
+
+// ─────────────────────────────────────────────
+// FRAME DATA
+// ─────────────────────────────────────────────
+const FRAMES = {
+    title: {
+        bg: 'Scenes/Campus Map.png',
+        music: { action: 'play', file: 'Music/23 - Shop.mp3' },
+        type: 'title',
+        forceFade: true,
+        next: 'scene1'
+    },
+    scene1: {
+        bg: 'Scenes/Campus Map.png', glow: true,
+        chars: [],
+        dlg: { text: 'One afternoon on the Academy campus, you notice a strange energy emanating from the Library. As a gentle buzz in the base of your brain grows to a steady vibration, you become certain: somewhere in the Library, a source of immense power has appeared.',
+               speaker: null, style: 'narrator', pos: 'bottom' },
+        music: { action: 'play', file: 'Music/23 - Shop.mp3' },
+        type: 'choice',
+        choices: [
+            { text: 'Discover the source of the energy', to: 'scene2' },
+            { text: 'Ignore it',                         to: 'scene1a' }
+        ]
+    },
+    scene1a: {
+        bg: 'Scenes/Campus Map.png', glow: true,
+        chars: [],
+        dlg: { text: 'The hum inside your skull grows stronger.',
+               speaker: null, style: 'narrator', pos: 'bottom' },
+        music: { action: 'crossfade', from: 'Music/23 - Shop.mp3', to: 'Music/086 - World_s End Valentine.mp3' },
+        type: 'choice',
+        choices: [
+            { text: 'Discover the source of the energy', to: 'scene2' },
+            { text: 'Try...to...ignore it',              to: 'scene1b' }
+        ]
+    },
+    scene1b: {
+        bg: 'Scenes/Campus Map.png', glow: true,
+        chars: [],
+        dlg: { text: 'The energy, though not unpleasant, becomes almost unbearable before suddenly subsiding.',
+               speaker: null, style: 'narrator', pos: 'bottom' },
+        music: { action: 'stop', file: 'Music/086 - World_s End Valentine.mp3' },
+        type: 'standard', next: 'scene2', slowFade: true
+    },
+    scene2: {
+        bg: 'Scenes/Library_Exterior_Closeup.png',
+        bubble: true, chars: [],
+        dlg: { text: "As the resounding vibration becomes a gentle, lapping wave at the edge of your mind, you hear the Custodian's voice wheeze out of the Library.",
+               speaker: null, style: 'narrator', pos: 'bottom' },
+        type: 'standard', next: 'scene2b'
+    },
+    scene2b: {
+        bg: 'Scenes/Library_Exterior_Closeup.png',
+        chars: [],
+        dlg: { text: "Well, don't just stand there like you're waiting for someone to stack books on your noggin. Come on in and see what we've done with the place!",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene3_1', slowFade: true
+    },
+    scene3_1: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Well, students, it looks like we've done it. A little activation Shaping and the Academy grounds should be safe from further intrusion, thanks to all your writing here.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        music: { action: 'play', file: 'Music/12 - Home.mp3' },
+        type: 'standard', next: 'scene3_2'
+    },
+    scene3_2: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Short stories, essays of all stripes, letters, even some books...! I'll be the first to say, I know I didn't give you much choice about helping, but you've outshone my expectations.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene3_3'
+    },
+    scene3_3: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Which means, I suppose, that I can't rightly keep you here any longer.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene3_4'
+    },
+    scene3_4: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "A note of sadness creeps into the Custodian's voice, but he gives you a wrinkly smile all the same.",
+               speaker: null, style: 'narrator', pos: 'top' },
+        type: 'standard', next: 'scene3_5'
+    },
+    scene3_5: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "It's time for you to continue your adventure with the old Master of Critical Thinking. Without the three other Founders, this place will never be fully complete.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene3_6'
+    },
+    scene3_6: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "The journey won't be without challenge, but I've no doubt you're up to the task.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene3_7'
+    },
+    scene3_7: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "A twinkle flashes through the Custodian's eye.",
+               speaker: null, style: 'narrator', pos: 'top' },
+        type: 'standard', next: 'scene3_8'
+    },
+    scene3_8: {
+        bg: 'Scenes/Library_Interior_Open.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Why don't you come see what I mean?",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_1', slowFade: true
+    },
+    scene4_1: {
+        bg: 'Scenes/CraftYard_Covered.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "The Custodian leads you to a space behind the Observatory that you haven't been to for some time. The area is strewn with nuts, bolts, and other small scraps, as if someone had been working here. Several lumpy structures sit hidden under dusty canvas covers.",
+               speaker: null, style: 'narrator', pos: 'top' },
+        music: { action: 'play', file: 'Music/021 - Sugar Star Planetarium.mp3' },
+        type: 'standard', next: 'scene4_2'
+    },
+    scene4_2: {
+        bg: 'Scenes/CraftYard_Covered.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "As you know, Creativity was last seen venturing beyond the boundaries of Earth in search of new Shaping techniques. She left in our only spacecraft, one developed by ... well, the Master of Craft.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_3'
+    },
+    scene4_3: {
+        bg: 'Scenes/CraftYard_Covered.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "If you're really going to go after her, you'll need spacecrafts of your own. And seeing as the Master of Craft isn't here to help, I'm afraid you'll have to work a few things out on your own.",
+               speaker: null, style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_4'
+    },
+    scene4_4: {
+        bg: 'Scenes/CraftYard_Covered.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Thanks to the Founder, though, you are not without aid. While making the spacecraft that Creativity took, Craft went through several prototypes.",
+               speaker: null, style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_5'
+    },
+    scene4_5: {
+        bg: 'Scenes/CraftYard_Covered.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "With somewhat more flair than strictly necessary, the Custodian whips off the covers, revealing ...",
+               speaker: null, style: 'narrator', pos: 'top' },
+        sfx: { file: 'Music/SFX_Whoosh.mp3', delay: 400 },
+        type: 'standard', next: 'scene4_6'
+    },
+    scene4_6: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: '(...)four... broken?... spacecraft(/...)',
+               speaker: null, style: 'narrator', pos: 'bottom' },
+        type: 'standard', next: 'scene4_7'
+    },
+    scene4_7: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "They're not in quite so bad a shape as they look. In fact, their physical structures are mostly sound.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_8'
+    },
+    scene4_8: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "The Custodian pats one of the prototype spacecraft fondly. A small part falls with a 'clang'.",
+               speaker: null, style: 'narrator', pos: 'top' },
+        sfx: { file: 'Music/SFX_DropMetal.mp3', delay: 1050 },
+        type: 'standard', next: 'scene4_9'
+    },
+    scene4_9: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Ah, purely cosmetic, that piece. Don't mind that. What you really need to concern yourself with is their Shaping drives. Naturally, each of these crafts were designed to be propelled by the same magic that runs through this academy.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_9b'
+    },
+    scene4_9b: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Only, these were never quite finished. And when it comes to space travel ... Well, one wants to be especially <em>careful</em>.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_10'
+    },
+    scene4_10: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "That's why Craft was so good at these. But, alas, you shall have to finish them yourselves.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_11'
+    },
+    scene4_11: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: 'Each of these models runs on a slightly different Shaping architecture. You can pick whichever you like. Just make sure you pay close attention to the launch checklist and take great care that <span class="emphasis-blue">every element is totally ready before launch day</span>.',
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_11b'
+    },
+    scene4_11b: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Creativity's last known heading was Mars. I believe an ideal astronomical window should be approaching here within the coming weeks. So, I suppose you have until then.",
+               speaker: null, style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_12'
+    },
+    scene4_12: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Choose the craft that fits you best, and I have no doubt you'll rise to the task.",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene4_13'
+    },
+    scene4_13: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "He pats the spacecraft once more, and you hear another <em>clang</em>.",
+               speaker: null, style: 'narrator', pos: 'top' },
+        sfx: { file: 'Music/SFX_DropMetal.mp3', delay: 900 },
+        type: 'standard', next: 'scene4_14'
+    },
+    scene4_14: {
+        bg: 'Scenes/CraftYard.png',
+        chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
+        dlg: { text: "Good luck, students!",
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
+        type: 'standard', next: 'scene5', slowFade: true
+    },
+    scene5: {
+        bg: 'Scenes/CraftYard.png',
+        type: 'spacecraft'
+    }
+};
+
+// ─────────────────────────────────────────────
+// CHECKLISTS
+// ─────────────────────────────────────────────
+const CHECKLISTS = {
+    cn: {
+        label: 'Creative Nonfiction — CN',
+        items: [
+            'Build from a foundation of **real experience or observation**',
+            'Install at least one **scene**: a specific moment shown in real time with sensory detail, not summarized',
+            'Add one **representative scene** that shows a bigger truth or pattern, not just a one-time event',
+            'Load **specific, concrete details**: names, places, images — no vague generalities',
+            'Insert a **claim or insight** about people, school, life, etc.',
+            'Ensure **personal writer voice** is consistent throughout',
+            '**Vary sentence length** — not all the same rhythm',
+            'Check that all sentences are complete and correctly punctuated',
+            'Commas used correctly — no comma splices',
+            'Spelling and capitalization are correct'
+        ]
+    },
+    ss: {
+        label: 'Short Story — SS',
+        items: [
+            'Install a **character** with at least one personality **trait shown through action or dialogue** — not just described',
+            'Establish a **setting** that affects character or events — not just background',
+            'Install a **conflict** — something at stake or something that changes',
+            '**Show, don\'t tell** — reveal emotions and traits through behavior, not labels',
+            'Include **imagery / sensory details** (at least two senses beyond sight)',
+            '**Format dialogue** correctly: new paragraph per speaker, quotation marks, dialogue tags',
+            '**Vary sentence length** for rhythm: short for tension, longer for reflection',
+            'Check that all sentences are complete and correctly **punctuated**',
+            '**Commas** used correctly — no comma splices',
+            '**Spelling and capitalization** are correct'
+        ]
+    },
+    pe: {
+        label: 'Persuasive Essay — PE',
+        items: [
+            'Build the **introduction** on **ABC** structure: Attention Getter → Background → Claim',
+            'State a **clear opinion or call to action**',
+            'Install **ethos** — establish why the perspective or sources are trustworthy',
+            'Install **pathos** — connect to the reader\'s emotions or values at least once',
+            'Install **logos** — include at least one fact, statistic, or logical reason',
+            '**Support the claim** in each body paragraph with a reason + explanation',
+            'Address a **counterargument** — acknowledge a possible objection and respond to it',
+            'Close with **XYZ**: Re-explain thesis in new words → Why it matters → Zing',
+            'Keep **tone** appropriate and consistent — persuasive, not dismissive',
+            'Check that all sentences are **complete** and correctly **punctuated**',
+            '**Commas** used correctly — no comma splices',
+            '**Spelling** and **capitalization** are correct'
+        ]
+    },
+    aw: {
+        label: 'Academic Writing — AW',
+        items: [
+            'Build the **introduction** on **ABC** structure: Attention Getter → Background → Claim',
+            'State a **clear position in the thesis** — argue something, don\'t just identify a topic',
+            'Draw **evidence from a source text** — quoted or paraphrased, identified by author and title',
+            'Run each **body paragraph** on **MEAT**: Main idea → Evidence → Analysis → Transition',
+            'Include two **E+A pairs** per body paragraph — two pieces of evidence, each followed by analysis',
+            '**Explain** why **evidence** supports the claim — don\'t just restate the quote',
+            'Close with **XYZ**: Re-explain thesis in new words → Why it matters → Zing',
+            '**Keep every paragraph on topic**',
+            'Check that all sentences are complete and correctly **punctuated**',
+            '**Commas** used correctly — no comma splices',
+            '**Spelling** and **capitalization** are correct'
+        ]
+    }
+};
+
+function parseMd(text) {
+    return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+}
+
+// ─────────────────────────────────────────────
+// DOM REFS
+// ─────────────────────────────────────────────
+const elBg       = document.getElementById('background');
+const elGlow     = document.getElementById('library-glow');
+const elChars    = document.getElementById('character-container');
+const elBubble   = document.getElementById('bubble-wrap');
+const elDlg      = document.getElementById('dialogue-box');
+const elSpeaker  = document.getElementById('speaker-name');
+const elText     = document.getElementById('dialogue-text');
+const elChoices  = document.getElementById('choice-container');
+const elIndic    = document.getElementById('click-indicator');
+const elBack     = document.getElementById('back-btn');
+const elOverlay  = document.getElementById('transition-overlay');
+const elSc5      = document.getElementById('spacecraft-scene');
+const elTitle    = document.getElementById('title-screen');
+const elSkip     = document.getElementById('skip-btn');
+const elCLPanel  = document.getElementById('checklist-panel');
+
+// ─────────────────────────────────────────────
+// GLOW STATE
+// ─────────────────────────────────────────────
+let glowPhase = 'off';
+let glowTimer = null;
+
+function setGlow(on) {
+    if (on) {
+        if (glowPhase === 'off') {
+            elGlow.className = 'active';
+            glowPhase = 'animating';
+            clearTimeout(glowTimer);
+            glowTimer = setTimeout(() => { elGlow.className = 'steady'; glowPhase = 'steady'; }, 4100);
+        }
+    } else {
+        clearTimeout(glowTimer);
+        elGlow.className = '';
+        glowPhase = 'off';
+    }
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION STATE
+// ─────────────────────────────────────────────
+let currentId = null;
+const navStack = [];
+let busy = false;
+
+// ─────────────────────────────────────────────
+// RENDER FRAME
+// ─────────────────────────────────────────────
+function renderFrame(id) {
+    const f = FRAMES[id];
+    if (!f) return;
+    currentId = id;
+
+    // Music
+    if (f.music) {
+        const m = f.music;
+        if (m.action === 'play')      musicPlay(m.file);
+        else if (m.action === 'stop') musicStop(m.file);
+        else if (m.action === 'crossfade') { musicStop(m.from, 1800); musicPlay(m.to, 1800); }
+    }
+
+    // SFX
+    if (f.sfx) playSFX(f.sfx.file, f.sfx.delay || 0);
+
+    // Background
+    if (f.bg) elBg.src = './' + f.bg;
+
+    // Glow
+    setGlow(!!f.glow);
+
+    // Bubble
+    elBubble.classList.toggle('active', !!f.bubble);
+
+    // Characters — scene4 uses char-small (reduced size). TO ADJUST: change max-height
+    // in .character.char-small in the CSS above (marked ← ADJUST).
+    const useSmallChars = id.startsWith('scene4');
+    elChars.innerHTML = '';
+    (f.chars || []).forEach(c => {
+        const img = document.createElement('img');
+        // scene4: use pos-center-mid (horizontally + vertically centered) instead of pos-center
+        const posClass = (useSmallChars && c.pos === 'center') ? 'pos-center-mid' : `pos-${c.pos}`;
+        img.className = `character ${posClass}${useSmallChars ? ' char-small' : ''}`;
+        img.src = './' + c.file;
+        img.alt = '';
+        elChars.appendChild(img);
+    });
+
+    // Reset UI
+    elChoices.innerHTML = '';
+    elChoices.classList.remove('visible');
+    elIndic.classList.remove('visible');
+    elSkip.classList.remove('visible');
+
+    // Title screen
+    if (f.type === 'title') {
+        TW.done = true;
+        elDlg.classList.remove('visible');
+        elSc5.classList.remove('active');
+        elTitle.classList.add('active');
+        elBack.classList.remove('visible');
+        elIndic.classList.remove('visible');
+        return;
+    }
+    elTitle.classList.remove('active');
+
+    // Scene 5
+    if (f.type === 'spacecraft') {
+        elDlg.classList.remove('visible');
+        elSc5.classList.add('active');
+        elBack.classList.add('visible');
+        return;
+    }
+    elSc5.classList.remove('active');
+
+    // Dialogue
+    if (f.dlg) {
+        const d = f.dlg;
+        // Choice frames: force dialogue to top so buttons don't overlap
+        const dlgPos = (f.type === 'choice') ? 'top' : d.pos;
+        elDlg.className = `style-${d.style} pos-${dlgPos}`;
+        elDlg.classList.add('visible');
+
+        if (d.speaker) { elSpeaker.textContent = d.speaker; elSpeaker.style.display = 'block'; }
+        else             { elSpeaker.style.display = 'none'; }
+
+        startTypewriter(elText, d.text, () => {
+            if (f.type === 'choice') {
+                buildChoices(f.choices);
+            } else {
+                elIndic.classList.add('visible');
+                elSkip.classList.add('visible');
+            }
+        });
+    } else {
+        elDlg.classList.remove('visible');
+    }
+
+    // Back button
+    elBack.classList.toggle('visible', navStack.length > 0);
+}
+
+function buildChoices(choices) {
+    elChoices.innerHTML = '';
+    choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = c.text;
+        btn.addEventListener('click', e => { e.stopPropagation(); navigate(c.to); });
+        elChoices.appendChild(btn);
+    });
+    elChoices.classList.add('visible');
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATE
+// ─────────────────────────────────────────────
+function navigate(targetId, isBack = false) {
+    if (busy) return;
+    const f = FRAMES[currentId];
+    const fNext = FRAMES[targetId];
+
+    let dur;
+    if (f && f.slowFade) {
+        dur = 900;
+    } else if (f && f.forceFade) {
+        dur = 380;
+    } else if (f && fNext && f.bg && fNext.bg && f.bg === fNext.bg) {
+        dur = 0;  // Same background — skip the fade
+    } else {
+        dur = 380;
+    }
+
+    // Instant transition for same-bg frames
+    if (dur === 0) {
+        busy = true;
+        clearTimeout(TW.timer); TW.done = true;
+        if (!isBack && currentId) navStack.push(currentId);
+        renderFrame(targetId);
+        busy = false;
+        return;
+    }
+
+    busy = true;
+    elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+    elOverlay.style.opacity = '1';
+
+    setTimeout(() => {
+        clearTimeout(TW.timer); TW.done = true;
+
+        if (!isBack && currentId) navStack.push(currentId);
+        renderFrame(targetId);
+
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '0';
+        setTimeout(() => { busy = false; }, dur / 2 + 40);
+    }, dur / 2);
+}
+
+function goBack() {
+    if (navStack.length === 0 || busy) return;
+    const prev = navStack.pop();
+    navigate(prev, true);
+}
+
+// ─────────────────────────────────────────────
+// ADVANCE (click / key)
+// ─────────────────────────────────────────────
+function advance() {
+    if (busy) return;
+    const f = FRAMES[currentId];
+    if (!f || f.type === 'spacecraft' || f.type === 'choice') return;
+    if (!TW.done) { skipTypewriter(); return; }
+    if (f.next) navigate(f.next);
+}
+
+// ─────────────────────────────────────────────
+// CHECKLIST
+// ─────────────────────────────────────────────
+function openChecklist(craftId) {
+    const data = CHECKLISTS[craftId];
+    if (!data) return;
+    document.getElementById('checklist-craft-label').textContent = data.label;
+    const el = document.getElementById('checklist-items');
+    el.innerHTML = '';
+    data.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.innerHTML = `<span class="cl-bullet">◆</span><span>${parseMd(item)}</span>`;
+        el.appendChild(div);
+    });
+    elCLPanel.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// EVENT LISTENERS
+// ─────────────────────────────────────────────
+document.getElementById('cutscene-container').addEventListener('click', e => {
+    if (elCLPanel.classList.contains('active')) return;
+    advance();
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { elCLPanel.classList.remove('active'); return; }
+    if (elCLPanel.classList.contains('active')) return;
+    if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); advance(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goBack(); }
+});
+
+elBack.addEventListener('click', e => { e.stopPropagation(); goBack(); });
+
+document.querySelectorAll('.spacecraft-slot').forEach(slot => {
+    slot.addEventListener('click', e => { e.stopPropagation(); openChecklist(slot.dataset.craft); });
+});
+
+elSkip.addEventListener('click', e => { e.stopPropagation(); navigate('scene5'); });
+
+document.getElementById('checklist-close').addEventListener('click', e => {
+    e.stopPropagation(); elCLPanel.classList.remove('active');
+});
+
+elCLPanel.addEventListener('click', e => {
+    if (e.target === elCLPanel) elCLPanel.classList.remove('active');
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+elOverlay.style.opacity = '1';
+elOverlay.style.transition = 'none';
+busy = true;
+
+setTimeout(() => {
+    renderFrame('title');
+    elOverlay.style.transition = 'opacity 0.9s ease';
+    elOverlay.style.opacity = '0';
+    setTimeout(() => { busy = false; }, 1000);
+}, 200);
+</script>
+</body>
+</html>
