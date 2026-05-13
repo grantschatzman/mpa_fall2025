@@ -547,6 +547,71 @@
         }
 
         #checklist-close:hover { background: #5DDAC7; transform: scale(1.03); }
+
+        /* ── Volume control ── */
+        #volume-control {
+            position: absolute;
+            top: 16px;
+            right: 22px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0,0,0,0.45);
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+            z-index: 65;
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        #volume-control:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.75);
+            border-color: #4EC9B0;
+        }
+
+        #volume-icon {
+            color: #F5E6D3;
+            font-size: 14px;
+            min-width: 18px;
+            text-align: center;
+            user-select: none;
+        }
+
+        #volume-slider {
+            width: 72px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(245,230,211,0.3);
+            outline: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 11px;
+            height: 11px;
+            background: #F5E6D3;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        #volume-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+        #volume-slider::-moz-range-thumb {
+            width: 11px;
+            height: 11px;
+            background: #F5E6D3;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -585,7 +650,7 @@
         <div id="spacecraft-grid">
             <div class="spacecraft-slot" data-craft="cn">
                 <img class="spacecraft-img" src="./Scenes/Craft1_CN.png" alt="">
-                <div class="sc-craft-name">Creative Nonfiction</div>
+                <div class="sc-craft-name">Creative Nonfiction / Personal Narrative</div>
             </div>
             <div class="spacecraft-slot" data-craft="ss">
                 <img class="spacecraft-img" src="./Scenes/Craft2_SS.png" alt="">
@@ -597,7 +662,7 @@
             </div>
             <div class="spacecraft-slot" data-craft="aw">
                 <img class="spacecraft-img" src="./Scenes/Craft4_AW.png" alt="">
-                <div class="sc-craft-name">Academic Writing</div>
+                <div class="sc-craft-name">Argumentative Writing</div>
             </div>
         </div>
     </div>
@@ -612,6 +677,10 @@
         </div>
     </div>
 
+    <div id="volume-control">
+        <span id="volume-icon">🔉</span>
+        <input type="range" id="volume-slider" min="0" max="100" value="60">
+    </div>
     <div id="skip-btn">skip to assignment ▶</div>
     <div id="click-indicator">▼ click to continue</div>
     <button id="back-btn">◀ Back</button>
@@ -624,6 +693,7 @@
 // ─────────────────────────────────────────────
 const audioCache = {};
 let currentMusicFile = null;
+let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
 
 function getAudio(file) {
     if (!audioCache[file]) {
@@ -657,11 +727,11 @@ function musicPlay(file, ms = 2000) {
     a.volume = 0;
     a.play().catch(() => {
         // Autoplay blocked — start on first interaction
-        const resume = () => { a.play().then(() => ramp(a, 0.6, ms)).catch(() => {}); };
+        const resume = () => { a.play().then(() => ramp(a, masterVolume, ms)).catch(() => {}); };
         document.addEventListener('click', resume, { once: true });
         document.addEventListener('keydown', resume, { once: true });
     });
-    ramp(a, 0.6, ms);
+    ramp(a, masterVolume, ms);
     currentMusicFile = file;
 }
 
@@ -675,9 +745,25 @@ function musicStop(file, ms = 2000) {
 function playSFX(file, delay = 0) {
     setTimeout(() => {
         const s = new Audio('./' + file);
-        s.volume = 0.8;
+        s.volume = masterVolume;
         s.play().catch(() => {});
     }, delay);
+}
+
+function updateVolume(v) {
+    masterVolume = v;
+    localStorage.setItem('cutsceneMasterVolume', v);
+    Object.values(audioCache).forEach(a => { if (!a.paused) a.volume = masterVolume; });
+    updateVolumeIcon(v);
+}
+
+function updateVolumeIcon(v) {
+    const icon = document.getElementById('volume-icon');
+    if (!icon) return;
+    if (v === 0)      icon.textContent = '🔇';
+    else if (v < 0.3) icon.textContent = '🔈';
+    else if (v < 0.7) icon.textContent = '🔉';
+    else              icon.textContent = '🔊';
 }
 
 // ─────────────────────────────────────────────
@@ -907,7 +993,7 @@ const FRAMES = {
     scene4_1: {
         bg: 'Scenes/CraftYard_Covered.png',
         chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
-        dlg: { text: "The Custodian leads you to a space behind the Observatory that you haven't been to for some time. The area is strewn with nuts, bolts, and other small scraps, as if someone had been working here. Several lumpy structures sit hidden under dusty canvas covers.",
+        dlg: { text: "The Custodian leads you to a space behind the Observatory that you haven't been to before. The area is strewn with nuts, bolts, and other small scraps, as if someone had been working here. Several lumpy structures sit hidden under dusty canvas covers.",
                speaker: null, style: 'narrator', pos: 'top' },
         music: { action: 'play', file: 'Music/021 - Sugar Star Planetarium.mp3' },
         type: 'standard', next: 'scene4_2'
@@ -923,14 +1009,14 @@ const FRAMES = {
         bg: 'Scenes/CraftYard_Covered.png',
         chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
         dlg: { text: "If you're really going to go after her, you'll need spacecrafts of your own. And seeing as the Master of Craft isn't here to help, I'm afraid you'll have to work a few things out on your own.",
-               speaker: null, style: 'custodian', pos: 'bottom' },
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
         type: 'standard', next: 'scene4_4'
     },
     scene4_4: {
         bg: 'Scenes/CraftYard_Covered.png',
         chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
         dlg: { text: "Thanks to the Founder, though, you are not without aid. While making the spacecraft that Creativity took, Craft went through several prototypes.",
-               speaker: null, style: 'custodian', pos: 'bottom' },
+               speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
         type: 'standard', next: 'scene4_5'
     },
     scene4_5: {
@@ -980,7 +1066,7 @@ const FRAMES = {
     scene4_10: {
         bg: 'Scenes/CraftYard.png',
         chars: [{ file: 'Sprites/Custodian.png', pos: 'center' }],
-        dlg: { text: "That's why Craft was so good at these. But, alas, you shall have to finish them yourselves.",
+        dlg: { text: "That's why Craft was so good at these. You see, Craft is passionate about making things the right way - always attentive to how each little piece fits together to make something extraordinary. But, alas, it seems you shall have to finish these yourselves.",
                speaker: 'Custodian', style: 'custodian', pos: 'bottom' },
         type: 'standard', next: 'scene4_11'
     },
@@ -1031,7 +1117,7 @@ const FRAMES = {
 // ─────────────────────────────────────────────
 const CHECKLISTS = {
     cn: {
-        label: 'Creative Nonfiction — CN',
+        label: 'Creative Nonfiction / Personal Narrative — CN',
         items: [
             'Build from a foundation of **real experience or observation**',
             'Install at least one **scene**: a specific moment shown in real time with sensory detail, not summarized',
@@ -1078,7 +1164,7 @@ const CHECKLISTS = {
         ]
     },
     aw: {
-        label: 'Academic Writing — AW',
+        label: 'Argumentative Writing — AW',
         items: [
             'Build the **introduction** on **ABC** structure: Attention Getter → Background → Claim',
             'State a **clear position in the thesis** — argue something, don\'t just identify a topic',
@@ -1366,6 +1452,15 @@ document.getElementById('checklist-close').addEventListener('click', e => {
 elCLPanel.addEventListener('click', e => {
     if (e.target === elCLPanel) elCLPanel.classList.remove('active');
 });
+
+// ─────────────────────────────────────────────
+// VOLUME SLIDER
+// ─────────────────────────────────────────────
+const volSlider = document.getElementById('volume-slider');
+volSlider.value = masterVolume * 100;
+updateVolumeIcon(masterVolume);
+volSlider.addEventListener('input', e => updateVolume(e.target.value / 100));
+document.getElementById('volume-control').addEventListener('click', e => e.stopPropagation());
 
 // ─────────────────────────────────────────────
 // INIT
