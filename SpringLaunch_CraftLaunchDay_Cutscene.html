@@ -739,6 +739,13 @@
             display: flex;
             flex-direction: column;
             gap: 3px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.4s ease;
+        }
+        .credits-section.revealed {
+            opacity: 1;
+            transform: translateY(0);
         }
         .credits-category {
             color: #4EC9B0;
@@ -1423,7 +1430,7 @@ async function goToPhase(phase, opts = {}) {
     } else if (phase === 'launch') {
         elLaunchBar.classList.add('active');
         elLaunchScreen.classList.add('active');
-        elLaunchIdle.style.display = 'flex';
+        elLaunchIdle.style.display = '';
         elLaunchActive.classList.remove('active');
         musicPlay('Music/A CYBER\'S WORLD.mp3', 1500);
         renderLaunchBar();
@@ -1699,7 +1706,7 @@ function showLaunchResult(craftIdx, result) {
 elResultCont.addEventListener('click', () => {
     elResultOverlay.classList.remove('active');
     elLaunchActive.classList.remove('active');
-    elLaunchIdle.style.display = 'flex';
+    elLaunchIdle.style.display = '';
     launchBusy = false;
 
     // Check if all crafts have been assigned
@@ -1963,8 +1970,22 @@ function narBack() {
     narNavigate(prev, true);
 }
 
+let creditsStep = 0;
+
+function advanceCredits() {
+    const sections = document.querySelectorAll('#credits-box .credits-section');
+    if (creditsStep < sections.length) {
+        sections[creditsStep].classList.add('revealed');
+        creditsStep++;
+    } else {
+        showEnd();
+    }
+}
+
 function showCredits() {
     state.busy = true;
+    creditsStep = 0;
+    document.querySelectorAll('#credits-box .credits-section').forEach(s => s.classList.remove('revealed'));
     const dur = 900;
     elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
     elOverlay.style.opacity = '1';
@@ -2003,7 +2024,7 @@ function showEnd() {
 // ─────────────────────────────────────────────
 document.getElementById('cutscene-container').addEventListener('click', e => {
     if (state.phase === 'narrative') { narAdvance(); }
-    else if (state.phase === 'credits' && !state.busy) { showEnd(); }
+    else if (state.phase === 'credits' && !state.busy) { advanceCredits(); }
 });
 
 document.addEventListener('keydown', e => {
