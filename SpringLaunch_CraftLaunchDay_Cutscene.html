@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Day — My Pixel Academy</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+        }
+
+        #cutscene-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Background ── */
+        #background {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #0a0a0a;
+            image-rendering: pixelated;
+        }
+
+        #bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #bg-fade-overlay {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ── Transition overlay ── */
+        #transition-overlay {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 1;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        /* ══════════════════════════════════════════
+           TITLE SCREEN
+        ══════════════════════════════════════════ */
+        #title-screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+        }
+        #title-screen.active { display: flex; }
+
+        #title-box {
+            background: rgba(139,69,69,0.95);
+            border: 2px solid #A05555;
+            border-radius: 18px;
+            padding: 44px 60px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+        }
+        #title-label {
+            font-size: 13px;
+            letter-spacing: 4px;
+            color: #D4A574;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        #title-main {
+            font-size: 40px;
+            font-weight: bold;
+            color: #F5E6D3;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        #title-sub {
+            font-size: 16px;
+            color: rgba(245,230,211,0.7);
+            margin-bottom: 32px;
+        }
+        #title-start-btn {
+            background: #4EC9B0;
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px 40px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        #title-start-btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(78,201,176,0.5);
+            animation: none;
+        }
+        @keyframes titlePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(78,201,176,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(78,201,176,0); }
+        }
+
+        /* ══════════════════════════════════════════
+           MINI LAUNCH BAY BAR (Registration + Launch)
+        ══════════════════════════════════════════ */
+        #launch-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            min-height: 72px;
+            background: rgba(10,10,18,0.92);
+            border-bottom: 2px solid rgba(78,201,176,0.25);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 8px 16px;
+            z-index: 40;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+        #launch-bar.active { display: flex; }
+        #launch-bar::-webkit-scrollbar { height: 3px; }
+        #launch-bar::-webkit-scrollbar-thumb { background: #4EC9B0; border-radius: 2px; }
+
+        .craft-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            transition: border-color 0.2s, background 0.2s;
+            min-width: 60px;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .craft-chip:hover { background: rgba(255,255,255,0.1); border-color: rgba(78,201,176,0.5); }
+        .craft-chip.status-pass { border-color: #4EC9B0; background: rgba(78,201,176,0.12); }
+        .craft-chip.status-fail { border-color: #C0504D; background: rgba(192,80,77,0.12); }
+        .craft-chip.status-active { border-color: #D4A574; background: rgba(212,165,116,0.15); }
+
+        .chip-img { height: 36px; width: auto; image-rendering: pixelated; }
+        .chip-name { color: #F5E6D3; font-size: 10px; letter-spacing: 0.5px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chip-status { font-size: 14px; position: absolute; top: -6px; right: -6px; line-height: 1; }
+
+        #bar-launch-btn {
+            margin-left: auto;
+            flex-shrink: 0;
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 10px 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s, transform 0.15s;
+        }
+        #bar-launch-btn:hover { background: #5DDAC7; transform: scale(1.03); }
+        #bar-launch-btn:disabled { background: rgba(100,100,100,0.4); border-color: #555; color: #888; cursor: not-allowed; transform: none; }
+
+        /* ══════════════════════════════════════════
+           REGISTRATION PHASE
+        ══════════════════════════════════════════ */
+        #reg-screen {
+            position: absolute;
+            top: 72px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 20px 20px;
+            gap: 16px;
+            z-index: 30;
+            overflow-y: auto;
+        }
+        #reg-screen.active { display: flex; }
+        #reg-screen::-webkit-scrollbar { width: 5px; }
+        #reg-screen::-webkit-scrollbar-thumb { background: #4EC9B0; border-radius: 4px; }
+
+        #reg-header {
+            color: #D4A574;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+        }
+
+        /* Craft selection grid */
+        #craft-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 22px;
+            justify-items: center;
+        }
+
+        .craft-select-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.08);
+            background: rgba(14,14,20,0.75);
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .craft-select-slot:hover { transform: scale(1.05); }
+        .craft-select-slot.selected-cn { border-color: rgba(78,201,176,0.8); background: rgba(78,201,176,0.1); }
+        .craft-select-slot.selected-ss { border-color: rgba(212,165,116,0.8); background: rgba(212,165,116,0.1); }
+        .craft-select-slot.selected-pe { border-color: rgba(192,80,77,0.8); background: rgba(192,80,77,0.1); }
+        .craft-select-slot.selected-aw { border-color: rgba(61,90,107,0.8); background: rgba(61,90,107,0.2); }
+
+        .craft-select-slot:hover[data-type="cn"] { border-color: rgba(78,201,176,0.6); }
+        .craft-select-slot:hover[data-type="ss"] { border-color: rgba(212,165,116,0.6); }
+        .craft-select-slot:hover[data-type="pe"] { border-color: rgba(192,80,77,0.6); }
+        .craft-select-slot:hover[data-type="aw"] { border-color: rgba(61,90,107,0.6); }
+
+        .craft-select-img {
+            max-width: 160px;
+            max-height: 120px;
+            width: auto;
+            height: auto;
+            image-rendering: pixelated;
+            transition: filter 0.2s;
+        }
+        .craft-select-slot:hover[data-type="cn"] .craft-select-img { filter: drop-shadow(0 0 10px rgba(78,201,176,0.7)); }
+        .craft-select-slot:hover[data-type="ss"] .craft-select-img { filter: drop-shadow(0 0 10px rgba(212,165,116,0.7)); }
+        .craft-select-slot:hover[data-type="pe"] .craft-select-img { filter: drop-shadow(0 0 10px rgba(192,80,77,0.7)); }
+        .craft-select-slot:hover[data-type="aw"] .craft-select-img { filter: drop-shadow(0 0 10px rgba(61,90,107,0.9)); }
+
+        .craft-select-label {
+            color: #F5E6D3;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+            background: rgba(14,14,20,0.85);
+            border-radius: 5px;
+            padding: 4px 10px;
+        }
+
+        /* Name entry + checklist panel */
+        #reg-entry-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 560px;
+            background: rgba(14,14,22,0.88);
+            border: 2px solid rgba(78,201,176,0.3);
+            border-radius: 12px;
+            padding: 18px 22px;
+        }
+        #reg-entry-panel.active { display: flex; }
+
+        #reg-entry-craft-label {
+            color: #4EC9B0;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        #reg-name-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #reg-name-input {
+            flex: 1;
+            background: rgba(45,45,55,0.9);
+            border: 2px solid rgba(78,201,176,0.3);
+            border-radius: 6px;
+            color: #F5E6D3;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            padding: 9px 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #reg-name-input:focus { border-color: #4EC9B0; }
+        #reg-name-input::placeholder { color: rgba(245,230,211,0.35); }
+
+        #reg-add-btn {
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 6px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 9px 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        #reg-add-btn:hover { background: #5DDAC7; }
+        #reg-add-btn:disabled { background: rgba(100,100,100,0.4); border-color: #555; color: #888; cursor: not-allowed; }
+
+        #reg-checklist-label {
+            color: #D4A574;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        #reg-checklist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        #reg-checklist-items::-webkit-scrollbar { width: 4px; }
+        #reg-checklist-items::-webkit-scrollbar-thumb { background: #4EC9B0; border-radius: 3px; }
+
+        .reg-check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .reg-check-item input[type="checkbox"] {
+            margin-top: 2px;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: #4EC9B0;
+        }
+        .reg-check-item span {
+            color: #F5E6D3;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #reg-max-note {
+            display: none;
+            color: #D4A574;
+            font-size: 12px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        #reg-max-note.active { display: block; }
+
+        /* ══════════════════════════════════════════
+           LAUNCH PHASE
+        ══════════════════════════════════════════ */
+        #launch-screen {
+            position: absolute;
+            top: 72px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            gap: 16px;
+            padding: 20px;
+        }
+        #launch-screen.active { display: flex; }
+
+        /* Idle state — prompt to pick a craft */
+        #launch-idle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        #launch-idle-text {
+            color: #D4A574;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+            animation: idlePulse 2s ease-in-out infinite;
+        }
+        @keyframes idlePulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        #launch-back-reg-btn {
+            background: rgba(139,69,69,0.8);
+            border: 2px solid #8B4545;
+            border-radius: 8px;
+            color: #F5E6D3;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        #launch-back-reg-btn:hover { background: rgba(160,85,85,0.95); transform: scale(1.03); }
+
+        /* Active sequence */
+        #launch-active {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            max-width: 620px;
+        }
+        #launch-active.active { display: flex; }
+
+        #launch-craft-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #launch-craft-display.visible { opacity: 1; }
+
+        #launch-craft-img {
+            max-height: 280px;
+            width: auto;
+            image-rendering: pixelated;
+        }
+        #launch-craft-name {
+            color: #F5E6D3;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+        #launch-craft-type {
+            color: #D4A574;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Checklist sequence items */
+        #launch-seq-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 0 4px;
+        }
+        #launch-seq-list::-webkit-scrollbar { width: 4px; }
+        #launch-seq-list::-webkit-scrollbar-thumb { background: #4EC9B0; border-radius: 3px; }
+
+        .seq-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(14,14,22,0.8);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 6px;
+            padding: 8px 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .seq-item.visible { opacity: 1; }
+        .seq-item-icon { font-size: 16px; min-width: 20px; text-align: center; }
+        .seq-item-text { color: #F5E6D3; font-size: 13px; line-height: 1.4; flex: 1; }
+        .seq-item.result-pass { border-color: rgba(78,201,176,0.4); background: rgba(78,201,176,0.08); }
+        .seq-item.result-fail { border-color: rgba(192,80,77,0.4); background: rgba(192,80,77,0.08); }
+
+        /* Narrative overlay for S2a/S2b result */
+        #launch-result-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.6);
+            z-index: 50;
+            flex-direction: column;
+            gap: 20px;
+            padding: 30px;
+        }
+        #launch-result-overlay.active { display: flex; }
+
+        #launch-result-box {
+            background: rgba(61,90,107,0.95);
+            border: 2px solid #4A6E7E;
+            border-radius: 15px;
+            padding: 26px 34px;
+            max-width: 580px;
+            color: #F5E6D3;
+            font-size: 16px;
+            line-height: 1.65;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+        }
+        #launch-result-box.pass { border-color: rgba(78,201,176,0.6); background: rgba(20,50,40,0.95); }
+        #launch-result-box.fail { border-color: rgba(192,80,77,0.6); background: rgba(50,14,14,0.95); }
+
+        #launch-result-continue {
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 10px 28px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        #launch-result-continue:hover { background: #5DDAC7; transform: scale(1.03); }
+
+        /* ══════════════════════════════════════════
+           NARRATIVE PHASE
+        ══════════════════════════════════════════ */
+        #narrative-screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            z-index: 30;
+        }
+        #narrative-screen.active { display: block; }
+
+        /* Character sprites — right and left, vertically centered */
+        #narrative-char, #narrative-char-left {
+            position: absolute;
+            top: 50%;
+            max-height: 32vh;
+            width: auto;
+            image-rendering: pixelated;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #narrative-char { right: 5%; transform: translateY(-50%); }
+        #narrative-char-left { left: 5%; transform: translateY(-50%); }
+        #narrative-char.visible, #narrative-char-left.visible { display: block; opacity: 1; }
+
+        /* Dialogue box */
+        #narrative-dlg {
+            position: absolute;
+            max-width: 76%;
+            min-width: 38%;
+            padding: 20px 28px;
+            border-radius: 15px;
+            color: #F5E6D3;
+            font-size: 17px;
+            line-height: 1.65;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 40;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+        #narrative-dlg.visible { opacity: 1; }
+        #narrative-dlg.style-custodian { background: rgba(139,69,69,0.95); border: 2px solid #A05555; }
+        #narrative-dlg.style-narrator  { background: rgba(61,90,107,0.95);  border: 2px solid #4A6E7E; }
+        #narrative-dlg.pos-top    { top: 8%;    left: 50%; transform: translateX(-50%); }
+        #narrative-dlg.pos-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+
+        #narrative-speaker {
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #D4A574;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        /* Choice buttons */
+        #narrative-choices {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: column;
+            gap: 13px;
+            align-items: stretch;
+            z-index: 50;
+            min-width: 340px;
+            max-width: 70%;
+        }
+        #narrative-choices.visible { display: flex; }
+
+        .choice-btn {
+            background: rgba(78,201,176,0.9);
+            border: 2px solid #4EC9B0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 13px 28px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .choice-btn:hover {
+            background: #5DDAC7;
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(78,201,176,0.5);
+        }
+
+        /* Poem overlay (S5a_4, S5b_3) */
+        #poem-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 42;
+        }
+        #poem-overlay.active { display: flex; }
+
+        #poem-text {
+            text-align: center;
+            line-height: 2.2;
+            color: #F5E6D3;
+            font-size: 22px;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.9);
+        }
+        #poem-text .poem-line {
+            display: block;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        #poem-text .poem-line.visible { opacity: 1; }
+
+        /* Click indicator */
+        #click-indicator {
+            position: absolute;
+            bottom: 18px;
+            right: 22px;
+            color: #F5E6D3;
+            font-size: 13px;
+            opacity: 0;
+            z-index: 60;
+            transition: opacity 0.3s ease;
+            animation: indicPulse 1.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        #click-indicator.visible { opacity: 0.75; }
+        @keyframes indicPulse {
+            0%, 100% { opacity: 0.35; }
+            50%       { opacity: 0.85; }
+        }
+
+        /* Back button */
+        #back-btn {
+            position: absolute;
+            bottom: 18px;
+            left: 22px;
+            background: rgba(139,69,69,0.8);
+            border: 2px solid #8B4545;
+            border-radius: 8px;
+            color: #F5E6D3;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 8px 16px;
+            cursor: pointer;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, background 0.2s;
+        }
+        #back-btn.visible { opacity: 0.8; pointer-events: auto; }
+        #back-btn:hover { background: rgba(160,85,85,0.95); opacity: 1; }
+
+        /* ══════════════════════════════════════════
+           CREDITS SCREEN
+        ══════════════════════════════════════════ */
+        #credits-screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+        }
+        #credits-screen.active { display: flex; }
+
+        #credits-box {
+            text-align: center;
+            max-width: 560px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+        .credits-title {
+            color: #D4A574;
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+        }
+        .credits-section {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .credits-category {
+            color: #4EC9B0;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+        }
+        .credits-item {
+            color: rgba(245,230,211,0.85);
+            font-size: 15px;
+            line-height: 1.6;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+        }
+        .credits-item em { font-style: italic; color: #F5E6D3; }
+
+        /* ══════════════════════════════════════════
+           END SCREEN
+        ══════════════════════════════════════════ */
+        #end-screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+        }
+        #end-screen.active { display: flex; }
+
+        #end-box {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        #end-label { color: #D4A574; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 1px 10px rgba(0,0,0,0.9); }
+        #end-main { color: #F5E6D3; font-size: 28px; font-weight: bold; text-shadow: 0 2px 14px rgba(0,0,0,0.9); }
+        #end-year { color: #4EC9B0; font-size: 38px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 20px rgba(78,201,176,0.5); }
+        #end-thanks { color: rgba(245,230,211,0.6); font-size: 14px; font-style: italic; margin-top: 8px; text-shadow: 0 1px 8px rgba(0,0,0,0.8); }
+
+        /* ── Volume control ── */
+        #volume-control {
+            position: absolute;
+            top: 16px;
+            right: 22px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0,0,0,0.45);
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+            z-index: 65;
+            opacity: 0.45;
+            cursor: default;
+        }
+        #volume-control:hover { opacity: 1; background: rgba(0,0,0,0.75); border-color: #4EC9B0; }
+        #volume-icon { color: #F5E6D3; font-size: 14px; min-width: 18px; text-align: center; user-select: none; }
+        #volume-slider {
+            width: 72px; height: 4px;
+            -webkit-appearance: none; appearance: none;
+            background: rgba(245,230,211,0.3); outline: none; border-radius: 2px; cursor: pointer;
+        }
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 11px; height: 11px; background: #F5E6D3; border-radius: 50%; cursor: pointer;
+        }
+        #volume-slider::-moz-range-thumb {
+            width: 11px; height: 11px; background: #F5E6D3; border: none; border-radius: 50%; cursor: pointer;
+        }
+
+        .emphasis-blue { color: #4EC9B0; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div id="cutscene-container">
+    <img id="background" src="./Scenes/CraftYard.png" alt="">
+    <div id="bg-overlay"></div>
+    <div id="bg-fade-overlay"></div>
+
+    <!-- TITLE -->
+    <div id="title-screen" class="active">
+        <div id="title-box">
+            <div id="title-label">My Pixel Academy</div>
+            <div id="title-main">Launch Day</div>
+            <div id="title-sub">A My Pixel Academy Story</div>
+            <button id="title-start-btn">&#9654; Start</button>
+        </div>
+    </div>
+
+    <!-- LAUNCH BAR (Registration + Launch phases) -->
+    <div id="launch-bar">
+        <!-- Craft chips injected here by JS -->
+        <button id="bar-launch-btn" disabled>&#9654; Begin Launch Sequence</button>
+    </div>
+
+    <!-- REGISTRATION -->
+    <div id="reg-screen">
+        <div id="reg-header">Select a craft &mdash; enter a name &mdash; review your launch checklist</div>
+        <div id="craft-grid">
+            <div class="craft-select-slot" data-type="cn">
+                <img class="craft-select-img" src="./Scenes/Craft1_CN.png" alt="">
+                <div class="craft-select-label">Creative Nonfiction / Personal Narrative</div>
+            </div>
+            <div class="craft-select-slot" data-type="ss">
+                <img class="craft-select-img" src="./Scenes/Craft2_SS.png" alt="">
+                <div class="craft-select-label">Short Story</div>
+            </div>
+            <div class="craft-select-slot" data-type="pe">
+                <img class="craft-select-img" src="./Scenes/Craft3_PE.png" alt="">
+                <div class="craft-select-label">Persuasive Essay</div>
+            </div>
+            <div class="craft-select-slot" data-type="aw">
+                <img class="craft-select-img" src="./Scenes/Craft4_AW.png" alt="">
+                <div class="craft-select-label">Argumentative Writing</div>
+            </div>
+        </div>
+
+        <div id="reg-entry-panel">
+            <div id="reg-entry-craft-label"></div>
+            <div id="reg-name-row">
+                <input type="text" id="reg-name-input" placeholder="Name this craft..." maxlength="30" autocomplete="off">
+                <button id="reg-add-btn" disabled>Add to Launch Bay</button>
+            </div>
+            <div id="reg-checklist-label">&#9670; Launch Checklist</div>
+            <div id="reg-checklist-items"></div>
+        </div>
+
+        <div id="reg-max-note">Launch bay full &mdash; 8 spacecraft registered</div>
+    </div>
+
+    <!-- LAUNCH SEQUENCE -->
+    <div id="launch-screen">
+        <div id="launch-idle">
+            <div id="launch-idle-text">&#9650; Select a craft from the launch bay to begin its sequence</div>
+            <button id="launch-back-reg-btn">&#9664; Back to Launch Bay</button>
+        </div>
+        <div id="launch-active">
+            <div id="launch-craft-display">
+                <img id="launch-craft-img" src="" alt="">
+                <div id="launch-craft-name"></div>
+                <div id="launch-craft-type"></div>
+            </div>
+            <div id="launch-seq-list"></div>
+        </div>
+
+        <!-- Result overlay (S2a / S2b) -->
+        <div id="launch-result-overlay">
+            <div id="launch-result-box"></div>
+            <button id="launch-result-continue">Continue &#9654;</button>
+        </div>
+    </div>
+
+    <!-- NARRATIVE -->
+    <div id="narrative-screen">
+        <img id="narrative-char" src="" alt="">
+        <img id="narrative-char-left" src="" alt="">
+        <div id="narrative-dlg">
+            <div id="narrative-speaker"></div>
+            <div id="narrative-text"></div>
+        </div>
+        <div id="narrative-choices"></div>
+        <div id="poem-overlay">
+            <div id="poem-text"></div>
+        </div>
+    </div>
+
+    <!-- CREDITS -->
+    <div id="credits-screen">
+        <div id="credits-box">
+            <div class="credits-title">Credits</div>
+            <div class="credits-section">
+                <div class="credits-category">Music</div>
+                <div class="credits-item">Toby Fox &mdash; <em>"A Cyber's World"</em> and <em>"Lost Girl"</em> (Deltarune)</div>
+                <div class="credits-item">James Blake &mdash; <em>"Life Round Here"</em></div>
+                <div class="credits-item">OMORI &mdash; <em>"Sugar Star Planetarium"</em></div>
+            </div>
+            <div class="credits-section">
+                <div class="credits-category">Artwork</div>
+                <div class="credits-item">Character of Craft &mdash; Maria Kuzmicheva</div>
+            </div>
+            <div class="credits-section">
+                <div class="credits-category">Story</div>
+                <div class="credits-item">Grant Schatzman</div>
+            </div>
+            <div class="credits-section">
+                <div class="credits-category">Inspiration</div>
+                <div class="credits-item">The students of Mr. Grant's writing workshops</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- END -->
+    <div id="end-screen">
+        <div id="end-box">
+            <div id="end-label">My Pixel Academy</div>
+            <div id="end-main">The adventure resumes</div>
+            <div id="end-year">Fall 2026</div>
+            <div id="end-thanks">Thank you for a great semester!</div>
+        </div>
+    </div>
+
+    <div id="volume-control">
+        <span id="volume-icon">&#128251;</span>
+        <input type="range" id="volume-slider" min="0" max="100" value="60">
+    </div>
+    <div id="click-indicator">&#9660; click to continue</div>
+    <button id="back-btn">&#9664; Back</button>
+    <div id="transition-overlay"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// MUSIC & SFX
+// ─────────────────────────────────────────────
+const audioCache = {};
+let currentMusicFile = null;
+let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
+
+function getAudio(file) {
+    if (!audioCache[file]) {
+        audioCache[file] = new Audio('./' + file);
+        audioCache[file].volume = 0;
+        audioCache[file].loop = true;
+    }
+    return audioCache[file];
+}
+
+function ramp(a, target, ms) {
+    clearInterval(a._ramp);
+    const steps = 40, dt = ms / steps;
+    const dv = (target - a.volume) / steps;
+    let n = 0;
+    a._ramp = setInterval(() => {
+        n++;
+        a.volume = Math.max(0, Math.min(1, a.volume + dv));
+        if (n >= steps) { clearInterval(a._ramp); if (target === 0) a.pause(); }
+    }, dt);
+}
+
+function musicPlay(file, ms = 2000) {
+    if (currentMusicFile === file) return;
+    if (currentMusicFile) ramp(getAudio(currentMusicFile), 0, ms);
+    const a = getAudio(file);
+    a.currentTime = 0; a.volume = 0;
+    a.play().catch(() => {
+        const resume = () => { a.play().then(() => ramp(a, masterVolume, ms)).catch(() => {}); };
+        document.addEventListener('click', resume, { once: true });
+        document.addEventListener('keydown', resume, { once: true });
+    });
+    ramp(a, masterVolume, ms);
+    currentMusicFile = file;
+}
+
+function musicStop(file, ms = 1500) {
+    const a = audioCache[file];
+    if (!a) return;
+    ramp(a, 0, ms);
+    if (currentMusicFile === file) currentMusicFile = null;
+}
+
+function playSFX(file, delay = 0) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const s = new Audio('./' + file);
+            s.volume = masterVolume;
+            s.play().catch(() => {});
+            s.addEventListener('ended', resolve);
+            s.addEventListener('error', resolve);
+        }, delay);
+    });
+}
+
+function updateVolume(v) {
+    masterVolume = v;
+    localStorage.setItem('cutsceneMasterVolume', v);
+    Object.values(audioCache).forEach(a => { if (!a.paused) a.volume = masterVolume; });
+    updateVolumeIcon(v);
+}
+
+function updateVolumeIcon(v) {
+    const icon = document.getElementById('volume-icon');
+    if (!icon) return;
+    if (v === 0)      icon.textContent = '🔇';
+    else if (v < 0.3) icon.textContent = '🔈';
+    else if (v < 0.7) icon.textContent = '🔉';
+    else              icon.textContent = '🔊';
+}
+
+// ─────────────────────────────────────────────
+// TYPEWRITER
+// ─────────────────────────────────────────────
+const SPD = { normal: 28, slow: 90, fast: 8 };
+
+function segmentText(raw) {
+    const segs = [];
+    let cur = { text: '', speed: SPD.normal, em: false, spanClass: null };
+    const push = () => { if (cur.text) { segs.push({ ...cur }); cur = { ...cur, text: '' }; } };
+    let i = 0; const s = String(raw);
+    while (i < s.length) {
+        if (s.startsWith('(...)', i))        { push(); cur.speed = SPD.slow;   i += 5; }
+        else if (s.startsWith('(/...)', i))  { push(); cur.speed = SPD.normal; i += 6; }
+        else if (s.startsWith('(---)', i))   { push(); cur.speed = SPD.fast;   i += 5; }
+        else if (s.startsWith('(/---)', i))  { push(); cur.speed = SPD.normal; i += 6; }
+        else if (s.startsWith('<em>', i))    { push(); cur.em = true;  i += 4; }
+        else if (s.startsWith('</em>', i))   { push(); cur.em = false; i += 5; }
+        else if (s.startsWith('<span class="', i)) {
+            const e = s.indexOf('">', i + 13);
+            if (e !== -1) { push(); cur.spanClass = s.slice(i + 13, e); i = e + 2; } else i++;
+        }
+        else if (s.startsWith('</span>', i)) { push(); cur.spanClass = null; i += 7; }
+        else { cur.text += s[i]; i++; }
+    }
+    push();
+    return segs;
+}
+
+let TW = { segs: [], segIdx: 0, charIdx: 0, timer: null, done: false, container: null, cb: null, curEl: null, curSig: null };
+
+function sig(seg) { return `${seg.em}_${seg.spanClass}`; }
+
+function getOrMakeEl(seg) {
+    const s = sig(seg);
+    if (s === TW.curSig) return TW.curEl;
+    let el = TW.container;
+    if (seg.spanClass) { const span = document.createElement('span'); span.className = seg.spanClass; TW.container.appendChild(span); el = span; }
+    if (seg.em) { const em = document.createElement('em'); (seg.spanClass ? TW.container.lastChild : TW.container).appendChild(em); el = em; }
+    if (!seg.em && !seg.spanClass) el = TW.container;
+    TW.curEl = el; TW.curSig = s;
+    return el;
+}
+
+function appendChar(el, char) {
+    const last = el.lastChild;
+    if (last && last.nodeType === Node.TEXT_NODE) last.textContent += char;
+    else el.appendChild(document.createTextNode(char));
+}
+
+function typeStep() {
+    if (TW.segIdx >= TW.segs.length) { TW.done = true; if (TW.cb) TW.cb(); return; }
+    const seg = TW.segs[TW.segIdx];
+    const el = getOrMakeEl(seg);
+    appendChar(el, seg.text[TW.charIdx]);
+    TW.charIdx++;
+    if (TW.charIdx >= seg.text.length) { TW.segIdx++; TW.charIdx = 0; }
+    TW.timer = setTimeout(typeStep, seg.speed);
+}
+
+function startTypewriter(container, raw, cb) {
+    clearTimeout(TW.timer);
+    TW.segs = segmentText(raw); TW.segIdx = 0; TW.charIdx = 0; TW.done = false;
+    TW.container = container; TW.cb = cb;
+    TW.curEl = container; TW.curSig = null;
+    container.innerHTML = '';
+    typeStep();
+}
+
+function skipTypewriter() {
+    if (TW.done) return false;
+    clearTimeout(TW.timer);
+    TW.container.innerHTML = '';
+    TW.curEl = TW.container; TW.curSig = null;
+    for (const seg of TW.segs) { const el = getOrMakeEl(seg); appendChar(el, seg.text); TW.curSig = null; }
+    TW.done = true; if (TW.cb) TW.cb();
+    return true;
+}
+
+// ─────────────────────────────────────────────
+// CHECKLISTS (from CraftIntro)
+// ─────────────────────────────────────────────
+const CHECKLISTS = {
+    cn: {
+        label: 'Creative Nonfiction / Personal Narrative',
+        img: 'Scenes/Craft1_CN.png',
+        items: [
+            'Build from a foundation of real experience or observation',
+            'Install at least one scene: a specific moment shown in real time with sensory detail, not summarized',
+            'Add one representative scene that shows a bigger truth or pattern, not just a one-time event',
+            'Load specific, concrete details: names, places, images — no vague generalities',
+            'Insert a claim or insight about people, school, life, etc.',
+            'Ensure personal writer voice is consistent throughout',
+            'Vary sentence length — not all the same rhythm',
+            'Check that all sentences are complete and correctly punctuated',
+            'Commas used correctly — no comma splices',
+            'Spelling and capitalization are correct'
+        ]
+    },
+    ss: {
+        label: 'Short Story',
+        img: 'Scenes/Craft2_SS.png',
+        items: [
+            'Install a character with at least one personality trait shown through action or dialogue — not just described',
+            'Establish a setting that affects character or events — not just background',
+            'Install a conflict — something at stake or something that changes',
+            'Show, don\'t tell — reveal emotions and traits through behavior, not labels',
+            'Include imagery / sensory details (at least two senses beyond sight)',
+            'Format dialogue correctly: new paragraph per speaker, quotation marks, dialogue tags',
+            'Vary sentence length for rhythm: short for tension, longer for reflection',
+            'Check that all sentences are complete and correctly punctuated',
+            'Commas used correctly — no comma splices',
+            'Spelling and capitalization are correct'
+        ]
+    },
+    pe: {
+        label: 'Persuasive Essay',
+        img: 'Scenes/Craft3_PE.png',
+        items: [
+            'Build the introduction on ABC structure: Attention Getter → Background → Claim',
+            'State a clear opinion or call to action',
+            'Install ethos — establish why the perspective or sources are trustworthy',
+            'Install pathos — connect to the reader\'s emotions or values at least once',
+            'Install logos — include at least one fact, statistic, or logical reason',
+            'Support the claim in each body paragraph with a reason + explanation',
+            'Address a counterargument — acknowledge a possible objection and respond to it',
+            'Close with XYZ: Re-explain thesis in new words → Why it matters → Zing',
+            'Keep tone appropriate and consistent — persuasive, not dismissive',
+            'Check that all sentences are complete and correctly punctuated',
+            'Commas used correctly — no comma splices',
+            'Spelling and capitalization are correct'
+        ]
+    },
+    aw: {
+        label: 'Argumentative Writing',
+        img: 'Scenes/Craft4_AW.png',
+        items: [
+            'Build the introduction on ABC structure: Attention Getter → Background → Claim',
+            'State a clear position in the thesis — argue something, don\'t just identify a topic',
+            'Draw evidence from a source text — quoted or paraphrased, identified by author and title',
+            'Run each body paragraph on MEAT: Main idea → Evidence → Analysis → Transition',
+            'Include two E+A pairs per body paragraph — two pieces of evidence, each followed by analysis',
+            'Explain why evidence supports the claim — don\'t just restate the quote',
+            'Close with XYZ: Re-explain thesis in new words → Why it matters → Zing',
+            'Keep every paragraph on topic',
+            'Check that all sentences are complete and correctly punctuated',
+            'Commas used correctly — no comma splices',
+            'Spelling and capitalization are correct'
+        ]
+    }
+};
+
+// ─────────────────────────────────────────────
+// NARRATIVE FRAMES
+// ─────────────────────────────────────────────
+const NFRAMES = {
+    S3a_1: {
+        bg: 'Scenes/CraftYard.png', music: { action: 'crossfade', to: 'Music/Lost Girl.mp3' },
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'As all the spacecraft buzz with perfectly balanced power, a flicker of fabric catches your eye outside the windows.' },
+        next: 'S3a_2'
+    },
+    S3a_2: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'There in the launch bay, halfway hidden behind a pile of scrap, you see somebody dressed in a spectacular cape. On their face is an expression of both admiration and, perhaps, slight disappointment.' },
+        type: 'choice',
+        choices: [
+            { text: 'Hold the launch for a moment', to: 'S4a_1' },
+            { text: 'Initiate launch sequence',      to: 'S5b_1' }
+        ]
+    },
+    S3b_1: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'Below one of the grounded spacecraft appears a person dressed in a spectacular cape. In a whirl of motion and a glimmer of galvanized metal, they repair the craft\'s launch failures until the system hums in harmony.' },
+        next: 'S3b_2'
+    },
+    S3b_2: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'The figure looks up at the window with a prideful, though not unkind, smirk.' },
+        next: 'S3b_3'
+    },
+    S3b_3: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'custodian', pos: 'bottom', speaker: '???',
+               text: "It's a good thing I was here to help. These Shaping drives are no joke. Approach them with anything short of the utmost care and craft, and you'll be spacedust before you know it. Fortunately, no one knows this craft quite like me." },
+        next: 'S3b_4'
+    },
+    S3b_4: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif', char2: 'Sprites/MasterOfCrit_Front.png',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'The Master of Craft — for of course, it must be him — grins and winks at you, just as the Master of Critical Thinking approaches with a look of alternating joy and disbelief. Reunited with one of their companions at last, the Master of Critical Thinking seems more…settled? …balanced?…than you\'ve ever seen them before.' },
+        next: 'S3b_5'
+    },
+    S3b_5: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif', char2: 'Sprites/MasterOfCrit_Front.png',
+        dlg: { style: 'custodian', pos: 'bottom', speaker: 'Craft',
+               text: 'As much as Critical Thinking and I have to catch up on here at the Academy, I think we\'d better join you on your journey.' },
+        next: 'S5a_1', slowFade: true
+    },
+    S4a_1: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'Even through the space-grade windows of your craft, a beautifully resonant voice reaches you.' },
+        next: 'S4a_2'
+    },
+    S4a_2: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif',
+        dlg: { style: 'custodian', pos: 'bottom', speaker: '???',
+               text: 'Marvelously done, students! What exquisite young Shapers you are proving to be. Those Shaping drives are no simple trick, and to run a successful launch with no major critical failures — well, that\'s an achievement to be proud of. It shows fine craft, fine craft indeed.' },
+        next: 'S4a_3'
+    },
+    S4a_3: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif', char2: 'Sprites/MasterOfCrit_Front.png',
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'The Master of Critical Thinking approaches the stranger, disbelief and joy alternating on their face as they embrace the Master of Craft — for, of course, you realize this is who he must be. Reunited with one of their companions at last, the Master of Critical Thinking seems more…settled? …balanced?…than you\'ve ever seen them before.' },
+        next: 'S4a_4'
+    },
+    S4a_4: {
+        bg: 'Scenes/CraftYard.png',
+        char: 'Sprites/Craft.gif', char2: 'Sprites/MasterOfCrit_Front.png',
+        dlg: { style: 'custodian', pos: 'bottom', speaker: 'Craft',
+               text: 'With skills like that, I daresay you\'ll be able to navigate your way through space to find Creativity on your own, if you choose. Of course, Critical Thinking and I are always more than happy to accompany you on your journey.' },
+        type: 'choice',
+        choices: [
+            { text: 'Take the two Founders with you', to: 'S5a_1' },
+            { text: 'Leave them behind',               to: 'S5b_1' }
+        ]
+    },
+    S5a_1: {
+        bg: 'Scenes/CraftYard.png', music: { action: 'crossfade', to: 'Music/LifeRoundHere.mp3' }, slowFade: true,
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: 'From beneath a camouflaged covering, Craft reveals a ship of their own, shining and ready to launch. He and the other Founder head aboard, strap in, and run their launch sequence flawlessly. Craft signals you with a two-fingered salute, and you know that it\'s time to launch.' },
+        next: 'S5a_2'
+    },
+    S5a_2: {
+        bg: 'Scenes/Space.png', blackBg: true,
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: "In unison, you and your classmates' spacecraft begin to rise, gaining speed so rapidly that you find yourselves pressed into the cockpit seats with a sense of tremendous weight." },
+        next: 'S5a_3'
+    },
+    S5a_3: {
+        bg: 'Scenes/Space.png', bgFadeIn: true,
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: '(...)All at once, the force lifts(/...), and you find yourself feeling…(...)weightless.' },
+        next: 'S5a_4'
+    },
+    S5a_4: {
+        bg: 'Scenes/Space.png', char: null,
+        type: 'poem',
+        lines: ['Out the window, you see it:', 'The Earth below.', 'The stars around.', 'The moon, awaiting.', 'And somewhere out there, all the planets of our solar system.', 'Waiting for you.'],
+        next: 'CREDITS'
+    },
+    S5b_1: {
+        bg: 'Scenes/Space.png', music: { action: 'crossfade', to: 'Music/LifeRoundHere.mp3' }, slowFade: true, blackBg: true,
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: "In unison, you and your classmates' spacecraft begin to rise, gaining speed so rapidly that you find yourselves pressed into the cockpit seats with a sense of tremendous weight." },
+        next: 'S5b_2'
+    },
+    S5b_2: {
+        bg: 'Scenes/Space.png', bgFadeIn: true,
+        char: null,
+        dlg: { style: 'narrator', pos: 'top', speaker: null,
+               text: '(...)All at once, the force lifts(/...), and you find yourself feeling…(...)weightless.' },
+        next: 'S5b_3'
+    },
+    S5b_3: {
+        bg: 'Scenes/Space.png', char: null,
+        type: 'poem',
+        lines: ['Out the window, you see it:', 'The Earth below.', 'The stars around.', 'The moon, awaiting.', 'And somewhere out there, all the planets of our solar system.', 'Waiting for you.'],
+        next: 'CREDITS'
+    }
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const state = {
+    phase: 'title',
+    crafts: [],          // {type, name, checklist:{idx:bool}, status:null|'pass'|'fail', everFailed:false}
+    globalEverFailed: false,
+    narrativeFrame: null,
+    navStack: [],
+    busy: false,
+    selectedType: null,  // reg phase: currently selected craft type
+    editingChipIdx: null // reg phase: if editing an existing chip, its index
+};
+
+// ─────────────────────────────────────────────
+// DOM REFS
+// ─────────────────────────────────────────────
+const elBg           = document.getElementById('background');
+const elOverlay      = document.getElementById('transition-overlay');
+const elTitleScreen  = document.getElementById('title-screen');
+const elLaunchBar    = document.getElementById('launch-bar');
+const elBarLaunchBtn = document.getElementById('bar-launch-btn');
+const elRegScreen    = document.getElementById('reg-screen');
+const elCraftGrid    = document.getElementById('craft-grid');
+const elEntryPanel   = document.getElementById('reg-entry-panel');
+const elEntryCLabel  = document.getElementById('reg-entry-craft-label');
+const elNameInput    = document.getElementById('reg-name-input');
+const elAddBtn       = document.getElementById('reg-add-btn');
+const elCheckItems   = document.getElementById('reg-checklist-items');
+const elMaxNote      = document.getElementById('reg-max-note');
+const elLaunchScreen = document.getElementById('launch-screen');
+const elLaunchIdle   = document.getElementById('launch-idle');
+const elLaunchActive = document.getElementById('launch-active');
+const elLaunchCImg   = document.getElementById('launch-craft-img');
+const elLaunchCName  = document.getElementById('launch-craft-name');
+const elLaunchCType  = document.getElementById('launch-craft-type');
+const elLaunchSeqList= document.getElementById('launch-seq-list');
+const elResultOverlay= document.getElementById('launch-result-overlay');
+const elResultBox    = document.getElementById('launch-result-box');
+const elResultCont   = document.getElementById('launch-result-continue');
+const elNarScreen    = document.getElementById('narrative-screen');
+const elNarChar      = document.getElementById('narrative-char');
+const elNarCharLeft  = document.getElementById('narrative-char-left');
+const elNarDlg       = document.getElementById('narrative-dlg');
+const elNarSpeaker   = document.getElementById('narrative-speaker');
+const elNarText      = document.getElementById('narrative-text');
+const elNarChoices   = document.getElementById('narrative-choices');
+const elPoemOverlay  = document.getElementById('poem-overlay');
+const elPoemText     = document.getElementById('poem-text');
+const elCreditsScreen= document.getElementById('credits-screen');
+const elEndScreen    = document.getElementById('end-screen');
+const elIndic        = document.getElementById('click-indicator');
+const elBack         = document.getElementById('back-btn');
+const elBgFade       = document.getElementById('bg-fade-overlay');
+
+// ─────────────────────────────────────────────
+// TRANSITION HELPER
+// ─────────────────────────────────────────────
+function fadeOut(dur = 380) {
+    return new Promise(resolve => {
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '1';
+        setTimeout(resolve, dur / 2);
+    });
+}
+function fadeIn(dur = 380) {
+    return new Promise(resolve => {
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '0';
+        setTimeout(resolve, dur / 2 + 40);
+    });
+}
+
+// ─────────────────────────────────────────────
+// PHASE SWITCHING
+// ─────────────────────────────────────────────
+function hideAll() {
+    elTitleScreen.classList.remove('active');
+    elLaunchBar.classList.remove('active');
+    elRegScreen.classList.remove('active');
+    elLaunchScreen.classList.remove('active');
+    elNarScreen.classList.remove('active');
+    elCreditsScreen.classList.remove('active');
+    elEndScreen.classList.remove('active');
+}
+
+async function goToPhase(phase, opts = {}) {
+    if (state.busy) return;
+    state.busy = true;
+    const dur = opts.slowFade ? 900 : 380;
+    await fadeOut(dur);
+    hideAll();
+    if (opts.bg) { elBg.src = './' + opts.bg; }
+    state.phase = phase;
+
+    if (phase === 'registration') {
+        elLaunchBar.classList.add('active');
+        elRegScreen.classList.add('active');
+        musicPlay('Music/021 - Sugar Star Planetarium.mp3', 1500);
+        renderLaunchBar();
+    } else if (phase === 'launch') {
+        elLaunchBar.classList.add('active');
+        elLaunchScreen.classList.add('active');
+        elLaunchIdle.style.display = 'flex';
+        elLaunchActive.classList.remove('active');
+        musicPlay('Music/A CYBER\'S WORLD.mp3', 1500);
+        renderLaunchBar();
+    } else if (phase === 'narrative') {
+        elNarScreen.classList.add('active');
+        renderNarrativeFrame(opts.frame);
+    } else if (phase === 'end') {
+        elBg.src = './Scenes/Space.png';
+        elEndScreen.classList.add('active');
+        elIndic.classList.remove('visible');
+        elBack.classList.remove('visible');
+    }
+
+    await fadeIn(dur);
+    state.busy = false;
+}
+
+// ─────────────────────────────────────────────
+// REGISTRATION PHASE
+// ─────────────────────────────────────────────
+function renderLaunchBar() {
+    // Remove all existing chips (keep the launch button)
+    Array.from(elLaunchBar.children).forEach(el => {
+        if (el !== elBarLaunchBtn) el.remove();
+    });
+    state.crafts.forEach((craft, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'craft-chip';
+        if (craft.status === 'pass') chip.classList.add('status-pass');
+        if (craft.status === 'fail') chip.classList.add('status-fail');
+
+        const img = document.createElement('img');
+        img.className = 'chip-img';
+        img.src = './' + CHECKLISTS[craft.type].img;
+        img.alt = '';
+
+        const name = document.createElement('div');
+        name.className = 'chip-name';
+        name.textContent = craft.name;
+
+        const statusEl = document.createElement('span');
+        statusEl.className = 'chip-status';
+        statusEl.textContent = craft.status === 'pass' ? '✓' : craft.status === 'fail' ? '✗' : '';
+
+        chip.appendChild(img);
+        chip.appendChild(name);
+        chip.appendChild(statusEl);
+        chip.dataset.idx = idx;
+
+        if (state.phase === 'registration') {
+            chip.addEventListener('click', () => openChipForEdit(idx));
+        }
+        // launch phase chip clicks handled by delegated listener on elLaunchBar
+
+        elLaunchBar.insertBefore(chip, elBarLaunchBtn);
+    });
+
+    elBarLaunchBtn.disabled = state.crafts.length === 0;
+
+    const atMax = state.crafts.length >= 8;
+    elMaxNote.classList.toggle('active', atMax);
+}
+
+function openCraftForNew(type) {
+    state.selectedType = type;
+    state.editingChipIdx = null;
+
+    // Highlight selected slot
+    document.querySelectorAll('.craft-select-slot').forEach(s => {
+        s.className = 'craft-select-slot';
+        if (s.dataset.type === type) s.classList.add('selected-' + type);
+    });
+
+    elEntryCLabel.textContent = CHECKLISTS[type].label;
+    elNameInput.value = '';
+    elAddBtn.textContent = 'Add to Launch Bay';
+    elAddBtn.disabled = true;
+    buildRegChecklist(type, null);
+    elEntryPanel.classList.add('active');
+}
+
+function openChipForEdit(idx) {
+    const craft = state.crafts[idx];
+    state.selectedType = craft.type;
+    state.editingChipIdx = idx;
+
+    document.querySelectorAll('.craft-select-slot').forEach(s => {
+        s.className = 'craft-select-slot';
+        if (s.dataset.type === craft.type) s.classList.add('selected-' + craft.type);
+    });
+
+    elEntryCLabel.textContent = CHECKLISTS[craft.type].label;
+    elNameInput.value = craft.name;
+    elAddBtn.textContent = 'Update Craft';
+    elAddBtn.disabled = false;
+    buildRegChecklist(craft.type, craft.checklist);
+    elEntryPanel.classList.add('active');
+}
+
+function buildRegChecklist(type, existing) {
+    elCheckItems.innerHTML = '';
+    CHECKLISTS[type].items.forEach((item, i) => {
+        const label = document.createElement('label');
+        label.className = 'reg-check-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.dataset.idx = i;
+        cb.checked = existing ? (existing[i] !== false) : true;
+        const span = document.createElement('span');
+        span.textContent = item;
+        label.appendChild(cb);
+        label.appendChild(span);
+        elCheckItems.appendChild(label);
+    });
+}
+
+function getChecklistState() {
+    const result = {};
+    elCheckItems.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        result[cb.dataset.idx] = cb.checked;
+    });
+    return result;
+}
+
+elNameInput.addEventListener('input', () => {
+    elAddBtn.disabled = elNameInput.value.trim().length === 0;
+});
+
+elAddBtn.addEventListener('click', () => {
+    const name = elNameInput.value.trim();
+    if (!name || !state.selectedType) return;
+    const checklist = getChecklistState();
+
+    if (state.editingChipIdx !== null) {
+        state.crafts[state.editingChipIdx].name = name;
+        state.crafts[state.editingChipIdx].checklist = checklist;
+    } else {
+        if (state.crafts.length >= 8) return;
+        state.crafts.push({ type: state.selectedType, name, checklist, status: null, everFailed: false });
+    }
+
+    elEntryPanel.classList.remove('active');
+    document.querySelectorAll('.craft-select-slot').forEach(s => { s.className = 'craft-select-slot'; });
+    state.selectedType = null;
+    state.editingChipIdx = null;
+    renderLaunchBar();
+});
+
+document.querySelectorAll('.craft-select-slot').forEach(slot => {
+    slot.addEventListener('click', () => {
+        if (state.crafts.length >= 8 && state.editingChipIdx === null) return;
+        openCraftForNew(slot.dataset.type);
+    });
+});
+
+elBarLaunchBtn.addEventListener('click', () => {
+    if (state.crafts.length === 0 || state.phase !== 'registration') return;
+    goToPhase('launch');
+});
+
+// ─────────────────────────────────────────────
+// LAUNCH SEQUENCE
+// ─────────────────────────────────────────────
+let launchBusy = false;
+
+function startLaunchSequence(craftIdx) {
+    if (launchBusy) return;
+    const craft = state.crafts[craftIdx];
+    if (!craft) return;
+
+    // Mark as active in bar
+    Array.from(elLaunchBar.children).forEach(el => el.classList.remove('status-active'));
+    const chip = elLaunchBar.querySelector(`.craft-chip[data-idx="${craftIdx}"]`);
+    if (chip) chip.classList.add('status-active');
+
+    // Show active section
+    elLaunchIdle.style.display = 'none';
+    elLaunchActive.classList.add('active');
+    elLaunchSeqList.innerHTML = '';
+    elResultOverlay.classList.remove('active');
+
+    // Set craft display
+    elLaunchCImg.src = './' + CHECKLISTS[craft.type].img;
+    elLaunchCName.textContent = craft.name;
+    elLaunchCType.textContent = CHECKLISTS[craft.type].label;
+    const display = document.getElementById('launch-craft-display');
+    display.classList.remove('visible');
+
+    launchBusy = true;
+
+    setTimeout(() => {
+        display.classList.add('visible');
+
+        setTimeout(() => runLaunchItems(craft, craftIdx, 0, 0), 600);
+    }, 100);
+}
+
+function runLaunchItems(craft, craftIdx, itemIdx, failCount) {
+    const items = CHECKLISTS[craft.type].items;
+    if (itemIdx >= items.length) {
+        // All items done
+        setTimeout(() => {
+            if (failCount > 2) {
+                showLaunchResult(craftIdx, 'fail');
+            } else {
+                showLaunchResult(craftIdx, 'pass');
+            }
+        }, 400);
+        return;
+    }
+
+    // Create row
+    const row = document.createElement('div');
+    row.className = 'seq-item';
+    const icon = document.createElement('span');
+    icon.className = 'seq-item-icon';
+    icon.textContent = '▶';
+    const text = document.createElement('span');
+    text.className = 'seq-item-text';
+    text.textContent = items[itemIdx];
+    row.appendChild(icon);
+    row.appendChild(text);
+    elLaunchSeqList.appendChild(row);
+    elLaunchSeqList.scrollTop = elLaunchSeqList.scrollHeight;
+
+    setTimeout(() => {
+        row.classList.add('visible');
+        setTimeout(() => {
+            playSFX('Music/SFX_Fweeng.wav').then(() => {
+                const success = craft.checklist[itemIdx] !== false;
+                setTimeout(() => {
+                    playSFX(success ? 'Music/SFX_Acquire.wav' : 'Music/SFX_Fail.mp3');
+                    if (success) {
+                        icon.textContent = '✓';
+                        row.classList.add('result-pass');
+                    } else {
+                        icon.textContent = '✗';
+                        row.classList.add('result-fail');
+                    }
+                    elLaunchSeqList.scrollTop = elLaunchSeqList.scrollHeight;
+                    const newFails = failCount + (success ? 0 : 1);
+                    setTimeout(() => runLaunchItems(craft, craftIdx, itemIdx + 1, newFails), 500);
+                }, 300);
+            });
+        }, 400);
+    }, 50);
+}
+
+function showLaunchResult(craftIdx, result) {
+    const craft = state.crafts[craftIdx];
+    craft.status = result;
+    if (result === 'fail') {
+        craft.everFailed = true;
+        state.globalEverFailed = true;
+    }
+
+    elResultBox.className = result === 'pass' ? 'pass' : 'fail';
+
+    if (result === 'pass') {
+        playSFX('Music/SFX_Acquire.wav');
+        elResultBox.textContent = "The craft hums to life, everything running smoothly, almost harmonically. The screen reads, 'All systems ready for launch!'";
+    } else {
+        playSFX('Music/SFX_Fail.mp3').then(() => {
+            setTimeout(() => playSFX('Music/SFX_Whoosh.mp3'), 400);
+        });
+        elResultBox.textContent = "A blur of fabric rushes by the window of your craft, and the violent tremors of the spacecraft subside. The screen reads, 'Critical craft failure — launch aborted manually'";
+    }
+
+    elResultOverlay.classList.add('active');
+    renderLaunchBar();
+}
+
+elResultCont.addEventListener('click', () => {
+    elResultOverlay.classList.remove('active');
+    elLaunchActive.classList.remove('active');
+    elLaunchIdle.style.display = 'flex';
+    launchBusy = false;
+
+    // Check if all crafts have been assigned
+    const allDone = state.crafts.every(c => c.status !== null);
+    if (allDone) {
+        const nextFrame = state.globalEverFailed ? 'S3b_1' : 'S3a_1';
+        goToPhase('narrative', { frame: nextFrame, slowFade: true });
+    }
+});
+
+document.getElementById('launch-back-reg-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (launchBusy || editInLaunchPanel) return;
+    state.crafts.forEach(c => { c.status = null; c.everFailed = false; });
+    state.globalEverFailed = false;
+    goToPhase('registration', { bg: 'Scenes/CraftYard.png' });
+});
+
+// Re-launch failed craft from bar: clicking a chip with fail status returns to registration for that craft
+// This is handled by the chip click listener — in launch phase, clicking runs startLaunchSequence.
+// But for failed crafts, we first need to let them re-edit their checklist.
+// Override: in launch phase, clicking a chip with fail/pass status (already launched) allows re-run.
+// For failed crafts: re-open registration overlay, then re-run.
+
+function startLaunchSequenceOrEdit(craftIdx) {
+    if (launchBusy || editInLaunchPanel) return;
+    const craft = state.crafts[craftIdx];
+    if (craft.status === 'fail') {
+        // Show re-edit overlay in launch phase
+        openChipForEditInLaunch(craftIdx);
+    } else if (craft.status === null) {
+        startLaunchSequence(craftIdx);
+    }
+    // Pass status: already complete, do nothing (or could show result again)
+}
+
+let editInLaunchPanel = null;
+
+function openChipForEditInLaunch(idx) {
+    if (launchBusy) return;
+    if (editInLaunchPanel) { editInLaunchPanel.remove(); editInLaunchPanel = null; }
+
+    const craft = state.crafts[idx];
+    const panel = document.createElement('div');
+    panel.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(14,14,22,0.97);border:2px solid rgba(78,201,176,0.4);border-radius:12px;padding:20px 24px;z-index:55;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;';
+
+    const label = document.createElement('div');
+    label.style.cssText = 'color:#4EC9B0;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;';
+    label.textContent = 'Adjust Checklist — ' + CHECKLISTS[craft.type].label;
+
+    const clList = document.createElement('div');
+    clList.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+    CHECKLISTS[craft.type].items.forEach((item, i) => {
+        const lbl = document.createElement('label');
+        lbl.style.cssText = 'display:flex;align-items:flex-start;gap:10px;cursor:pointer;color:#F5E6D3;font-family:Courier New,monospace;font-size:13px;line-height:1.5;';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.dataset.idx = i;
+        cb.checked = craft.checklist[i] !== false;
+        cb.style.cssText = 'margin-top:2px;width:15px;height:15px;flex-shrink:0;accent-color:#4EC9B0;';
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(item));
+        clList.appendChild(lbl);
+    });
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:4px;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = 'background:rgba(139,69,69,0.8);border:2px solid #8B4545;border-radius:6px;color:#F5E6D3;font-family:Courier New,monospace;font-size:13px;padding:8px 18px;cursor:pointer;';
+    cancelBtn.addEventListener('click', () => { panel.remove(); editInLaunchPanel = null; });
+
+    const rerunBtn = document.createElement('button');
+    rerunBtn.textContent = '▶ Re-run Launch Sequence';
+    rerunBtn.style.cssText = 'background:rgba(78,201,176,0.9);border:2px solid #4EC9B0;border-radius:6px;color:#1a1a1a;font-family:Courier New,monospace;font-size:13px;font-weight:bold;padding:8px 18px;cursor:pointer;';
+    rerunBtn.addEventListener('click', () => {
+        // Save updated checklist
+        clList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            craft.checklist[cb.dataset.idx] = cb.checked;
+        });
+        // Reset status (but not everFailed)
+        craft.status = null;
+        renderLaunchBar();
+        panel.remove();
+        editInLaunchPanel = null;
+        startLaunchSequence(idx);
+    });
+
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(rerunBtn);
+    panel.appendChild(label);
+    panel.appendChild(clList);
+    panel.appendChild(btnRow);
+
+    document.getElementById('launch-screen').appendChild(panel);
+    editInLaunchPanel = panel;
+}
+
+// ─────────────────────────────────────────────
+// NARRATIVE PHASE
+// ─────────────────────────────────────────────
+function renderNarrativeFrame(id) {
+    if (!NFRAMES[id]) { if (id === 'S6') { showEnd(); return; } return; }
+    state.narrativeFrame = id;
+    const f = NFRAMES[id];
+
+    // Music
+    if (f.music) {
+        if (f.music.action === 'crossfade') { musicPlay(f.music.to, 1500); }
+    }
+
+    // Background
+    if (f.bg) elBg.src = './' + f.bg;
+
+    // Black background / Space fade-in
+    if (f.blackBg) {
+        elBgFade.style.transition = 'none';
+        elBgFade.style.opacity = '1';
+    } else if (f.bgFadeIn) {
+        elBgFade.style.transition = 'none';
+        elBgFade.style.opacity = '1';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            elBgFade.style.transition = 'opacity 2.5s ease';
+            elBgFade.style.opacity = '0';
+        }));
+    } else {
+        elBgFade.style.transition = 'none';
+        elBgFade.style.opacity = '0';
+    }
+
+    // Characters
+    elNarChar.classList.remove('visible');
+    if (f.char) {
+        elNarChar.src = './' + f.char;
+        elNarChar.classList.add('visible');
+    }
+    elNarCharLeft.classList.remove('visible');
+    if (f.char2) {
+        elNarCharLeft.src = './' + f.char2;
+        elNarCharLeft.classList.add('visible');
+    }
+
+    // Reset UI
+    elNarChoices.innerHTML = '';
+    elNarChoices.classList.remove('visible');
+    elIndic.classList.remove('visible');
+    elPoemOverlay.classList.remove('active');
+    elNarDlg.classList.remove('visible');
+
+    // Back
+    elBack.classList.toggle('visible', state.navStack.length > 0);
+
+    // Poem frame
+    if (f.type === 'poem') {
+        elNarDlg.classList.remove('visible');
+        elPoemText.innerHTML = '';
+        f.lines.forEach(line => {
+            const div = document.createElement('div');
+            div.className = 'poem-line';
+            div.textContent = line;
+            elPoemText.appendChild(div);
+        });
+        elPoemOverlay.classList.add('active');
+        const lines = elPoemText.querySelectorAll('.poem-line');
+        lines.forEach((line, i) => {
+            setTimeout(() => { line.classList.add('visible'); }, i * 700);
+        });
+        setTimeout(() => { elIndic.classList.add('visible'); }, lines.length * 700 + 200);
+        return;
+    }
+
+    // Dialogue
+    if (f.dlg) {
+        const d = f.dlg;
+        const dlgPos = (f.type === 'choice') ? 'top' : d.pos;
+        elNarDlg.className = `style-${d.style} pos-${dlgPos}`;
+        elNarDlg.classList.add('visible');
+
+        if (d.speaker) { elNarSpeaker.textContent = d.speaker; elNarSpeaker.style.display = 'block'; }
+        else { elNarSpeaker.style.display = 'none'; }
+
+        startTypewriter(elNarText, d.text, () => {
+            if (f.type === 'choice') {
+                buildNarChoices(f.choices);
+            } else {
+                elIndic.classList.add('visible');
+            }
+        });
+    }
+}
+
+function buildNarChoices(choices) {
+    elNarChoices.innerHTML = '';
+    choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = c.text;
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            narNavigate(c.to);
+        });
+        elNarChoices.appendChild(btn);
+    });
+    elNarChoices.classList.add('visible');
+}
+
+function narNavigate(targetId, isBack = false) {
+    if (state.busy) return;
+    if (targetId === 'S6') { showEnd(); return; }
+    if (targetId === 'CREDITS') { showCredits(); return; }
+    const f = NFRAMES[targetId];
+    if (!f) return;
+
+    state.busy = true;
+    const slowFade = (NFRAMES[state.narrativeFrame] && NFRAMES[state.narrativeFrame].slowFade) || f.slowFade;
+    const dur = slowFade ? 900 : 0;
+
+    if (dur === 0) {
+        clearTimeout(TW.timer); TW.done = true;
+        if (!isBack && state.narrativeFrame) state.navStack.push(state.narrativeFrame);
+        if (f.bg) elBg.src = './' + f.bg;
+        renderNarrativeFrame(targetId);
+        state.busy = false;
+        return;
+    }
+
+    elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+    elOverlay.style.opacity = '1';
+
+    setTimeout(() => {
+        clearTimeout(TW.timer); TW.done = true;
+        if (!isBack && state.narrativeFrame) state.navStack.push(state.narrativeFrame);
+        if (f.bg) elBg.src = './' + f.bg;
+        renderNarrativeFrame(targetId);
+
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '0';
+        setTimeout(() => { state.busy = false; }, dur / 2 + 40);
+    }, dur / 2);
+}
+
+function narAdvance() {
+    if (state.busy) return;
+    const f = NFRAMES[state.narrativeFrame];
+    if (!f) return;
+    if (f.type === 'choice') return;
+    if (f.type === 'poem') {
+        if (!elIndic.classList.contains('visible')) return;
+        narNavigate(f.next);
+        return;
+    }
+    if (!TW.done) { skipTypewriter(); return; }
+    if (f.next) narNavigate(f.next);
+}
+
+function narBack() {
+    if (state.navStack.length === 0 || state.busy) return;
+    const prev = state.navStack.pop();
+    narNavigate(prev, true);
+}
+
+function showCredits() {
+    state.busy = true;
+    const dur = 900;
+    elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+    elOverlay.style.opacity = '1';
+    setTimeout(() => {
+        hideAll();
+        elCreditsScreen.classList.add('active');
+        elIndic.classList.add('visible');
+        elBack.classList.remove('visible');
+        state.phase = 'credits';
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '0';
+        setTimeout(() => { state.busy = false; }, dur / 2 + 40);
+    }, dur / 2);
+}
+
+function showEnd() {
+    state.busy = true;
+    const dur = 900;
+    elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+    elOverlay.style.opacity = '1';
+    setTimeout(() => {
+        hideAll();
+        elBg.src = './Scenes/Space.png';
+        elEndScreen.classList.add('active');
+        elIndic.classList.remove('visible');
+        elBack.classList.remove('visible');
+        state.phase = 'end';
+        elOverlay.style.transition = `opacity ${dur / 2}ms ease`;
+        elOverlay.style.opacity = '0';
+        setTimeout(() => { state.busy = false; }, dur / 2 + 40);
+    }, dur / 2);
+}
+
+// ─────────────────────────────────────────────
+// GLOBAL INPUT
+// ─────────────────────────────────────────────
+document.getElementById('cutscene-container').addEventListener('click', e => {
+    if (state.phase === 'narrative') { narAdvance(); }
+    else if (state.phase === 'credits' && !state.busy) { showEnd(); }
+});
+
+document.addEventListener('keydown', e => {
+    if (state.phase !== 'narrative') return;
+    if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); narAdvance(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); narBack(); }
+});
+
+elBack.addEventListener('click', e => { e.stopPropagation(); if (state.phase === 'narrative') narBack(); });
+
+// Launch bar chip clicks in launch phase
+elLaunchBar.addEventListener('click', e => {
+    if (state.phase !== 'launch') return;
+    const chip = e.target.closest('.craft-chip');
+    if (!chip) return;
+    e.stopPropagation();
+    const idx = parseInt(chip.dataset.idx);
+    startLaunchSequenceOrEdit(idx);
+});
+
+// ─────────────────────────────────────────────
+// TITLE
+// ─────────────────────────────────────────────
+document.getElementById('title-start-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    musicPlay('Music/LifeRoundHere.mp3', 2000);
+    goToPhase('registration', { bg: 'Scenes/CraftYard.png' });
+});
+
+// ─────────────────────────────────────────────
+// VOLUME SLIDER
+// ─────────────────────────────────────────────
+const volSlider = document.getElementById('volume-slider');
+volSlider.value = masterVolume * 100;
+updateVolumeIcon(masterVolume);
+volSlider.addEventListener('input', e => updateVolume(e.target.value / 100));
+document.getElementById('volume-control').addEventListener('click', e => e.stopPropagation());
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+elOverlay.style.opacity = '1';
+elOverlay.style.transition = 'none';
+setTimeout(() => {
+    elTitleScreen.classList.add('active');
+    elOverlay.style.transition = 'opacity 0.9s ease';
+    elOverlay.style.opacity = '0';
+}, 200);
+</script>
+</body>
+</html>
