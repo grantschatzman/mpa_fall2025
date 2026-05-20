@@ -1633,7 +1633,7 @@ function runLaunchItems(craft, craftIdx, itemIdx, failCount) {
     if (itemIdx >= items.length) {
         // All items done
         setTimeout(() => {
-            if (failCount > 2) {
+            if (failCount >= 2) {
                 showLaunchResult(craftIdx, 'fail');
             } else {
                 showLaunchResult(craftIdx, 'pass');
