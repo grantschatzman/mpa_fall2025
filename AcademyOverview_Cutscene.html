@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Pixel Academy — An Introduction</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1a1a1a;
+  font-family: 'Courier New', monospace;
+  color: #F5E6D3;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Background */
+#bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transition: opacity 0.6s ease;
+}
+#bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  z-index: 1;
+}
+
+/* Transition overlay */
+#fade-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 90;
+  transition: opacity 0.6s ease;
+}
+#fade-overlay.active { opacity: 1; pointer-events: all; }
+
+/* Volume control */
+#volume-control {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(0,0,0,0.45);
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+  z-index: 65;
+  opacity: 0.45;
+  cursor: default;
+}
+#volume-control:hover { opacity: 1; background: rgba(0,0,0,0.75); border-color: #4EC9B0; }
+#volume-icon { color: #F5E6D3; font-size: 14px; min-width: 18px; text-align: center; user-select: none; }
+#volume-slider {
+  width: 72px; height: 4px; -webkit-appearance: none; appearance: none;
+  background: rgba(245,230,211,0.3); outline: none; border-radius: 2px; cursor: pointer;
+}
+#volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 11px; height: 11px; background: #F5E6D3; border-radius: 50%; cursor: pointer;
+}
+#volume-slider::-moz-range-thumb {
+  width: 11px; height: 11px; background: #F5E6D3; border: none; border-radius: 50%; cursor: pointer;
+}
+
+/* Screen layers */
+#screen {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 60px;
+}
+
+/* Title screen */
+#title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+}
+.title-label {
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: #D4A574;
+  text-transform: uppercase;
+  font-variant: small-caps;
+}
+.title-main {
+  font-size: 38px;
+  font-weight: bold;
+  color: #F5E6D3;
+  line-height: 1.2;
+}
+.title-sub {
+  font-size: 18px;
+  color: rgba(245,230,211,0.7);
+  font-style: italic;
+}
+.title-updated {
+  font-size: 12px;
+  color: rgba(245,230,211,0.45);
+  margin-top: 4px;
+}
+
+/* Buttons */
+.btn {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
+  letter-spacing: 1px;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+.btn:active { transform: translateY(0); }
+.btn-teal { background: #4EC9B0; color: #1a1a1a; }
+.btn-teal:hover { background: #5dd9c0; }
+.btn-dark { background: rgba(61,90,107,0.9); color: #F5E6D3; border: 1px solid rgba(78,201,176,0.4); }
+.btn-dark:hover { background: rgba(78,110,130,0.9); }
+.btn-maroon { background: rgba(139,69,69,0.9); color: #F5E6D3; border: 1px solid rgba(212,165,116,0.3); }
+.btn-maroon:hover { background: rgba(160,85,85,0.9); }
+.btn-disabled {
+  background: rgba(80,80,80,0.5);
+  color: #666;
+  cursor: not-allowed;
+  border: 1px solid rgba(100,100,100,0.3);
+}
+.choice-btn.disabled {
+  background: rgba(70,70,70,0.75);
+  color: rgba(245,230,211,0.5);
+  border: 1px dashed rgba(245,230,211,0.35);
+}
+.btn-disabled:hover { transform: none; box-shadow: none; background: rgba(80,80,80,0.5); }
+.btn-small {
+  font-size: 14px;
+  padding: 9px 20px;
+  border-radius: 8px;
+}
+
+/* Narrator dialogue box */
+.narrator-box {
+  background: rgba(61,90,107,0.95);
+  border-radius: 15px;
+  padding: 28px 36px;
+  max-width: 780px;
+  width: 90%;
+  color: #F5E6D3;
+  font-size: 17px;
+  line-height: 1.75;
+  text-align: left;
+  position: relative;
+  border: 1px solid rgba(78,201,176,0.2);
+}
+.narrator-box.top { margin-top: 40px; align-self: center; }
+
+/* Character dialogue box */
+.char-box {
+  background: rgba(139,69,69,0.95);
+  border-radius: 15px;
+  padding: 24px 32px;
+  max-width: 720px;
+  width: 88%;
+  color: #F5E6D3;
+  font-size: 17px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+.speaker-name {
+  color: #D4A574;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* Sprite */
+.sprite-container {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+}
+.sprite-container.left { left: 5%; }
+.sprite-container.center { left: 50%; transform: translateX(-50%); }
+.sprite-container.right { right: 5%; }
+.sprite-img {
+  max-height: 32vh;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+.sprite-img.large { max-height: 52vh; }
+
+/* Prev / Next nav buttons */
+#nav-prev, #nav-next {
+  position: absolute;
+  bottom: 28px;
+  z-index: 20;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 9px 20px;
+  border: 1px solid rgba(245,230,211,0.25);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: rgba(245,230,211,0.75);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, opacity 0.3s;
+  letter-spacing: 1px;
+}
+#nav-prev { left: 28px; }
+#nav-next { right: 28px; }
+#nav-prev:hover, #nav-next:hover {
+  background: rgba(78,201,176,0.15);
+  border-color: #4EC9B0;
+  color: #F5E6D3;
+}
+#nav-prev.hidden, #nav-next.hidden { opacity: 0; pointer-events: none; }
+
+/* Progress indicator */
+#progress-dots {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 20;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(245,230,211,0.25);
+  transition: background 0.3s;
+}
+.dot.active { background: #4EC9B0; }
+
+/* Choice button grid */
+.choice-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+.choice-grid.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.choice-btn {
+  width: 100%;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #4EC9B0;
+  color: #1a1a1a;
+  transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+  text-align: center;
+  line-height: 1.4;
+}
+.choice-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 18px rgba(0,0,0,0.4); background: #5dd9c0; }
+.choice-btn.disabled {
+  background: rgba(70,70,70,0.82);
+  color: rgba(245,230,211,0.52);
+  border: 1px dashed rgba(245,230,211,0.35);
+  cursor: not-allowed;
+}
+.choice-btn.disabled:hover { transform: none; box-shadow: none; background: rgba(70,70,70,0.82); }
+.coming-soon-badge {
+  display: block;
+  font-size: 11px;
+  font-weight: normal;
+  color: #888;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+.choice-label { font-size: 12px; color: rgba(245,230,211,0.7); margin-bottom: 10px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+
+/* Media embeds */
+.media-strip {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  max-width: 900px;
+}
+.media-strip img {
+  max-height: 240px;
+  max-width: 330px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 6px;
+  border: 1px solid rgba(245,230,211,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+.media-video {
+  margin-top: 18px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.media-video video {
+  max-height: 440px;
+  max-width: 48%;
+  border-radius: 8px;
+  border: 1px solid rgba(245,230,211,0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+.media-video.single video { max-width: 85%; }
+
+/* Task list box */
+.task-list-box {
+  background: rgba(15,60,50,0.92);
+  border: 1px solid rgba(78,201,176,0.6);
+  border-radius: 12px;
+  padding: 18px 24px;
+  max-width: 700px;
+  width: 90%;
+  margin-top: 14px;
+}
+.task-list-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.task-list-box li {
+  padding: 4px 0;
+  font-size: 14px;
+  color: #F5E6D3;
+  border-bottom: 1px solid rgba(78,201,176,0.15);
+  line-height: 1.45;
+}
+.task-list-box li:last-child { border-bottom: none; }
+.task-list-box li::before { content: "→ "; color: #4EC9B0; font-weight: bold; }
+.task-list-box li strong { color: #D4A574; }
+
+/* Pause-beat frame (S4_6) */
+.pause-beat {
+  font-size: 26px;
+  color: #F5E6D3;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Link-styled button */
+.link-btn {
+  display: inline-block;
+  margin-top: 14px;
+  background: #4EC9B0;
+  color: #1a1a1a;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 10px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 1px;
+}
+.link-btn:hover { background: #5dd9c0; transform: translateY(-1px); }
+.email-line {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgba(245,230,211,0.6);
+}
+.email-line a { color: #4EC9B0; text-decoration: none; }
+.email-line a:hover { text-decoration: underline; }
+
+/* Branch action row */
+.branch-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Mailing list */
+.closing-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+.closing-cta .tagline {
+  font-size: 14px;
+  font-style: italic;
+  color: rgba(245,230,211,0.55);
+}
+
+/* Typewriter cursor */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: #4EC9B0;
+  vertical-align: text-bottom;
+  animation: blink 0.9s step-end infinite;
+  margin-left: 2px;
+}
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+/* Section heading above content */
+.section-header {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(212,165,116,0.6);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* S2 stub */
+#s2-stub {
+  background: rgba(61,90,107,0.85);
+  border-radius: 15px;
+  padding: 40px 50px;
+  max-width: 560px;
+  text-align: center;
+  border: 1px solid rgba(78,201,176,0.3);
+}
+#s2-stub h2 { color: #D4A574; margin-bottom: 14px; font-size: 22px; }
+#s2-stub p { color: rgba(245,230,211,0.8); font-size: 16px; line-height: 1.7; margin-bottom: 22px; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="bg"></div>
+  <div id="bg-overlay"></div>
+
+  <!-- Volume control -->
+  <div id="volume-control">
+    <span id="volume-icon">🔉</span>
+    <input type="range" id="volume-slider" min="0" max="100" value="60">
+  </div>
+
+  <!-- Nav buttons -->
+  <button id="nav-prev" class="hidden" onclick="navigate(-1)">← Prev</button>
+  <button id="nav-next" class="hidden" onclick="navigate(1)">Next →</button>
+
+  <!-- Progress dots -->
+  <div id="progress-dots"></div>
+
+  <!-- Main content area -->
+  <div id="screen"></div>
+
+  <!-- Fade overlay -->
+  <div id="fade-overlay"></div>
+</div>
+
+<script>
+// ─── Audio ───────────────────────────────────────────────────────────────────
+let masterVolume = parseFloat(localStorage.getItem('cutsceneMasterVolume')) || 0.6;
+const audioCache = {};
+let currentTrack = null;
+
+function getAudio(src) {
+  if (!audioCache[src]) {
+    const a = new Audio(src);
+    a.loop = true;
+    audioCache[src] = a;
+  }
+  return audioCache[src];
+}
+
+function crossfadeTo(src, duration = 1500) {
+  if (!src) return;
+  const next = getAudio(src);
+  if (currentTrack === next) return;
+  const prev = currentTrack;
+  currentTrack = next;
+  next.volume = 0;
+  next.play().catch(() => {});
+  const steps = 40;
+  const interval = duration / steps;
+  let step = 0;
+  const fade = setInterval(() => {
+    step++;
+    const t = step / steps;
+    if (prev && !prev.paused) prev.volume = Math.max(0, masterVolume * (1 - t));
+    next.volume = Math.min(masterVolume, masterVolume * t);
+    if (step >= steps) {
+      clearInterval(fade);
+      if (prev && prev !== next) { prev.pause(); prev.currentTime = 0; }
+    }
+  }, interval);
+}
+
+function stopAllMusic() {
+  Object.values(audioCache).forEach(a => { a.pause(); a.currentTime = 0; });
+  currentTrack = null;
+}
+
+function updateVolume(v) {
+  masterVolume = v;
+  localStorage.setItem('cutsceneMasterVolume', v);
+  if (currentTrack && !currentTrack.paused) currentTrack.volume = masterVolume;
+  updateVolumeIcon(v);
+}
+function updateVolumeIcon(v) {
+  const icon = document.getElementById('volume-icon');
+  if (!icon) return;
+  if (v === 0)        icon.textContent = '🔇';
+  else if (v < 0.3)   icon.textContent = '🔈';
+  else if (v < 0.7)   icon.textContent = '🔉';
+  else                icon.textContent = '🔊';
+}
+
+// ─── Frames ──────────────────────────────────────────────────────────────────
+const MUSIC = {
+  legend:   'Music/The Legend.mp3',
+  memory:   'Music/34 - Memory.mp3',
+  shop:     'Music/23 - Shop.mp3',
+  home:     'Music/12 - Home.mp3',
+  catcafe:  'Music/Copy of CatCafe2.mp3',
+  poem:     'Music/018 - Poems In The Fog.mp3',
+  life:     'Music/LifeRoundHere.mp3',
+};
+
+// Linear frame sequence (ids)
+const LINEAR = [
+  'S0',
+  'S1_1','S1_2','S1_3','S1_4','S1_choice',
+  'S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8','S3_choice',
+  'S4_1','S4_2','S4_3','S4_4','S4_5','S4_6','S4_7','S4_8','S4_choice',
+  'S6_1','S6_2'
+];
+
+let currentIdx = 0; // index into LINEAR
+let busy = false;
+let currentClickFn = null; // single delegated click handler
+let currentBg = null; // track current background for same-scene fade skip
+
+// Typewriter state
+let twTimeout = null;
+let twDone = false;
+let twText = '';
+let twTarget = null;
+let twFullText = '';
+let twClickReady = false;
+
+function setBackground(img) {
+  const bg = document.getElementById('bg');
+  bg.style.backgroundImage = img ? `url('${img}')` : 'none';
+}
+
+function renderFrame(id, skipTransition = false) {
+  const frame = FRAMES[id];
+  const sameBg = frame && frame.bg !== undefined && frame.bg === currentBg;
+  if (skipTransition || sameBg) {
+    _doRender(id);
+  } else {
+    fadeOverlay(true, () => {
+      _doRender(id);
+      fadeOverlay(false);
+    });
+  }
+}
+
+function fadeOverlay(show, cb) {
+  const el = document.getElementById('fade-overlay');
+  if (show) {
+    el.classList.add('active');
+    setTimeout(() => cb && cb(), 650);
+  } else {
+    setTimeout(() => el.classList.remove('active'), 50);
+  }
+}
+
+function _doRender(id) {
+  clearTypewriter();
+  currentClickFn = null;
+  // Clone screen to remove all accumulated event listeners
+  const old = document.getElementById('screen');
+  const screen = old.cloneNode(false);
+  old.parentNode.replaceChild(screen, old);
+  screen.addEventListener('click', e => currentClickFn && currentClickFn(e));
+
+  // Music + background handled per-frame
+  const frame = FRAMES[id];
+  if (!frame) return;
+
+  // Background
+  if (frame.bg !== undefined) { setBackground(frame.bg); currentBg = frame.bg; }
+
+  // Music
+  if (frame.music) crossfadeTo(frame.music);
+
+  // Update nav
+  updateNav(id);
+
+  // Render content
+  frame.render(screen);
+
+  // Update progress dots
+  updateDots(id);
+}
+
+function updateNav(id) {
+  const prev = document.getElementById('nav-prev');
+  const next = document.getElementById('nav-next');
+  const idx = LINEAR.indexOf(id);
+  // Hide prev/next on title, choice screens, S2_stub, and S5x
+  const hideNav = ['S0','S1_choice','S3_choice','S4_choice','S2_stub','S5a_1','S5a_2','S5a_choice','S5b_1','S5b_2','S5b_choice','S5c_1','S5c_2','S5c_3','S5c_choice'].includes(id);
+  if (hideNav) {
+    prev.classList.add('hidden');
+    next.classList.add('hidden');
+  } else {
+    prev.classList.toggle('hidden', idx <= 1); // hide on S1_1 (first real frame)
+    next.classList.toggle('hidden', idx >= LINEAR.length - 1);
+  }
+  currentIdx = idx >= 0 ? idx : currentIdx;
+}
+
+function updateDots(id) {
+  const dots = document.getElementById('progress-dots');
+  dots.innerHTML = '';
+  // Only show dots for linear frames (not S0, not choice/branch screens)
+  const sections = [
+    ['S1_1','S1_2','S1_3','S1_4'],
+    ['S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8'],
+    ['S4_1','S4_2','S4_3','S4_4','S4_5','S4_6','S4_7','S4_8'],
+    ['S6_1','S6_2']
+  ];
+  let sectionFrames = null;
+  for (const s of sections) {
+    if (s.includes(id)) { sectionFrames = s; break; }
+  }
+  if (!sectionFrames) return;
+  sectionFrames.forEach(fid => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (fid === id ? ' active' : '');
+    dots.appendChild(d);
+  });
+}
+
+function navigate(dir) {
+  if (busy) return;
+  const newIdx = currentIdx + dir;
+  if (newIdx < 0 || newIdx >= LINEAR.length) return;
+  const nextId = LINEAR[newIdx];
+  goTo(nextId);
+}
+
+function goTo(id, music) {
+  if (busy) return;
+  busy = true;
+  if (music) crossfadeTo(MUSIC[music]);
+  renderFrame(id);
+  setTimeout(() => { busy = false; }, 700);
+}
+
+// Click-to-advance within dialogue frames
+function handleScreenClick(id) {
+  if (twClickReady && !twDone) {
+    // First click: skip typewriter
+    clearTypewriter();
+    if (twTarget) twTarget.innerHTML = twFullText;
+    twDone = true;
+    return;
+  }
+  if (twDone) {
+    // Second click: advance
+    navigate(1);
+  }
+}
+
+// Typewriter
+function typewrite(el, text, speed = 20) {
+  twTarget = el;
+  twFullText = text;
+  twDone = false;
+  twClickReady = false;
+  let i = 0;
+  el.innerHTML = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+
+  function tick() {
+    if (i >= text.length) {
+      cursor.remove();
+      twDone = true;
+      return;
+    }
+    el.innerHTML = text.slice(0, i + 1);
+    el.appendChild(cursor);
+    i++;
+    twTimeout = setTimeout(tick, speed);
+  }
+  setTimeout(() => { twClickReady = true; tick(); }, 200);
+}
+
+function clearTypewriter() {
+  if (twTimeout) clearTimeout(twTimeout);
+  twTimeout = null;
+  twDone = false;
+  twClickReady = false;
+  twTarget = null;
+  twFullText = '';
+}
+
+// ─── Frame Definitions ───────────────────────────────────────────────────────
+
+function narratorBox(text, screen, clickable = true) {
+  const box = document.createElement('div');
+  box.className = 'narrator-box';
+  box.style.cursor = clickable ? 'pointer' : 'default';
+  screen.appendChild(box);
+  if (clickable) {
+    currentClickFn = () => {
+      if (twDone) navigate(1);
+      else if (twClickReady) { clearTypewriter(); box.textContent = text; twDone = true; }
+    };
+  }
+  typewrite(box, text);
+}
+
+function charBox(speaker, text, screen) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%;';
+  const name = document.createElement('div');
+  name.className = 'speaker-name';
+  name.style.cssText = 'text-align:center;margin-bottom:6px;';
+  name.textContent = speaker;
+  const box = document.createElement('div');
+  box.className = 'char-box';
+  wrap.appendChild(name);
+  wrap.appendChild(box);
+  screen.appendChild(wrap);
+  typewrite(box, text);
+  return box;
+}
+
+function charBoxSide(speaker, text, spriteSrc, screen, spriteMaxHeight) {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+  const spriteWrap = document.createElement('div');
+  spriteWrap.className = 'sprite-inline';
+  spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+  const sImg = document.createElement('img');
+  sImg.src = spriteSrc;
+  sImg.className = 'sprite-img';
+  sImg.style.imageRendering = 'pixelated';
+  if (spriteMaxHeight) sImg.style.maxHeight = spriteMaxHeight;
+  spriteWrap.appendChild(sImg);
+  row.appendChild(spriteWrap);
+  const col = document.createElement('div');
+  col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+  const name = document.createElement('div');
+  name.className = 'speaker-name';
+  name.style.cssText = 'margin-bottom:6px;';
+  name.textContent = speaker;
+  const box = document.createElement('div');
+  box.className = 'char-box';
+  col.appendChild(name);
+  col.appendChild(box);
+  row.appendChild(col);
+  screen.appendChild(row);
+  typewrite(box, text);
+  return box;
+}
+
+function sprite(src, pos, screen) {
+  const c = document.createElement('div');
+  c.className = 'sprite-container ' + pos;
+  const img = document.createElement('img');
+  img.src = src;
+  img.className = 'sprite-img' + (pos === 'center' ? ' large' : '');
+  img.style.imageRendering = 'pixelated';
+  c.appendChild(img);
+  screen.appendChild(c);
+}
+
+function branchRow(buttons, screen) {
+  const row = document.createElement('div');
+  row.className = 'branch-row';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-dark btn-small';
+    btn.textContent = b.label;
+    btn.onclick = (e) => { e.stopPropagation(); if (b.music) crossfadeTo(MUSIC[b.music]); renderFrame(b.target); };
+    row.appendChild(btn);
+  });
+  screen.appendChild(row);
+}
+
+const FRAMES = {
+
+  // ── S0 Title ──────────────────────────────────────────────────────────────
+  S0: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.onclick = null;
+      const box = document.createElement('div');
+      box.style.cssText = 'background:rgba(0,0,0,0.6);border-radius:16px;padding:36px 48px;border:1px solid rgba(78,201,176,0.2);';
+      const div = document.createElement('div');
+      div.id = 'title-screen';
+      div.innerHTML = `
+        <div class="title-label">My Pixel Academy</div>
+        <div class="title-main">An Introduction</div>
+        <div class="title-sub">for the curious and the collaborative</div>
+        <div class="title-updated">Updated: 28 May 2026</div>
+      `;
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-teal';
+      btn.style.marginTop = '24px';
+      btn.textContent = '▶ Begin';
+      btn.onclick = () => {
+        crossfadeTo(MUSIC.life);
+        goTo('S1_1');
+      };
+      div.appendChild(btn);
+      box.appendChild(div);
+      screen.appendChild(box);
+    }
+  },
+
+  // ── S1 Introduction ───────────────────────────────────────────────────────
+  S1_1: {
+    bg: 'Scenes/Campus Map.png',
+    music: MUSIC.life,
+    render(screen) {
+      narratorBox('Welcome to My Pixel Academy, a quick-start gamification platform that uses story, environment, and visual progress and achievement tracking to boost student engagement across content types.', screen);
+    }
+  },
+  S1_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      narratorBox('My Pixel Academy is the name of both the project and of the fictional world students are invited to step into — to receive narratively embedded assignments and challenges, view their progress and achievements, and share and explore collaboratively.', screen);
+    }
+  },
+  S1_3: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      narratorBox('Nothing quite like this exists. Gamification is well researched, and both teachers and students are pretty into it — but it takes a lot of time, effort, and expertise to create on a deep level.', screen);
+    }
+  },
+  S1_4: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      narratorBox("That's why My Pixel Academy exists. It's what the founder, Grant, wished someone else had made back when they were a novice teacher in a large, high-needs public school system.", screen);
+    }
+  },
+  S1_choice: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.onclick = null;
+      const grid = document.createElement('div');
+      grid.className = 'choice-grid';
+      grid.style.marginTop = '20px';
+
+      const btnA = document.createElement('button');
+      btnA.className = 'choice-btn disabled';
+      btnA.innerHTML = `📖 Explore MPA's origin story<span class="coming-soon-badge">— Coming Soon —</span>`;
+      btnA.disabled = true;
+
+      const btnB = document.createElement('button');
+      btnB.className = 'choice-btn';
+      btnB.textContent = '▶ Learn more about the project';
+      btnB.onclick = () => goTo('S3_1');
+
+      grid.appendChild(btnA);
+      grid.appendChild(btnB);
+      screen.appendChild(grid);
+    }
+  },
+
+  // ── S3 Gamification ───────────────────────────────────────────────────────
+  S3_1: {
+    bg: 'Media/Blank.png',
+    music: MUSIC.life,
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Here's how we bring gamification to the next level. Ready?";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_2: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = 'My Pixel Academy helps you gamify your projects, units, or even your whole classroom — not just test prep and quiz games. When gamification becomes a sustainable routine, rather than just a special occasion, students reap the benefits on a new level (Rodriquez et al, 2022).';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_3: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW29.png','Media/DW31.gif'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '110px';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      const txt = 'We think about gamification in three levels, or tiers. The first tier is progress tracking and rewards. Teachers do this with everything from stamps and stickers to classroom raffle tickets. Websites like Class Dojo let you do this digitally and in-the-moment to praise and encourage positive behaviors — the basics of the PBIS framework (Positive Behavioral Interventions and Supports).';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_4: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW03.png','Media/Bookshop.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '130px';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      const txt = 'For online teachers, and those without the time, budget, or desire to maintain a prize system, My Pixel Academy makes that rewards system digital. You choose the everyday values and behaviors you want to encourage, and students earn points when they demonstrate them.\n\nStudents spend those points at Campus Shop, stocked with items to customize their personal space in the Dormitory. Plus, they can take pride in their hard work with a collection of customizable Mastery Badges awarded for content-specific milestones.';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_5: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW33.png','Media/DW34.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '120px';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      const txt = "The second tier of gamification incorporates setting and basic story arcs, and the third adds in deep narrative tie-ins between content and incentivized individual practice. These encourage students to approach the challenge of learning with the curiosity and growth mindset of a gamer. Imagine your students trying math with the persistence they bring to Minecraft and Roblox. It's pretty neat.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_6: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Great gamifiers already do this in their classroom, and lots of teachers want to incorporate more scenario-based task invitations — it just takes more time to create than is provided in a teacher prep period. That's where MPA comes in.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_7: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW14.png','Media/DW15.png','Media/DW16.png','Media/CampusMap.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '130px';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      const txt = "At the Academy, students arrive at the strange campus by special invitation of the Custodian, where they are told they will learn a crucial set of skills essential to their progress — and even, perhaps, their safety. Routines and regular practice occur in dedicated buildings on campus. Major plot events launch students into summative projects where the preparation they've done comes into play as they face threats to the Academy and seek the four lost Founders.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_8: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "With My Pixel Academy, the content comes from the teacher, who knows their stuff best. The environment, narrative, and digital assets to grab just a little more student attention — well, that's our job, for now. And whenever you're ready to start spinning your own scenarios for kids, we'll help you do that, too.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_choice: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.onclick = null;
+      const grid = document.createElement('div');
+      grid.className = 'choice-grid';
+      grid.style.marginTop = '20px';
+
+      const btnA = document.createElement('button');
+      btnA.className = 'choice-btn btn-maroon';
+      btnA.style.background = 'rgba(139,69,69,0.85)';
+      btnA.style.color = '#F5E6D3';
+      btnA.textContent = '↩ Explain it again, please';
+      btnA.onclick = () => goTo('S3_1');
+
+      const btnB = document.createElement('button');
+      btnB.className = 'choice-btn';
+      btnB.textContent = "▶ Okay, so how's it going?";
+      btnB.onclick = () => { crossfadeTo(MUSIC.memory); goTo('S4_1'); };
+
+      grid.appendChild(btnA);
+      grid.appendChild(btnB);
+      screen.appendChild(grid);
+    }
+  },
+
+  // ── S4 Project History ────────────────────────────────────────────────────
+  S4_1: {
+    bg: 'Scenes/Campus Map.png',
+    music: MUSIC.memory,
+    render(screen) {
+      narratorBox("My Pixel Academy has gone through two years of solo development and student testing. So far, it's been a hit. It changes the focus and energy with which students approach learning, challenge, and practice. And honestly, it makes teaching a blast.", screen);
+    }
+  },
+  S4_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      typewrite(box, "We started with the basics: a points system, a shop, and a customizable personal space, all made with Canva — Grant's placeholder for a proper, bespoke web platform.");
+
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      ['Media/MasteryBadges1.png','Media/MasteryBadges2.png','Media/PointsTracker.png','Media/Shop&HomeZone.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      currentClickFn = () => {
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = "We started with the basics: a points system, a shop, and a customizable personal space, all made with Canva — Grant's placeholder for a proper, bespoke web platform."; twDone = true; }
+      };
+    }
+  },
+  S4_3: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      const txt = "Then, we went collaborative, adding in shared spaces, settings, and story. Grant pushed Canva to the limit making the first playable cutscene to mark the end of year one, and students came back excited for more.";
+      typewrite(box, txt);
+
+      const vidWrap = document.createElement('div');
+      vidWrap.className = 'media-video single';
+      const vid = document.createElement('video');
+      vid.src = 'Media/SeasonsEnd.mp4';
+      vid.controls = true;
+      vid.style.maxWidth = '85%';
+      vidWrap.appendChild(vid);
+      screen.appendChild(vidWrap);
+      currentClickFn = (e) => {
+        if (e.target === vid || vid.contains(e.target)) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S4_4: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      const txt = "For year two, we began creating story-relevant independent practice activities and leveled challenge assignments. Suddenly, kids were doing double homework to prepare for the big midterm event.";
+      typewrite(box, txt);
+
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      ['Media/CampusMap.png','Media/ChallengeActivities.png','Media/DeepNarrative.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        strip.appendChild(img);
+      });
+      screen.appendChild(strip);
+      currentClickFn = () => {
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S4_5: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      const txt = "Major story development around assignments became standard, and we found faster ways to build cutscenes from storyboards with a bit of code.";
+      typewrite(box, txt);
+
+      const vidWrap = document.createElement('div');
+      vidWrap.className = 'media-video';
+      ['Media/LIbraryBattlePrep.mp4','Media/CraftLaunch.mp4'].forEach(src => {
+        const vid = document.createElement('video');
+        vid.src = src;
+        vid.controls = true;
+        vidWrap.appendChild(vid);
+      });
+      screen.appendChild(vidWrap);
+      currentClickFn = (e) => {
+        if (e.target.tagName === 'VIDEO' || e.target.closest('video')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S4_6: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:24px;background:rgba(0,0,0,0.6);border-radius:16px;padding:36px 48px;border:1px solid rgba(78,201,176,0.15);';
+      const p = document.createElement('div');
+      p.className = 'pause-beat';
+      wrap.appendChild(p);
+      const meetBtn = document.createElement('button');
+      meetBtn.className = 'btn btn-teal';
+      meetBtn.textContent = 'Meet the Team';
+      meetBtn.onclick = (e) => { e.stopPropagation(); navigate(1); };
+      wrap.appendChild(meetBtn);
+      screen.appendChild(wrap);
+      typewrite(p, "But ... who's all this \"we\"?", 35);
+      currentClickFn = () => {
+        if (!twDone && twClickReady) { clearTypewriter(); p.textContent = "But ... who's all this \"we\"?"; twDone = true; }
+      };
+    }
+  },
+  S4_7: {
+    bg: 'Scenes/Campus Map.png',
+    music: MUSIC.catcafe,
+    render(screen) {
+      narratorBox("Right, so, about the team. So far, it's pretty much just been Grant — building and sharing things on a small-scale level. Not an artist, not a programmer, and definitely not a game developer — just a teacher learning a lot of new tools to help make something special for their students.", screen);
+    }
+  },
+  S4_8: {
+    bg: 'Scenes/Campus Map.png',
+    music: MUSIC.catcafe,
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      const txt = "That means that, right now, My Pixel Academy is maybe 20% as good as it can be with a proper team. To take things to the next level, we need:";
+      typewrite(box, txt);
+
+      const taskBox = document.createElement('div');
+      taskBox.className = 'task-list-box';
+      taskBox.innerHTML = `<ul>
+        <li>A library of pixel art assets for settings, characters, and shop items</li>
+        <li>Music for our core spaces and event types</li>
+        <li>Full-stack web-app development for V1 of the online platform</li>
+        <li><strong>Money</strong> — current target ~$35k for asset and initial web development</li>
+        <li><strong>Mentorship</strong> — advisory board members with experience in startup and ed-tech worlds</li>
+        <li><strong>Teammates</strong> — people with passion for education and games, expertise to add, and willingness to build something special together</li>
+      </ul>`;
+      screen.appendChild(taskBox);
+      currentClickFn = () => {
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S4_choice: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.onclick = null;
+      screen.style.justifyContent = 'center';
+
+      const label = document.createElement('div');
+      label.className = 'choice-label';
+      label.textContent = 'Sound like you?';
+      screen.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'choice-grid two-col';
+
+      const choices = [
+        { label: 'I can help with money',        target: 'S5a_1', music: 'shop'    },
+        { label: 'I can advise',                  target: 'S5b_1', music: 'home'    },
+        { label: 'I can help create',             target: 'S5c_1', music: 'poem'    },
+        { label: "I'm just here to check it out", target: 'S5d',   music: 'life'   },
+      ];
+
+      choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = c.label;
+        btn.onclick = () => { crossfadeTo(MUSIC[c.music]); renderFrame(c.target); };
+        grid.appendChild(btn);
+      });
+
+      screen.appendChild(grid);
+    }
+  },
+
+  // ── S5a Mousifer ──────────────────────────────────────────────────────────
+  S5a_1: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      charBoxSide('Mousifer', "Holy cats, do you mean it? That would be really helpful. We've done a lot with very little, but we know we can do so much more with the right support.", 'Sprites/Mousifer.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) renderFrame('S5a_2');
+        else if (twClickReady) {
+          clearTypewriter();
+          const box = document.querySelector('#screen .char-box');
+          if (box) box.textContent = "Holy cats, do you mean it? That would be really helpful. We've done a lot with very little, but we know we can do so much more with the right support.";
+          twDone = true;
+        }
+      };
+    }
+  },
+  S5a_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Mousifer.png';
+      sImg.className = 'sprite-img';
+      sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg);
+      row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name';
+      name.style.cssText = 'margin-bottom:6px;';
+      name.textContent = 'Mousifer';
+      const box = document.createElement('div');
+      box.className = 'char-box';
+      const s5a2txt = "Use this link to drop your information to Grant, and they'll reach out:";
+      typewrite(box, s5a2txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('a') || e.target.closest('button')) return;
+        if (!twDone && twClickReady) { clearTypewriter(); box.textContent = s5a2txt; twDone = true; }
+      };
+      col.appendChild(name);
+      col.appendChild(box);
+      const linkBtn = document.createElement('a');
+      linkBtn.href = '#';
+      linkBtn.className = 'link-btn';
+      linkBtn.textContent = '📋 Drop Grant a note';
+      linkBtn.onclick = e => e.stopPropagation();
+      col.appendChild(linkBtn);
+      const email = document.createElement('div');
+      email.className = 'email-line';
+      email.style.cssText = 'background:rgba(0,0,0,0.5);border-radius:8px;padding:8px 14px;margin-top:10px;';
+      email.innerHTML = 'Or email directly: <a href="mailto:gkschatzman@alumni.upenn.edu">gkschatzman@alumni.upenn.edu</a>';
+      col.appendChild(email);
+      row.appendChild(col);
+      screen.appendChild(row);
+
+      const navRow = document.createElement('div');
+      navRow.className = 'branch-row';
+      [
+        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: '▶ Let\'s wrap up here', target: 'S6_1', music: 'life' },
+      ].forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-dark btn-small';
+        btn.textContent = b.label;
+        btn.onclick = (e) => { e.stopPropagation(); crossfadeTo(MUSIC[b.music]); renderFrame(b.target); };
+        navRow.appendChild(btn);
+      });
+      screen.appendChild(navRow);
+    }
+  },
+
+  // ── S5b Custodian ─────────────────────────────────────────────────────────
+  S5b_1: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      charBoxSide('The Custodian', "Hmmm, you don't say? Wise counsel truly is worth its weight in... hemm... Well, anyway, you'd know better about all that business business. I just guide the students in their studies at the Academy.", 'Sprites/Custodian.png', screen);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) renderFrame('S5b_2');
+        else if (twClickReady) {
+          clearTypewriter();
+          const box = document.querySelector('#screen .char-box');
+          if (box) box.textContent = "Hmmm, you don't say? Wise counsel truly is worth its weight in... hemm... Well, anyway, you'd know better about all that business business. I just guide the students in their studies at the Academy.";
+          twDone = true;
+        }
+      };
+    }
+  },
+  S5b_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png';
+      sImg.className = 'sprite-img';
+      sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg);
+      row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name';
+      name.style.cssText = 'margin-bottom:6px;';
+      name.textContent = 'The Custodian';
+      const box = document.createElement('div');
+      box.className = 'char-box';
+      const s5b2txt = "Why don't you reach out to Grant through this form thingummy here, or send them an email?";
+      typewrite(box, s5b2txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('a') || e.target.closest('button')) return;
+        if (!twDone && twClickReady) { clearTypewriter(); box.textContent = s5b2txt; twDone = true; }
+      };
+      col.appendChild(name);
+      col.appendChild(box);
+      const linkBtn = document.createElement('a');
+      linkBtn.href = '#';
+      linkBtn.className = 'link-btn';
+      linkBtn.textContent = '📋 Contact Grant';
+      linkBtn.onclick = e => e.stopPropagation();
+      col.appendChild(linkBtn);
+      const email = document.createElement('div');
+      email.className = 'email-line';
+      email.style.cssText = 'background:rgba(0,0,0,0.5);border-radius:8px;padding:8px 14px;margin-top:10px;';
+      email.innerHTML = 'Or email: <a href="mailto:gkschatzman@alumni.upenn.edu">gkschatzman@alumni.upenn.edu</a>';
+      col.appendChild(email);
+      row.appendChild(col);
+      screen.appendChild(row);
+
+      const navRow = document.createElement('div');
+      navRow.className = 'branch-row';
+      [
+        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: "▶ Let's wrap up here", target: 'S6_1', music: 'life' },
+      ].forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-dark btn-small';
+        btn.textContent = b.label;
+        btn.onclick = (e) => { e.stopPropagation(); crossfadeTo(MUSIC[b.music]); renderFrame(b.target); };
+        navRow.appendChild(btn);
+      });
+      screen.appendChild(navRow);
+    }
+  },
+
+  // ── S5c Master of Critical Thinking ──────────────────────────────────────
+  S5c_1: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      charBoxSide('Master of Critical Thinking', "Oh, thank the Wellspring — can you truly help create? Grant may have imagination, but they never really were much of an artist. Look at me, for goodness' sake. They once generated me as a character for children. Children!", 'Sprites/MasterOfCrit_Front.png', screen, '40vh');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) renderFrame('S5c_2');
+        else if (twClickReady) {
+          clearTypewriter();
+          const box = document.querySelector('#screen .char-box');
+          if (box) box.textContent = "Oh, thank the Wellspring — can you truly help create? Grant may have imagination, but they never really were much of an artist. Look at me, for goodness' sake. They once generated me as a character for children. Children!";
+          twDone = true;
+        }
+      };
+    }
+  },
+  S5c_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      charBoxSide('Master of Critical Thinking', "And heaven knows how long it will take them to learn to program as a solo dev. Plus, all the music they use for their students is borrowed from their favorite games, which I'm pretty sure is not allowed in published work.", 'Sprites/MasterOfCrit_Front.png', screen, '40vh');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) renderFrame('S5c_3');
+        else if (twClickReady) {
+          clearTypewriter();
+          const box = document.querySelector('#screen .char-box');
+          if (box) box.textContent = "And heaven knows how long it will take them to learn to program as a solo dev. Plus, all the music they use for their students is borrowed from their favorite games, which I'm pretty sure is not allowed in published work.";
+          twDone = true;
+        }
+      };
+    }
+  },
+  S5c_3: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/MasterOfCrit_Front.png';
+      sImg.className = 'sprite-img';
+      sImg.style.cssText = 'image-rendering:pixelated;max-height:40vh;';
+      spriteWrap.appendChild(sImg);
+      row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name';
+      name.style.cssText = 'margin-bottom:6px;';
+      name.textContent = 'Master of Critical Thinking';
+      const box = document.createElement('div');
+      box.className = 'char-box';
+      const s5c3txt = "Please, let them know what kind of work you've done before and are interested in with My Pixel Academy. You can use this form or email them directly.";
+      typewrite(box, s5c3txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('a') || e.target.closest('button')) return;
+        if (!twDone && twClickReady) { clearTypewriter(); box.textContent = s5c3txt; twDone = true; }
+      };
+      col.appendChild(name);
+      col.appendChild(box);
+      const linkBtn = document.createElement('a');
+      linkBtn.href = '#';
+      linkBtn.className = 'link-btn';
+      linkBtn.textContent = '📋 Get in touch with Grant';
+      linkBtn.onclick = e => e.stopPropagation();
+      col.appendChild(linkBtn);
+      const email = document.createElement('div');
+      email.className = 'email-line';
+      email.style.cssText = 'background:rgba(0,0,0,0.5);border-radius:8px;padding:8px 14px;margin-top:10px;';
+      email.innerHTML = 'Or email Grant directly: <a href="mailto:gkschatzman@alumni.upenn.edu">gkschatzman@alumni.upenn.edu</a>';
+      col.appendChild(email);
+      row.appendChild(col);
+      screen.appendChild(row);
+
+      const navRow = document.createElement('div');
+      navRow.className = 'branch-row';
+      [
+        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: "▶ Let's wrap up here", target: 'S6_1', music: 'life' },
+      ].forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-dark btn-small';
+        btn.textContent = b.label;
+        btn.onclick = (e) => { e.stopPropagation(); crossfadeTo(MUSIC[b.music]); renderFrame(b.target); };
+        navRow.appendChild(btn);
+      });
+      screen.appendChild(navRow);
+    }
+  },
+
+  // ── S5d Just looking ──────────────────────────────────────────────────────
+  S5d: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      // Immediately go to S6_1 after brief pause
+      setTimeout(() => { crossfadeTo(MUSIC.life); renderFrame('S6_1'); }, 400);
+    }
+  },
+
+  // ── S6 Closing ────────────────────────────────────────────────────────────
+  S6_1: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      narratorBox("My Pixel Academy is arriving at an exciting and critical time for education and technology, where new modes of student engagement are both more possible and more necessary than ever. Already Grant has been taking MPA to conference workshops to train other educators in gamification strategies and tools. But now, we'll be working hard to create the first fully-hosted version for teachers to try out, so that we can make something special for students everywhere.", screen);
+    }
+  },
+  S6_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      screen.appendChild(box);
+      const txt = "If you want to stay apprised of major project milestones, click below to sign up for our mailing list.";
+      typewrite(box, txt);
+
+      const cta = document.createElement('div');
+      cta.className = 'closing-cta';
+
+      const mailBtn = document.createElement('a');
+      mailBtn.href = '#';
+      mailBtn.className = 'link-btn';
+      mailBtn.textContent = '✉ Stay in the loop';
+      mailBtn.style.fontSize = '16px';
+      mailBtn.style.padding = '13px 30px';
+      mailBtn.onclick = e => e.stopPropagation();
+      cta.appendChild(mailBtn);
+
+      const tag = document.createElement('div');
+      tag.textContent = 'See you soon!';
+      tag.style.cssText = 'font-size:42px;font-style:italic;color:#F5E6D3;background:rgba(0,0,0,0.55);border-radius:12px;padding:16px 32px;margin-top:8px;border:1px solid rgba(78,201,176,0.2);';
+      cta.appendChild(tag);
+
+      const credits = document.createElement('div');
+      credits.style.cssText = 'margin-top:20px;padding:12px 20px;background:rgba(0,0,0,0.45);border-radius:10px;border-top:1px solid rgba(78,201,176,0.25);text-align:left;max-width:480px;';
+      credits.innerHTML = `
+        <div style="color:#4EC9B0;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">Music Credits</div>
+        <div style="color:rgba(245,230,211,0.75);font-size:12px;line-height:1.8;">
+          James Blake &mdash; <em>"Life Round Here"</em><br>
+          Toby Fox &mdash; <em>"Memory," "Shop,"</em> and <em>"Home"</em> (Undertale)<br>
+          OMORI &mdash; <em>"Poems in the Fog"</em><br>
+          Baths &mdash; <em>"Cat Cafe 2"</em> (Bee and Puppycat)
+        </div>`;
+      cta.appendChild(credits);
+
+      screen.appendChild(cta);
+      currentClickFn = () => {
+        if (twDone) return; // last frame, no advance
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+};
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    const navHidden = document.getElementById('nav-next').classList.contains('hidden');
+    if (!navHidden) navigate(1);
+    else if (currentClickFn) {
+      // Delegate to current frame's click handler (handles S5x sub-frame advances, S6_2 typewriter skip, etc.)
+      currentClickFn({ target: document.body });
+    } else if (twDone) {
+      navigate(1);
+    } else if (twClickReady) {
+      clearTypewriter();
+      if (twTarget) twTarget.innerHTML = twFullText;
+      twDone = true;
+    }
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+    e.preventDefault();
+    const navHidden = document.getElementById('nav-prev').classList.contains('hidden');
+    if (!navHidden) navigate(-1);
+  }
+});
+
+// ─── Volume slider init ───────────────────────────────────────────────────────
+const volSlider = document.getElementById('volume-slider');
+volSlider.value = masterVolume * 100;
+updateVolumeIcon(masterVolume);
+volSlider.addEventListener('input', e => updateVolume(e.target.value / 100));
+document.getElementById('volume-control').addEventListener('click', e => e.stopPropagation());
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+renderFrame('S0', true);
+</script>
+</body>
+</html>
