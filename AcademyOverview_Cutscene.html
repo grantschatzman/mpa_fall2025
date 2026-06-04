@@ -566,9 +566,13 @@ const MUSIC = {
 const LINEAR = [
   'S0',
   'S1_1','S1_2','S1_3','S1_4','S1_choice',
-  'S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8','S3_choice',
+  'S3_1','S3_2','S3_3','S3_4','S3_5',
+  'S3_6','S3_7','S3_8',
+  'S3_9','S3_10','S3_11',
+  'S3_12','S3_13','S3_14','S3_15','S3_16',
+  'S3_choice',
   'S4_1','S4_2','S4_3','S4_4','S4_5','S4_6','S4_7','S4_8','S4_choice',
-  'S6_1','S6_2'
+  'S6_1','S6_2','S6_3'
 ];
 
 let currentIdx = 0; // index into LINEAR
@@ -663,9 +667,9 @@ function updateDots(id) {
   // Only show dots for linear frames (not S0, not choice/branch screens)
   const sections = [
     ['S1_1','S1_2','S1_3','S1_4'],
-    ['S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8'],
+    ['S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8','S3_9','S3_10','S3_11','S3_12','S3_13','S3_14','S3_15','S3_16'],
     ['S4_1','S4_2','S4_3','S4_4','S4_5','S4_6','S4_7','S4_8'],
-    ['S6_1','S6_2']
+    ['S6_1','S6_2','S6_3']
   ];
   let sectionFrames = null;
   for (const s of sections) {
@@ -711,7 +715,7 @@ function handleScreenClick(id) {
 }
 
 // Typewriter
-function typewrite(el, text, speed = 20) {
+function typewrite(el, text, speed = 10) {
   twTarget = el;
   twFullText = text;
   twDone = false;
@@ -732,7 +736,7 @@ function typewrite(el, text, speed = 20) {
     i++;
     twTimeout = setTimeout(tick, speed);
   }
-  setTimeout(() => { twClickReady = true; tick(); }, 200);
+  twTimeout = setTimeout(() => { twClickReady = true; tick(); }, 200);
 }
 
 function clearTypewriter() {
@@ -776,12 +780,20 @@ function charBox(speaker, text, screen) {
   return box;
 }
 
-function charBoxSide(speaker, text, spriteSrc, screen, spriteMaxHeight) {
+function charBoxSide(speaker, text, spriteSrc, screen, spriteMaxHeight, chalkboardSrc, mediaEl) {
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
   const spriteWrap = document.createElement('div');
   spriteWrap.className = 'sprite-inline';
-  spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+  if (chalkboardSrc) {
+    spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+    const cbImg = document.createElement('img');
+    cbImg.src = chalkboardSrc;
+    cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+    spriteWrap.appendChild(cbImg);
+  } else {
+    spriteWrap.style.cssText = 'flex-shrink:0;display:flex;align-items:flex-end;';
+  }
   const sImg = document.createElement('img');
   sImg.src = spriteSrc;
   sImg.className = 'sprite-img';
@@ -791,18 +803,23 @@ function charBoxSide(speaker, text, spriteSrc, screen, spriteMaxHeight) {
   row.appendChild(spriteWrap);
   const col = document.createElement('div');
   col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
-  const name = document.createElement('div');
-  name.className = 'speaker-name';
-  name.style.cssText = 'margin-bottom:6px;';
-  name.textContent = speaker;
   const box = document.createElement('div');
   box.className = 'char-box';
-  col.appendChild(name);
+  box.style.cssText = 'width:100%;box-sizing:border-box;';
+  const name = document.createElement('div');
+  name.className = 'speaker-name';
+  name.style.cssText = 'margin-bottom:8px;';
+  name.textContent = speaker;
+  box.appendChild(name);
+  const textEl = document.createElement('div');
+  textEl.className = 'char-box-text';
+  box.appendChild(textEl);
+  if (mediaEl) col.appendChild(mediaEl);
   col.appendChild(box);
   row.appendChild(col);
   screen.appendChild(row);
-  typewrite(box, text);
-  return box;
+  typewrite(textEl, text);
+  return textEl;
 }
 
 function sprite(src, pos, screen) {
@@ -844,7 +861,7 @@ const FRAMES = {
         <div class="title-label">My Pixel Academy</div>
         <div class="title-main">An Introduction</div>
         <div class="title-sub">for the curious and the collaborative</div>
-        <div class="title-updated">Updated: 28 May 2026</div>
+        <div class="title-updated">Updated: 4 June 2026</div>
       `;
       const btn = document.createElement('button');
       btn.className = 'btn btn-teal';
@@ -918,7 +935,7 @@ const FRAMES = {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
       const txt = "Here's how we bring gamification to the next level. Ready?";
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -932,7 +949,7 @@ const FRAMES = {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
       const txt = 'My Pixel Academy helps you gamify your projects, units, or even your whole classroom — not just test prep and quiz games. When gamification becomes a sustainable routine, rather than just a special occasion, students reap the benefits on a new level (Rodriquez et al, 2022).';
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -945,18 +962,8 @@ const FRAMES = {
     render(screen) {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
-      const strip = document.createElement('div');
-      strip.className = 'media-strip';
-      strip.style.marginBottom = '12px';
-      ['Media/DW29.png','Media/DW31.gif'].forEach(src => {
-        const img = document.createElement('img');
-        img.src = src; img.alt = '';
-        img.style.maxHeight = '110px';
-        strip.appendChild(img);
-      });
-      screen.appendChild(strip);
-      const txt = 'We think about gamification in three levels, or tiers. The first tier is progress tracking and rewards. Teachers do this with everything from stamps and stickers to classroom raffle tickets. Websites like Class Dojo let you do this digitally and in-the-moment to praise and encourage positive behaviors — the basics of the PBIS framework (Positive Behavioral Interventions and Supports).';
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const txt = 'We think about gamification in three levels, or tiers.';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -972,15 +979,14 @@ const FRAMES = {
       const strip = document.createElement('div');
       strip.className = 'media-strip';
       strip.style.marginBottom = '12px';
-      ['Media/DW03.png','Media/Bookshop.png'].forEach(src => {
+      ['Media/DW29.png','Media/DW31.gif'].forEach(src => {
         const img = document.createElement('img');
         img.src = src; img.alt = '';
-        img.style.maxHeight = '130px';
+        img.style.maxHeight = '110px';
         strip.appendChild(img);
       });
-      screen.appendChild(strip);
-      const txt = 'For online teachers, and those without the time, budget, or desire to maintain a prize system, My Pixel Academy makes that rewards system digital. You choose the everyday values and behaviors you want to encourage, and students earn points when they demonstrate them.\n\nStudents spend those points at Campus Shop, stocked with items to customize their personal space in the Dormitory. Plus, they can take pride in their hard work with a collection of customizable Mastery Badges awarded for content-specific milestones.';
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const txt = 'The first tier is progress tracking and rewards. Teachers do this with everything from stamps and stickers to classroom raffle tickets.';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -993,21 +999,78 @@ const FRAMES = {
     render(screen) {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
-      const strip = document.createElement('div');
-      strip.className = 'media-strip';
-      strip.style.marginBottom = '12px';
-      ['Media/DW33.png','Media/DW34.png'].forEach(src => {
-        const img = document.createElement('img');
-        img.src = src; img.alt = '';
-        img.style.maxHeight = '120px';
-        strip.appendChild(img);
-      });
-      screen.appendChild(strip);
-      const txt = "The second tier of gamification incorporates setting and basic story arcs, and the third adds in deep narrative tie-ins between content and incentivized individual practice. These encourage students to approach the challenge of learning with the curiosity and growth mindset of a gamer. Imagine your students trying math with the persistence they bring to Minecraft and Roblox. It's pretty neat.";
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const txt = 'Websites like Class Dojo let you do this digitally and in-the-moment to praise and encourage positive behaviors — the basics of the PBIS framework (Positive Behavioral Interventions and Supports).';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png'; cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg); row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const box = document.createElement('div');
+      box.className = 'char-box'; box.style.cssText = 'width:100%;box-sizing:border-box;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name'; name.style.cssText = 'margin-bottom:8px;'; name.textContent = 'The Custodian';
+      box.appendChild(name);
+      const textEl = document.createElement('div'); textEl.className = 'char-box-text';
+      box.appendChild(textEl); col.appendChild(box);
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;';
+      const btnA = document.createElement('button');
+      btnA.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnA.textContent = 'Smile understandingly';
+      btnA.onclick = (e) => { e.stopPropagation(); goTo('S3_6'); };
+      const btnB = document.createElement('button');
+      btnB.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnB.textContent = 'Nod uncertainly';
+      btnB.onclick = (e) => { e.stopPropagation(); goTo('S3_5b'); };
+      btnRow.appendChild(btnA); btnRow.appendChild(btnB); col.appendChild(btnRow);
+      row.appendChild(col); screen.appendChild(row);
+      typewrite(textEl, txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('button')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); textEl.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_5b: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = 'The Custodian continues.';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png';
+      cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg);
+      row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      col.appendChild(box);
+      row.appendChild(col);
+      screen.appendChild(row);
+      typewrite(box, txt);
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
-        if (twDone) navigate(1);
+        if (twDone) goTo('S3_6');
         else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
       };
     }
@@ -1017,8 +1080,8 @@ const FRAMES = {
     render(screen) {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
-      const txt = "Great gamifiers already do this in their classroom, and lots of teachers want to incorporate more scenario-based task invitations — it just takes more time to create than is provided in a teacher prep period. That's where MPA comes in.";
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const txt = 'For online teachers, and those without the time, budget, or desire to maintain a prize system, My Pixel Academy makes that rewards system digital.';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -1034,15 +1097,12 @@ const FRAMES = {
       const strip = document.createElement('div');
       strip.className = 'media-strip';
       strip.style.marginBottom = '12px';
-      ['Media/DW14.png','Media/DW15.png','Media/DW16.png','Media/CampusMap.png'].forEach(src => {
-        const img = document.createElement('img');
-        img.src = src; img.alt = '';
-        img.style.maxHeight = '130px';
-        strip.appendChild(img);
-      });
-      screen.appendChild(strip);
-      const txt = "At the Academy, students arrive at the strange campus by special invitation of the Custodian, where they are told they will learn a crucial set of skills essential to their progress — and even, perhaps, their safety. Routines and regular practice occur in dedicated buildings on campus. Major plot events launch students into summative projects where the preparation they've done comes into play as they face threats to the Academy and seek the four lost Founders.";
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const img = document.createElement('img');
+      img.src = 'Media/DW03.png'; img.alt = '';
+      img.style.maxHeight = '130px';
+      strip.appendChild(img);
+      const txt = 'You choose the everyday values and behaviors you want to encourage in your classroom, and students earn points when they demonstrate them.';
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -1055,8 +1115,289 @@ const FRAMES = {
     render(screen) {
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
-      const txt = "With My Pixel Academy, the content comes from the teacher, who knows their stuff best. The environment, narrative, and digital assets to grab just a little more student attention — well, that's our job, for now. And whenever you're ready to start spinning your own scenarios for kids, we'll help you do that, too.";
-      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen);
+      const strip = document.createElement('div');
+      strip.className = 'media-strip'; strip.style.marginBottom = '12px';
+      const stripImg = document.createElement('img');
+      stripImg.src = 'Media/Bookshop.png'; stripImg.alt = ''; stripImg.style.maxHeight = '130px';
+      strip.appendChild(stripImg);
+      const txt = 'Students spend those points at Campus Shop, stocked with items they can use to customize their own personal space in the Dormitory. Plus, they can take pride in their hard work with a collection of customizable Mastery Badges awarded for content-specific milestones.';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png'; cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg); row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const box = document.createElement('div');
+      box.className = 'char-box'; box.style.cssText = 'width:100%;box-sizing:border-box;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name'; name.style.cssText = 'margin-bottom:8px;'; name.textContent = 'The Custodian';
+      box.appendChild(name);
+      const textEl = document.createElement('div'); textEl.className = 'char-box-text';
+      box.appendChild(textEl); col.appendChild(strip); col.appendChild(box);
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;';
+      const btnA = document.createElement('button');
+      btnA.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnA.textContent = 'Look interested';
+      btnA.onclick = (e) => { e.stopPropagation(); goTo('S3_9'); };
+      const btnB = document.createElement('button');
+      btnB.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnB.textContent = 'Look uninterested';
+      btnB.onclick = (e) => { e.stopPropagation(); goTo('S3_8b'); };
+      btnRow.appendChild(btnA); btnRow.appendChild(btnB); col.appendChild(btnRow);
+      row.appendChild(col); screen.appendChild(row);
+      typewrite(textEl, txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('button')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); textEl.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_8b: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Okay, bear with me a moment here. This is where it gets interesting.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) goTo('S3_9');
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_9: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW33.png','Media/DW34.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '120px';
+        strip.appendChild(img);
+      });
+      const txt = "The second tier adds setting and basic story arcs; the third adds in deep narrative tie-ins between content and incentivized individual practice. These nudge students to approach learning challenges with the curiosity and growth-mindset of a gamer.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_10: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Imagine your students trying math with the persistence they bring to Minecraft and Roblox. It's pretty neat.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_11: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Great gamifiers already do this in their classroom, and lots of teachers want to incorporate more scenario-based task invitations — it just takes more time to create than is provided in a teacher prep period. That's where MPA comes in.";
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png'; cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg); row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const box = document.createElement('div');
+      box.className = 'char-box'; box.style.cssText = 'width:100%;box-sizing:border-box;';
+      const name = document.createElement('div');
+      name.className = 'speaker-name'; name.style.cssText = 'margin-bottom:8px;'; name.textContent = 'The Custodian';
+      box.appendChild(name);
+      const textEl = document.createElement('div'); textEl.className = 'char-box-text';
+      box.appendChild(textEl); col.appendChild(box);
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;';
+      const btnA = document.createElement('button');
+      btnA.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnA.textContent = 'Say, "Ahhh," like you get it';
+      btnA.onclick = (e) => { e.stopPropagation(); goTo('S3_11b'); };
+      const btnB = document.createElement('button');
+      btnB.style.cssText = 'background:rgba(78,201,176,0.85);color:#1a1a1a;border:none;border-radius:6px;padding:5px 12px;font-family:"Courier New",monospace;font-size:13px;cursor:pointer;font-weight:bold;';
+      btnB.textContent = 'Say, "Ah...," like you don\'t get it';
+      btnB.onclick = (e) => { e.stopPropagation(); goTo('S3_11c'); };
+      btnRow.appendChild(btnA); btnRow.appendChild(btnB); col.appendChild(btnRow);
+      row.appendChild(col); screen.appendChild(row);
+      typewrite(textEl, txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline') || e.target.closest('button')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); textEl.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_11b: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = 'The Custodian nods approvingly.';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png';
+      cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg);
+      row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      col.appendChild(box);
+      row.appendChild(col);
+      screen.appendChild(row);
+      typewrite(box, txt);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) goTo('S3_12');
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_11c: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "Right, yes. Let me just, mmm, show you.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) goTo('S3_12');
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_12: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW14.png','Media/CampusMap.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '130px';
+        strip.appendChild(img);
+      });
+      const txt = "At the Academy, students arrive at the strange campus by special invitation of the Custodian, where they are told they will learn a crucial set of skills that will be essential to their progress — and even, perhaps, their safety.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_13: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Sprites/Scriptorium.png','Sprites/Scriptorium_Expectations.png','Sprites/ScriptoriumInterior.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '130px';
+        img.style.imageRendering = 'pixelated';
+        strip.appendChild(img);
+      });
+      const txt = "Routines and regular practice occur in dedicated buildings on campus that create both a fun, story-full environment and a space for specific expectations during that time.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_14: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      strip.style.marginBottom = '12px';
+      ['Media/DW15.png','Media/DW16.png'].forEach(src => {
+        const img = document.createElement('img');
+        img.src = src; img.alt = '';
+        img.style.maxHeight = '130px';
+        strip.appendChild(img);
+      });
+      const txt = "Major plot events launch students into summative projects or exams where the preparation they've done thus far comes into play as they face threats to the Academy and seek the four lost Founders.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png', strip);
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_15: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "With My Pixel Academy, the content comes from the teacher, who knows their stuff best.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
+      currentClickFn = (e) => {
+        if (e.target.closest('.sprite-inline')) return;
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
+    }
+  },
+  S3_16: {
+    bg: 'Media/Blank.png',
+    render(screen) {
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const txt = "The environment, narrative, and digital assets to grab just a little more student attention — well, that's our job, for now. And whenever you're ready to start spinning your own scenarios for kids, we'll help you do that, too.";
+      const box = charBoxSide('The Custodian', txt, 'Sprites/Custodian.png', screen, null, 'Sprites/Chalkboard.png');
       currentClickFn = (e) => {
         if (e.target.closest('.sprite-inline')) return;
         if (twDone) navigate(1);
@@ -1068,9 +1409,23 @@ const FRAMES = {
     bg: 'Media/Blank.png',
     render(screen) {
       screen.onclick = null;
+      screen.style.justifyContent = 'flex-end';
+      screen.style.paddingBottom = '80px';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:flex-end;width:100%;gap:12px;';
+      const spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sprite-inline';
+      spriteWrap.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+      const cbImg = document.createElement('img');
+      cbImg.src = 'Sprites/Chalkboard.png'; cbImg.style.cssText = 'max-height:180px;max-width:100%;image-rendering:pixelated;object-fit:contain;margin-bottom:6px;';
+      spriteWrap.appendChild(cbImg);
+      const sImg = document.createElement('img');
+      sImg.src = 'Sprites/Custodian.png'; sImg.className = 'sprite-img'; sImg.style.imageRendering = 'pixelated';
+      spriteWrap.appendChild(sImg); row.appendChild(spriteWrap);
+      const col = document.createElement('div');
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-right:8px;';
       const grid = document.createElement('div');
       grid.className = 'choice-grid';
-      grid.style.marginTop = '20px';
 
       const btnA = document.createElement('button');
       btnA.className = 'choice-btn btn-maroon';
@@ -1086,7 +1441,9 @@ const FRAMES = {
 
       grid.appendChild(btnA);
       grid.appendChild(btnB);
-      screen.appendChild(grid);
+      col.appendChild(grid);
+      row.appendChild(col);
+      screen.appendChild(row);
     }
   },
 
@@ -1227,7 +1584,25 @@ const FRAMES = {
     bg: 'Scenes/Campus Map.png',
     music: MUSIC.catcafe,
     render(screen) {
-      narratorBox("Right, so, about the team. So far, it's pretty much just been Grant — building and sharing things on a small-scale level. Not an artist, not a programmer, and definitely not a game developer — just a teacher learning a lot of new tools to help make something special for their students.", screen);
+      screen.style.justifyContent = 'center';
+      const box = document.createElement('div');
+      box.className = 'narrator-box';
+      box.style.cursor = 'pointer';
+      screen.appendChild(box);
+      const txt = "Right, so, about the team. So far, it's pretty much just been Grant — building and sharing things on a small-scale level. Not an artist, not a programmer, and definitely not a game developer — just a teacher learning a lot of new tools to help make something special for their students.";
+      typewrite(box, txt);
+      const strip = document.createElement('div');
+      strip.className = 'media-strip';
+      const selfImg = document.createElement('img');
+      selfImg.src = 'Media/Self.jpg';
+      selfImg.alt = 'Grant';
+      selfImg.style.cssText = 'max-height:200px;border-radius:8px;object-fit:contain;';
+      strip.appendChild(selfImg);
+      screen.appendChild(strip);
+      currentClickFn = () => {
+        if (twDone) navigate(1);
+        else if (twClickReady) { clearTypewriter(); box.textContent = txt; twDone = true; }
+      };
     }
   },
   S4_8: {
@@ -1304,7 +1679,7 @@ const FRAMES = {
         if (twDone) renderFrame('S5a_2');
         else if (twClickReady) {
           clearTypewriter();
-          const box = document.querySelector('#screen .char-box');
+          const box = document.querySelector('#screen .char-box-text');
           if (box) box.textContent = "Holy cats, do you mean it? That would be really helpful. We've done a lot with very little, but we know we can do so much more with the right support.";
           twDone = true;
         }
@@ -1386,7 +1761,7 @@ const FRAMES = {
         if (twDone) renderFrame('S5b_2');
         else if (twClickReady) {
           clearTypewriter();
-          const box = document.querySelector('#screen .char-box');
+          const box = document.querySelector('#screen .char-box-text');
           if (box) box.textContent = "Hmmm, you don't say? Wise counsel truly is worth its weight in... hemm... Well, anyway, you'd know better about all that business business. I just guide the students in their studies at the Academy.";
           twDone = true;
         }
@@ -1468,7 +1843,7 @@ const FRAMES = {
         if (twDone) renderFrame('S5c_2');
         else if (twClickReady) {
           clearTypewriter();
-          const box = document.querySelector('#screen .char-box');
+          const box = document.querySelector('#screen .char-box-text');
           if (box) box.textContent = "Oh, thank the Wellspring — can you truly help create? Grant may have imagination, but they never really were much of an artist. Look at me, for goodness' sake. They once generated me as a character for children. Children!";
           twDone = true;
         }
@@ -1486,7 +1861,7 @@ const FRAMES = {
         if (twDone) renderFrame('S5c_3');
         else if (twClickReady) {
           clearTypewriter();
-          const box = document.querySelector('#screen .char-box');
+          const box = document.querySelector('#screen .char-box-text');
           if (box) box.textContent = "And heaven knows how long it will take them to learn to program as a solo dev. Plus, all the music they use for their students is borrowed from their favorite games, which I'm pretty sure is not allowed in published work.";
           twDone = true;
         }
@@ -1569,10 +1944,16 @@ const FRAMES = {
   S6_1: {
     bg: 'Scenes/Campus Map.png',
     render(screen) {
-      narratorBox("My Pixel Academy is arriving at an exciting and critical time for education and technology, where new modes of student engagement are both more possible and more necessary than ever. Already Grant has been taking MPA to conference workshops to train other educators in gamification strategies and tools. But now, we'll be working hard to create the first fully-hosted version for teachers to try out, so that we can make something special for students everywhere.", screen);
+      narratorBox("My Pixel Academy is arriving at an exciting and critical time for education and technology, where new modes of student engagement are both more possible and more necessary than ever.", screen);
     }
   },
   S6_2: {
+    bg: 'Scenes/Campus Map.png',
+    render(screen) {
+      narratorBox("Already Grant has been taking MPA to conference workshops to train other educators in gamification strategies and tools. But now, we'll be working hard to create the first fully-hosted version for teachers to try out, so that we can make something special for students everywhere.", screen);
+    }
+  },
+  S6_3: {
     bg: 'Scenes/Campus Map.png',
     render(screen) {
       screen.style.justifyContent = 'center';
