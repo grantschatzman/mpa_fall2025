@@ -250,6 +250,28 @@ body {
 }
 #nav-prev.hidden, #nav-next.hidden { opacity: 0; pointer-events: none; }
 
+/* Persistent path-menu escape button (visible during the three S2_paths sections) */
+#nav-path-menu {
+  position: absolute;
+  top: 16px;
+  left: 22px;
+  z-index: 65;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 7px 14px;
+  border: 1px solid rgba(245,230,211,0.25);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.45);
+  color: rgba(245,230,211,0.75);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, opacity 0.3s;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+#nav-path-menu:hover { background: rgba(78,201,176,0.15); border-color: #4EC9B0; color: #F5E6D3; opacity: 1; }
+#nav-path-menu.hidden { opacity: 0; pointer-events: none; }
+
 /* Progress indicator */
 #progress-dots {
   position: absolute;
@@ -314,7 +336,66 @@ body {
   letter-spacing: 1px;
   margin-top: 4px;
 }
+.choice-btn.completed { border: 2px solid #4EC9B0; box-shadow: 0 0 10px rgba(78,201,176,0.4); }
+.completed-badge {
+  display: block;
+  font-size: 11px;
+  font-weight: normal;
+  color: #1a1a1a;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
 .choice-label { font-size: 12px; color: rgba(245,230,211,0.7); margin-bottom: 10px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+
+/* S2_paths — campus-map building layout */
+.path-map {
+  position: absolute;
+  inset: 0;
+}
+.path-building {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  text-align: center;
+  width: 150px;
+}
+.path-building:hover { transform: translate(-50%, -54%); }
+.path-building img {
+  max-height: 85px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+.path-building-label {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: #1a1a1a;
+  background: #4EC9B0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  line-height: 1.25;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.path-building.completed .path-building-label { border: 2px solid #4EC9B0; box-shadow: 0 0 10px rgba(78,201,176,0.5); }
+.path-building.disabled { cursor: not-allowed; }
+.path-building.disabled:hover { transform: translate(-50%, -50%); }
+.path-building.disabled img { filter: grayscale(0.6) drop-shadow(0 4px 10px rgba(0,0,0,0.5)); opacity: 0.7; }
+.path-building.disabled .path-building-label {
+  background: rgba(70,70,70,0.82);
+  color: rgba(245,230,211,0.52);
+  border: 1px dashed rgba(245,230,211,0.35);
+}
+.path-building-badge {
+  display: block;
+  font-size: 10px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  margin-top: 3px;
+}
 
 /* Media embeds */
 .media-strip {
@@ -482,6 +563,7 @@ body {
   <!-- Nav buttons -->
   <button id="nav-prev" class="hidden" onclick="navigate(-1)">← Prev</button>
   <button id="nav-next" class="hidden" onclick="navigate(1)">Next →</button>
+  <button id="nav-path-menu" class="hidden" onclick="goTo('S2_paths')">↩ Path Menu</button>
 
   <!-- Progress dots -->
   <div id="progress-dots"></div>
@@ -565,7 +647,7 @@ const MUSIC = {
 // Linear frame sequence (ids)
 const LINEAR = [
   'S0',
-  'S1_1','S1_2','S1_3','S1_4','S1_choice',
+  'S1_1','S1_2','S1_3','S1_4','S2_paths',
   'S3_1','S3_2','S3_3','S3_4','S3_5',
   'S3_6','S3_7','S3_8',
   'S3_9','S3_10','S3_11',
@@ -579,6 +661,8 @@ let currentIdx = 0; // index into LINEAR
 let busy = false;
 let currentClickFn = null; // single delegated click handler
 let currentBg = null; // track current background for same-scene fade skip
+let sectionStart = 1; // LINEAR index of the current path's first frame; clamps the prev arrow so it can't bleed into a different path
+const pathsComplete = { founding: false, progress: false, team: false }; // tracks which S2_paths options have been visited
 
 // Typewriter state
 let twTimeout = null;
@@ -645,19 +729,29 @@ function _doRender(id) {
   updateDots(id);
 }
 
+// Path content = the three S2_paths sections, excluding their terminal screens (S3_choice, S4_6)
+// which already show an inline "Back to path menu" button.
+function isPathContent(id) {
+  return (id.startsWith('S3') && id !== 'S3_choice')
+      || (id.startsWith('S4_') && id !== 'S4_6')
+      || id.startsWith('S5');
+}
+
 function updateNav(id) {
   const prev = document.getElementById('nav-prev');
   const next = document.getElementById('nav-next');
+  const pathMenuBtn = document.getElementById('nav-path-menu');
   const idx = LINEAR.indexOf(id);
   // Hide prev/next on title, choice screens, S2_stub, and S5x
-  const hideNav = ['S0','S1_choice','S3_choice','S4_choice','S2_stub','S5a_1','S5a_2','S5a_choice','S5b_1','S5b_2','S5b_choice','S5c_1','S5c_2','S5c_3','S5c_choice'].includes(id);
+  const hideNav = ['S0','S2_paths','S3_choice','S4_6','S4_choice','S2_stub','S5a_1','S5a_2','S5a_choice','S5b_1','S5b_2','S5b_choice','S5c_1','S5c_2','S5c_3','S5c_choice'].includes(id);
   if (hideNav) {
     prev.classList.add('hidden');
     next.classList.add('hidden');
   } else {
-    prev.classList.toggle('hidden', idx <= 1); // hide on S1_1 (first real frame)
+    prev.classList.toggle('hidden', idx <= sectionStart); // hide on the current path's first frame
     next.classList.toggle('hidden', idx >= LINEAR.length - 1);
   }
+  pathMenuBtn.classList.toggle('hidden', !isPathContent(id));
   currentIdx = idx >= 0 ? idx : currentIdx;
 }
 
@@ -668,7 +762,8 @@ function updateDots(id) {
   const sections = [
     ['S1_1','S1_2','S1_3','S1_4'],
     ['S3_1','S3_2','S3_3','S3_4','S3_5','S3_6','S3_7','S3_8','S3_9','S3_10','S3_11','S3_12','S3_13','S3_14','S3_15','S3_16'],
-    ['S4_1','S4_2','S4_3','S4_4','S4_5','S4_6','S4_7','S4_8'],
+    ['S4_1','S4_2','S4_3','S4_4','S4_5','S4_6'],
+    ['S4_7','S4_8'],
     ['S6_1','S6_2','S6_3']
   ];
   let sectionFrames = null;
@@ -697,6 +792,12 @@ function goTo(id, music) {
   if (music) crossfadeTo(MUSIC[music]);
   renderFrame(id);
   setTimeout(() => { busy = false; }, 700);
+}
+
+// Entry point for the S2_paths menu — marks where the prev arrow should stop for this path
+function enterPath(id) {
+  sectionStart = LINEAR.indexOf(id);
+  goTo(id);
 }
 
 // Click-to-advance within dialogue frames
@@ -903,27 +1004,62 @@ const FRAMES = {
       narratorBox("That's why My Pixel Academy exists. It's what the founder, Grant, wished someone else had made back when they were a novice teacher in a large, high-needs public school system.", screen);
     }
   },
-  S1_choice: {
-    bg: 'Scenes/Campus Map.png',
+  S2_paths: {
+    bg: 'Scenes/Blank_BG.png',
     render(screen) {
       screen.onclick = null;
-      const grid = document.createElement('div');
-      grid.className = 'choice-grid';
-      grid.style.marginTop = '20px';
+      screen.style.justifyContent = 'center';
 
-      const btnA = document.createElement('button');
-      btnA.className = 'choice-btn disabled';
-      btnA.innerHTML = `📖 Explore MPA's origin story<span class="coming-soon-badge">— Coming Soon —</span>`;
-      btnA.disabled = true;
+      const label = document.createElement('div');
+      label.className = 'choice-label';
+      label.style.cssText = 'position:absolute;top:6%;left:50%;transform:translateX(-50%);';
+      label.textContent = 'Where would you like to start?';
+      screen.appendChild(label);
 
-      const btnB = document.createElement('button');
-      btnB.className = 'choice-btn';
-      btnB.textContent = '▶ Learn more about the project';
-      btnB.onclick = () => goTo('S3_1');
+      const map = document.createElement('div');
+      map.className = 'path-map';
 
-      grid.appendChild(btnA);
-      grid.appendChild(btnB);
-      screen.appendChild(grid);
+      // Diamond layout: Founding up top, Progress/Team left & right, Origin story (locked) at the bottom —
+      // an irregular campus-map scatter rather than a tidy grid of buttons.
+      const buildings = [
+        { key: 'founding', label: 'Founding Principles & The Gamification Landscape', target: 'S3_1', img: 'Sprites/Library.png',          top: '32%', left: '50%' },
+        { key: 'progress', label: 'Our Progress So Far',                                target: 'S4_1', img: 'Sprites/HallsOfProgress.png', top: '52%', left: '28%' },
+        { key: 'team',     label: "Our Team & What's Next",                             target: 'S4_7', img: 'Sprites/Bookshop.png',         top: '52%', left: '72%' },
+      ];
+
+      buildings.forEach(b => {
+        const marker = document.createElement('div');
+        marker.className = 'path-building' + (pathsComplete[b.key] ? ' completed' : '');
+        marker.style.cssText = `top:${b.top};left:${b.left};transform:translate(-50%,-50%);`;
+
+        const img = document.createElement('img');
+        img.src = b.img;
+        img.alt = '';
+        marker.appendChild(img);
+
+        const tag = document.createElement('div');
+        tag.className = 'path-building-label';
+        tag.innerHTML = b.label + (pathsComplete[b.key] ? '<span class="path-building-badge">✓ Visited</span>' : '');
+        marker.appendChild(tag);
+
+        marker.onclick = () => enterPath(b.target);
+        map.appendChild(marker);
+      });
+
+      const origin = document.createElement('div');
+      origin.className = 'path-building disabled';
+      origin.style.cssText = 'top:72%;left:50%;transform:translate(-50%,-50%);';
+      const originImg = document.createElement('img');
+      originImg.src = 'Sprites/Dormitory.png';
+      originImg.alt = '';
+      origin.appendChild(originImg);
+      const originTag = document.createElement('div');
+      originTag.className = 'path-building-label';
+      originTag.innerHTML = `📖 Explore MPA's origin story<span class="path-building-badge">— Coming Soon —</span>`;
+      origin.appendChild(originTag);
+      map.appendChild(origin);
+
+      screen.appendChild(map);
     }
   },
 
@@ -1409,6 +1545,7 @@ const FRAMES = {
     bg: 'Media/Blank.png',
     render(screen) {
       screen.onclick = null;
+      pathsComplete.founding = true;
       screen.style.justifyContent = 'flex-end';
       screen.style.paddingBottom = '80px';
       const row = document.createElement('div');
@@ -1431,13 +1568,13 @@ const FRAMES = {
       btnA.className = 'choice-btn btn-maroon';
       btnA.style.background = 'rgba(139,69,69,0.85)';
       btnA.style.color = '#F5E6D3';
-      btnA.textContent = '↩ Explain it again, please';
-      btnA.onclick = () => goTo('S3_1');
+      btnA.textContent = '← Back to path menu';
+      btnA.onclick = () => goTo('S2_paths');
 
       const btnB = document.createElement('button');
       btnB.className = 'choice-btn';
-      btnB.textContent = "▶ Okay, so how's it going?";
-      btnB.onclick = () => { crossfadeTo(MUSIC.memory); goTo('S4_1'); };
+      btnB.textContent = '👋 Say goodbye';
+      btnB.onclick = () => { crossfadeTo(MUSIC.life); goTo('S6_1'); };
 
       grid.appendChild(btnA);
       grid.appendChild(btnB);
@@ -1563,16 +1700,33 @@ const FRAMES = {
     bg: 'Scenes/Campus Map.png',
     render(screen) {
       screen.style.justifyContent = 'center';
+      pathsComplete.progress = true;
       const wrap = document.createElement('div');
       wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:24px;background:rgba(0,0,0,0.6);border-radius:16px;padding:36px 48px;border:1px solid rgba(78,201,176,0.15);';
       const p = document.createElement('div');
       p.className = 'pause-beat';
       wrap.appendChild(p);
+
       const meetBtn = document.createElement('button');
       meetBtn.className = 'btn btn-teal';
       meetBtn.textContent = 'Meet the Team';
       meetBtn.onclick = (e) => { e.stopPropagation(); navigate(1); };
       wrap.appendChild(meetBtn);
+
+      const navRow = document.createElement('div');
+      navRow.className = 'branch-row';
+      [
+        { label: '← Back to path menu', target: 'S2_paths', music: null, cls: 'btn-dark' },
+        { label: '👋 Say goodbye', target: 'S6_1', music: 'life', cls: 'btn-dark' },
+      ].forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = `btn ${b.cls} btn-small`;
+        btn.textContent = b.label;
+        btn.onclick = (e) => { e.stopPropagation(); if (b.music) crossfadeTo(MUSIC[b.music]); renderFrame(b.target); };
+        navRow.appendChild(btn);
+      });
+      wrap.appendChild(navRow);
+
       screen.appendChild(wrap);
       typewrite(p, "But ... who's all this \"we\"?", 35);
       currentClickFn = () => {
@@ -1638,6 +1792,7 @@ const FRAMES = {
     bg: 'Scenes/Campus Map.png',
     render(screen) {
       screen.onclick = null;
+      pathsComplete.team = true;
       screen.style.justifyContent = 'center';
 
       const label = document.createElement('div');
@@ -1736,7 +1891,7 @@ const FRAMES = {
       const navRow = document.createElement('div');
       navRow.className = 'branch-row';
       [
-        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: '← Back to menu', target: 'S2_paths', music: 'memory' },
         { label: '▶ Let\'s wrap up here', target: 'S6_1', music: 'life' },
       ].forEach(b => {
         const btn = document.createElement('button');
@@ -1818,7 +1973,7 @@ const FRAMES = {
       const navRow = document.createElement('div');
       navRow.className = 'branch-row';
       [
-        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: '← Back to menu', target: 'S2_paths', music: 'memory' },
         { label: "▶ Let's wrap up here", target: 'S6_1', music: 'life' },
       ].forEach(b => {
         const btn = document.createElement('button');
@@ -1918,7 +2073,7 @@ const FRAMES = {
       const navRow = document.createElement('div');
       navRow.className = 'branch-row';
       [
-        { label: '← Back to menu', target: 'S4_choice', music: 'memory' },
+        { label: '← Back to menu', target: 'S2_paths', music: 'memory' },
         { label: "▶ Let's wrap up here", target: 'S6_1', music: 'life' },
       ].forEach(b => {
         const btn = document.createElement('button');
