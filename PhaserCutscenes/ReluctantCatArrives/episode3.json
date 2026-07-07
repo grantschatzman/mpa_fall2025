@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "startFrame": "title",
+    "browserTitle": "A Reluctant Cat Arrives — Episode 3",
+    "visualTreatment": "sepia-light"
+  },
+  "assets": {
+    "images": [
+      { "key": "campusmap", "path": "../../Scenes/Prequel_Campus Map.png", "role": "background" },
+      { "key": "mousifer",  "path": "../../Sprites/Mousifer.png",  "role": "character" }
+    ],
+    "audio": [
+      { "key": "shop", "path": "../../Music/23 - Shop.mp3" }
+    ]
+  },
+  "frames": {
+    "title": {
+      "type": "title",
+      "bg": "campusmap",
+      "title": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "A Reluctant Cat Arrives",
+        "sub": "Episode 3",
+        "prompt": "▼ click anywhere to begin"
+      },
+      "music": { "action": "play", "key": "shop" },
+      "next": "e3s1"
+    },
+    "e3s1": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "You've done it. As you shared about yourself with the reluctant cat, its ears perked up, and it turned toward you to listen attentively. By the time you finished, you even saw it smile!",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "standard", "next": "e3s2"
+    },
+    "e3s2": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Oh, it's so nice to meet you! I didn't know there were such kind people here. I should, um, introduce myself. My name is Mousifer.",
+        "speaker": "Reluctant Cat", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "standard", "next": "e3s3"
+    },
+    "e3s3": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "I, um, didn't mean to be rude earlier; I suppose I was feeling kind of shy. You see, I've never been outside my **homeland** before. We Circuit Cats like to stay in our own communities, for the most part.",
+        "speaker": "Mousifer", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "standard", "next": "e3s4"
+    },
+    "e3s4": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "With all the **rains**, though, lots of us have had to leave. It's no good for us to be around water too much, and the storms have been going for months now. The elder cats say they've never seen anything like it.",
+        "speaker": "Mousifer", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "standard", "next": "e3s5"
+    },
+    "e3s5": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Anyway, I'm just looking for a dry place to stay until the storms are all over and I can return home. Maybe ... maybe this wouldn't be such a bad place to stay for a while after all - if you're staying too, I mean?",
+        "speaker": "Mousifer", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "standard", "next": "e3s6"
+    },
+    "e3s6": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "The thing is, I can be a little shy. I suppose you've noticed that, huh? I was wondering ... could you help me meet some of the other people here, too?",
+        "speaker": "Mousifer", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Help Mousifer get to know the other students", "to": "e3end" } ]
+    },
+    "e3end": {
+      "type": "end",
+      "end": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "Episode 3 Complete",
+        "sub": "Time to meet the other students!",
+        "prompt": "▼ click to restart"
+      },
+      "next": "title"
+    }
+  }
+}

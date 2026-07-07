@@ -1,0 +1,327 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Courier New', monospace;
+    background: #000;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    cursor: pointer;
+    user-select: none;
+}
+
+#cutscene-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#game-root canvas {
+    display: block;
+}
+
+/* ── "sepia" visual treatment — opt-in per episode via meta.visualTreatment,
+   used for the prequel arc to give the world layer an aged, memory-like
+   quality without flattening the DOM UI (dialogue box, bubble, buttons). ── */
+#cutscene-container.treatment-sepia #game-root canvas {
+    filter: sepia(0.32) saturate(0.7) contrast(1.05) brightness(0.98);
+}
+
+#cutscene-container.treatment-sepia::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(46,28,14,0.35) 100%);
+}
+
+/* ── "sepia-light" — same family, dialed back for a brighter, cheerier beat
+   (e.g. Episode 3's happy resolution). No vignette: the darkened corners
+   read as somber/contained, which fights the tone here. ── */
+#cutscene-container.treatment-sepia-light #game-root canvas {
+    filter: sepia(0.12) saturate(0.92) contrast(1.02) brightness(1.05);
+}
+
+/* ── Speech bubble ── */
+#bubble-wrap {
+    position: absolute;
+    top: 55%;
+    left: 80%;
+    transform: translateX(-50%);
+    z-index: 30;
+    display: none;
+}
+
+#bubble-wrap.active {
+    display: block;
+    animation: bubbleWobble 0.42s ease-in-out infinite;
+}
+
+.bubble {
+    background: rgba(255,252,240,0.97);
+    border: 2px solid #8B4545;
+    border-radius: 12px;
+    padding: 5px 10px;
+    max-width: 150px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #2C1810;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: center;
+    position: relative;
+}
+
+.bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #8B4545;
+}
+
+.bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(255,252,240,0.97);
+    z-index: 1;
+}
+
+@keyframes bubbleWobble {
+    0%, 100% { transform: translateX(-50%) rotate(-2deg); }
+    50%       { transform: translateX(-50%) rotate(2deg) scale(1.02); }
+}
+
+/* ── Dialogue box ── */
+#dialogue-box {
+    position: absolute;
+    max-width: 76%;
+    min-width: 38%;
+    padding: 20px 28px;
+    border-radius: 15px;
+    color: #F5E6D3;
+    font-size: 17px;
+    line-height: 1.65;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 40;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    pointer-events: none;
+}
+
+#dialogue-box.visible { opacity: 1; }
+
+#dialogue-box.style-custodian { background: rgba(139,69,69,0.95); border: 2px solid #A05555; }
+#dialogue-box.style-narrator  { background: rgba(61,90,107,0.95);  border: 2px solid #4A6E7E; }
+#dialogue-box.style-mousifer  { background: rgba(107,79,138,0.95); border: 2px solid #9B7FC7; }
+
+#dialogue-box.pos-top    { top: 8%;    left: 50%; transform: translateX(-50%); }
+#dialogue-box.pos-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+
+#speaker-name {
+    font-weight: bold;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #D4A574;
+    margin-bottom: 8px;
+    display: none;
+}
+
+/* ── Shy text — bracketed asides shrink and gently wiggle as they type,
+   peters off into tiny letters (per storyboard direction) ── */
+.shy-char {
+    display: inline-block;
+    animation: shyWiggle 0.5s ease-in-out infinite;
+}
+
+@keyframes shyWiggle {
+    0%, 100% { transform: translateY(0)    rotate(0deg); }
+    25%      { transform: translateY(-1px) rotate(-3deg); }
+    75%      { transform: translateY(1px)  rotate(3deg); }
+}
+
+/* ── Choice buttons ── */
+#choice-container {
+    position: absolute;
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    gap: 13px;
+    align-items: stretch;
+    z-index: 50;
+    min-width: 340px;
+    max-width: 70%;
+}
+
+#choice-container.visible { display: flex; }
+
+.choice-btn {
+    background: rgba(78,201,176,0.9);
+    border: 2px solid #4EC9B0;
+    border-radius: 8px;
+    color: #1a1a1a;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 13px 28px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.choice-btn:hover {
+    background: #5DDAC7;
+    transform: scale(1.04);
+    box-shadow: 0 4px 14px rgba(78,201,176,0.5);
+}
+
+/* ── Volume control ── */
+#volume-control {
+    position: absolute;
+    top: 16px;
+    right: 22px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(0,0,0,0.45);
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+    z-index: 65;
+    opacity: 0.45;
+    cursor: default;
+}
+#volume-control:hover { opacity: 1; background: rgba(0,0,0,0.75); border-color: #4EC9B0; }
+#volume-icon { color: #F5E6D3; font-size: 14px; min-width: 18px; text-align: center; user-select: none; }
+#volume-slider { width: 72px; height: 4px; -webkit-appearance: none; appearance: none;
+    background: rgba(245,230,211,0.3); outline: none; border-radius: 2px; cursor: pointer; }
+#volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+    width: 11px; height: 11px; background: #F5E6D3; border-radius: 50%; cursor: pointer; }
+#volume-slider::-moz-range-thumb { width: 11px; height: 11px; background: #F5E6D3;
+    border: none; border-radius: 50%; cursor: pointer; }
+
+/* ── Nav buttons (back / next) ── */
+.nav-btn {
+    position: absolute;
+    background: rgba(44,24,16,0.75);
+    border: 2px solid #D4A574;
+    border-radius: 8px;
+    color: #F5E6D3;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 9px 18px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 55;
+    transition: opacity 0.25s ease, background 0.2s, transform 0.15s;
+}
+
+.nav-btn.visible { opacity: 0.85; pointer-events: auto; }
+
+.nav-btn:hover { background: rgba(78,201,176,0.85); border-color: #4EC9B0; color: #1a1a1a; transform: scale(1.04); }
+
+#nav-back { top: 18px; left: 22px; }
+#nav-next { bottom: 18px; right: 130px; }
+
+/* ── Click indicator ── */
+#click-indicator {
+    position: absolute;
+    bottom: 18px;
+    right: 22px;
+    color: #F5E6D3;
+    font-size: 13px;
+    opacity: 0;
+    z-index: 60;
+    transition: opacity 0.3s ease;
+    animation: indicPulse 1.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+#click-indicator.visible { opacity: 0.75; }
+
+@keyframes indicPulse {
+    0%, 100% { opacity: 0.35; }
+    50%       { opacity: 0.85; }
+}
+
+/* ── Title / end screens ── */
+#title-screen, #end-screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 45;
+}
+
+#title-screen.active, #end-screen.active { display: flex; }
+
+.title-box {
+    background: rgba(139,69,69,0.95);
+    border: 2px solid #A05555;
+    border-radius: 18px;
+    padding: 44px 60px;
+    text-align: center;
+    max-width: 600px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+}
+
+.title-label {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #D4A574;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.title-main {
+    font-size: 36px;
+    font-weight: bold;
+    color: #F5E6D3;
+    margin-bottom: 14px;
+    letter-spacing: 2px;
+}
+
+.title-sub {
+    font-size: 16px;
+    color: rgba(245,230,211,0.7);
+    margin-bottom: 28px;
+}
+
+.title-prompt {
+    font-size: 12px;
+    color: #4EC9B0;
+    animation: indicPulse 1.8s ease-in-out infinite;
+    letter-spacing: 1px;
+}
+
+/* ── Transition overlay ── */
+#transition-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 1;
+    z-index: 500;
+    pointer-events: none;
+}

@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "startFrame": "title",
+    "browserTitle": "A Reluctant Cat Arrives — Episode 2",
+    "visualTreatment": "sepia"
+  },
+  "assets": {
+    "images": [
+      { "key": "campusmap", "path": "../../Scenes/Prequel_Campus Map.png", "role": "background" },
+      { "key": "mousifer",  "path": "../../Sprites/Mousifer.png",  "role": "character" }
+    ],
+    "audio": [
+      { "key": "byyourside", "path": "../../Music/005 - By Your Side..mp3" }
+    ]
+  },
+  "frames": {
+    "title": {
+      "type": "title",
+      "bg": "campusmap",
+      "title": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "A Reluctant Cat Arrives",
+        "sub": "Episode 2",
+        "prompt": "▼ click anywhere to begin"
+      },
+      "music": { "action": "play", "key": "byyourside" },
+      "next": "e2s1a"
+    },
+    "e2s1a": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "It's amazing what a little game can do! As you finish playing with the newly arrived cat, you notice its ears seem a little less droopy than before.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "standard", "next": "e2s1b"
+    },
+    "e2s1b": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Maybe this is your chance to learn who it is and where it comes from.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [
+        { "text": "Ask the cat about itself", "to": "e2s2" },
+        { "text": "Tell the cat something about yourself", "to": "e2s5" }
+      ]
+    },
+    "e2s2": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Oh, um, me? I don't know, really. {There's not much to say}",
+        "speaker": "Reluctant Cat", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [
+        { "text": "Press the cat with more questions", "to": "e2s3" },
+        { "text": "Tell the cat something about yourself", "to": "e2s5" }
+      ]
+    },
+    "e2s3": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "bubble": true,
+      "bubbleText": "{\"Oh, I don't know. I guess I ... Oh, ... really, I ...\"}",
+      "dlg": {
+        "text": "The cat drops its eyes to the ground as you ask it more questions, and you notice its ears droop a little again. It gets so shy that you can barely hear its vague reply.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "standard", "next": "e2s3b"
+    },
+    "e2s3b": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "type": "choice",
+      "choices": [
+        { "text": "Keep prodding the cat for information about itself", "to": "e2s4" },
+        { "text": "Tell the cat something about yourself", "to": "e2s5" }
+      ]
+    },
+    "e2s4": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "The cat stays totally silent, looking a little overwhelmed. It doesn't move away from you, though.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [
+        { "text": "Keep prodding the cat for information about itself", "to": "e2s4" },
+        { "text": "Tell the cat something about yourself", "to": "e2s5" }
+      ]
+    },
+    "e2s5": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "That's it! Maybe if you share something about yourself, it will help the reluctant cat feel a little less shy. It's worth a try, isn't it?",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Share something about yourself", "to": "e2end" } ]
+    },
+    "e2end": {
+      "type": "end",
+      "end": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "Episode 2 Complete",
+        "sub": "Time to write a little about yourself!",
+        "prompt": "▼ click to restart"
+      },
+      "next": "title"
+    }
+  }
+}

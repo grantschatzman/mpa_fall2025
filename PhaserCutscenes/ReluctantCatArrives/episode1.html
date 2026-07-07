@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Reluctant Cat Arrives — Episode 1</title>
+    <link rel="stylesheet" href="../engine/cutscene-engine.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+<body>
+<div id="cutscene-container">
+    <div id="game-root"></div>
+
+    <div id="bubble-wrap">
+        <div class="bubble"><span id="bubble-text"></span></div>
+    </div>
+
+    <div id="dialogue-box">
+        <div id="speaker-name"></div>
+        <div id="dialogue-text"></div>
+    </div>
+
+    <div id="choice-container"></div>
+
+    <div id="title-screen">
+        <div class="title-box">
+            <div id="title-label" class="title-label"></div>
+            <div id="title-main" class="title-main"></div>
+            <div id="title-sub" class="title-sub"></div>
+            <div id="title-prompt" class="title-prompt"></div>
+        </div>
+    </div>
+
+    <div id="end-screen">
+        <div class="title-box">
+            <div id="end-label" class="title-label"></div>
+            <div id="end-main" class="title-main"></div>
+            <div id="end-sub" class="title-sub"></div>
+            <div id="end-prompt" class="title-prompt"></div>
+        </div>
+    </div>
+
+    <button id="nav-back" class="nav-btn">◀ Back</button>
+    <button id="nav-next" class="nav-btn">Next ▶</button>
+
+    <div id="volume-control">
+        <span id="volume-icon">🔉</span>
+        <input type="range" id="volume-slider" min="0" max="100" value="60">
+    </div>
+
+    <div id="click-indicator">▼ click to continue</div>
+    <div id="transition-overlay"></div>
+</div>
+
+<script>window.CUTSCENE_DATA_URL = 'episode1.json';</script>
+<script src="../engine/cutscene-engine.js"></script>
+</body>
+</html>

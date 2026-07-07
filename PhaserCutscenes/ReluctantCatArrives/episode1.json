@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "startFrame": "title",
+    "browserTitle": "A Reluctant Cat Arrives — Episode 1",
+    "visualTreatment": "sepia"
+  },
+  "assets": {
+    "images": [
+      { "key": "campusmap", "path": "../../Scenes/Prequel_Campus Map.png", "role": "background" },
+      { "key": "mousifer",  "path": "../../Sprites/Mousifer.png",  "role": "character" }
+    ],
+    "audio": [
+      { "key": "friendship", "path": "../../Music/Friendship (1).mp3" }
+    ]
+  },
+  "frames": {
+    "title": {
+      "type": "title",
+      "bg": "campusmap",
+      "title": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "A Reluctant Cat Arrives",
+        "sub": "Episode 1",
+        "prompt": "▼ click anywhere to begin"
+      },
+      "music": { "action": "play", "key": "friendship" },
+      "next": "e1s1a"
+    },
+    "e1s1a": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "One late-summer day at the Academy, as a cool breeze whispers over a quiet campus waiting for its very first students, a reluctant cat arrives.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "standard", "next": "e1s1b"
+    },
+    "e1s1b": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Its ears seem to droop, like it's either tired or sad.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Call out, \"Hello there!\"", "to": "e1s2" } ]
+    },
+    "e1s2": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "The reluctant cat looks up as it hears you, but its reply is too quiet to make out.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Ask the cat about itself", "to": "e1s3a" } ]
+    },
+    "e1s3a": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Oh, hi. I'm, um, just wandering {around a little} ....",
+        "speaker": "Reluctant Cat", "style": "mousifer", "pos": "bottom"
+      },
+      "type": "standard", "next": "e1s3b"
+    },
+    "e1s3b": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "The cat gets so quiet you can hardly hear it. It appears to be very, very shy. If you could help it feel comfortable, maybe it would open up and talk to you.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Try playing a game with the cat", "to": "e1s4" } ]
+    },
+    "e1s4": {
+      "bg": "campusmap",
+      "char": "mousifer",
+      "dlg": {
+        "text": "Your eyes sparkle with an idea: a game! Everyone likes games. Maybe it'll help the reluctant cat.",
+        "speaker": null, "style": "narrator", "pos": "bottom"
+      },
+      "type": "choice",
+      "choices": [ { "text": "Go to Game", "to": "e1end" } ]
+    },
+    "e1end": {
+      "type": "end",
+      "end": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "Episode 1 Complete",
+        "sub": "Time for the ice-breaker game!",
+        "prompt": "▼ click to restart"
+      },
+      "next": "title"
+    }
+  }
+}
