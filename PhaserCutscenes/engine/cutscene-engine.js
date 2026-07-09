@@ -13,6 +13,7 @@ const elNext       = document.getElementById('nav-next');
 const elVolControl = document.getElementById('volume-control');
 const elVolIcon    = document.getElementById('volume-icon');
 const elVolSlider  = document.getElementById('volume-slider');
+const elCinematic  = document.getElementById('cinematic-overlay');
 
 const elTitle       = document.getElementById('title-screen');
 const elTitleLabel  = document.getElementById('title-label');
@@ -142,6 +143,9 @@ class CutsceneScene extends Phaser.Scene {
         this.masterVolume = initialVolume;
         this.currentMusicKey = null;
         this.history = [];
+        this.currentTreatment = (DATA.meta && DATA.meta.visualTreatment) || null;
+        this.cinematicTimers = [];
+        this.cinematicSkip = null;
 
         const images = DATA.assets.images || [];
         const bgAssets = images.filter(i => i.role === 'background');
@@ -165,6 +169,15 @@ class CutsceneScene extends Phaser.Scene {
             .setOrigin(0.5, 1)
             .setVisible(false)
             .setDepth(10);
+
+        // Spotlight VFX — a cool-toned flash, distinct from the warm "idea"
+        // glow above. Used by cinematic frames (e.g. the Ep3 epilogue).
+        this.makeSpotlightTexture();
+        this.spotlightSprite = this.add.image(0, 0, 'spotlight')
+            .setBlendMode(Phaser.BlendModes.SCREEN)
+            .setOrigin(0.5)
+            .setVisible(false)
+            .setDepth(6);
 
         // Music
         this.sounds = {};
@@ -227,6 +240,51 @@ class CutsceneScene extends Phaser.Scene {
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
         this.textures.addCanvas('glow', canvas);
+    }
+
+    // ── Spotlight VFX — a quick cool-toned flash-and-fade, distinct from the
+    // slow warm "idea" glow build above. Used by cinematic frames.
+    makeSpotlightTexture() {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        grad.addColorStop(0.00, 'rgba(255,255,255,1.0)');
+        grad.addColorStop(0.35, 'rgba(230,240,255,0.8)');
+        grad.addColorStop(0.65, 'rgba(200,220,255,0.3)');
+        grad.addColorStop(0.85, 'rgba(200,220,255,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+        this.textures.addCanvas('spotlight', canvas);
+    }
+
+    triggerSpotlightFlash() {
+        const base = (this.scale.height * 0.65) / 512;
+        this.spotlightSprite
+            .setPosition(this.scale.width * 0.5, this.scale.height * 0.45)
+            .setVisible(true)
+            .setAlpha(0)
+            .setScale(base * 0.4);
+        this.tweens.add({
+            targets: this.spotlightSprite,
+            alpha: 1,
+            scaleX: base,
+            scaleY: base,
+            duration: 260,
+            ease: 'Quad.easeOut',
+            onComplete: () => {
+                this.tweens.add({
+                    targets: this.spotlightSprite,
+                    alpha: 0,
+                    duration: 900,
+                    delay: 200,
+                    ease: 'Quad.easeIn',
+                    onComplete: () => this.spotlightSprite.setVisible(false)
+                });
+            }
+        });
     }
 
     setGlow(on) {
@@ -370,6 +428,17 @@ class CutsceneScene extends Phaser.Scene {
         elBack.classList.toggle('visible', this.history.length > 0);
         elNext.classList.remove('visible');
 
+        // Per-frame visual treatment override (falls back to the episode's
+        // meta.visualTreatment). Lets one frame — e.g. a somber flashback or
+        // epilogue beat — use a different look without affecting the rest
+        // of the episode.
+        const treatment = f.visualTreatment || (DATA.meta && DATA.meta.visualTreatment);
+        if (treatment !== this.currentTreatment) {
+            if (this.currentTreatment) elContainer.classList.remove(`treatment-${this.currentTreatment}`);
+            if (treatment) elContainer.classList.add(`treatment-${treatment}`);
+            this.currentTreatment = treatment;
+        }
+
         if (f.music) {
             const m = f.music;
             if (m.action === 'play') this.musicPlay(m.key);
@@ -383,6 +452,12 @@ class CutsceneScene extends Phaser.Scene {
 
         elBubble.classList.toggle('active', !!f.bubble);
         if (f.bubble && f.bubbleText) this.renderBubbleText(f.bubbleText);
+
+        // Unconditional, like the bubble toggle above: any frame type can
+        // follow a cinematic frame, so clear it here rather than only on
+        // the standard/choice path (title/end return early before reaching
+        // that branch, which would leave a stale cinematic overlay showing).
+        if (f.type !== 'cinematic') elCinematic.classList.remove('active');
 
         elChoices.innerHTML = '';
         elChoices.classList.remove('visible');
@@ -417,6 +492,15 @@ class CutsceneScene extends Phaser.Scene {
         }
         elEnd.classList.remove('active');
 
+        if (f.type === 'cinematic') {
+            this.twDone = true;
+            elDlg.classList.remove('visible');
+            elBack.classList.remove('visible');
+            elNext.classList.remove('visible');
+            this.runCinematic(f);
+            return;
+        }
+
         if (f.dlg) {
             const d = f.dlg;
             const dlgPos = (f.type === 'choice') ? 'top' : d.pos;
@@ -434,6 +518,58 @@ class CutsceneScene extends Phaser.Scene {
             elDlg.classList.remove('visible');
             if (f.type === 'choice') this.buildChoices(f.choices);
         }
+    }
+
+    // ── Cinematic frames — a fully automatic, timed sequence with no
+    // player input: lines of text fade in one at a time and stay stacked,
+    // while music/flash/cut-to-black beats fire on a schedule, ending by
+    // navigating to `next` on its own. A click/keypress skips straight to
+    // `next` (see advance() below) rather than doing nothing, in case a
+    // student needs to get past it faster.
+    runCinematic(f) {
+        const c = f.cinematic || {};
+        const lines = c.lines || [];
+
+        elCinematic.innerHTML = '';
+        const lineEls = lines.map(line => {
+            const div = document.createElement('div');
+            div.className = 'cinematic-line';
+            div.textContent = line;
+            elCinematic.appendChild(div);
+            return div;
+        });
+        elCinematic.classList.add('active');
+
+        this.busy = true;
+        this.cinematicTimers.forEach(clearTimeout);
+        this.cinematicTimers = [];
+        const schedule = (ms, fn) => this.cinematicTimers.push(setTimeout(fn, ms));
+
+        const revealDuration = c.revealDuration ?? 4000;
+        const step = lineEls.length ? revealDuration / lineEls.length : 0;
+        lineEls.forEach((el, i) => schedule(i * step, () => el.classList.add('visible')));
+
+        if (c.musicFadeOutAt != null) {
+            schedule(c.musicFadeOutAt, () => {
+                if (this.currentMusicKey) this.musicStop(this.currentMusicKey, c.musicFadeOutDuration ?? 2000);
+            });
+        }
+
+        if (c.flashAt != null) schedule(c.flashAt, () => this.triggerSpotlightFlash());
+
+        const cutToBlackAt = c.cutToBlackAt ?? revealDuration;
+        schedule(cutToBlackAt, () => this.finishCinematic(f.next));
+
+        this.cinematicSkip = () => this.finishCinematic(f.next);
+    }
+
+    finishCinematic(nextId) {
+        this.cinematicTimers.forEach(clearTimeout);
+        this.cinematicTimers = [];
+        this.cinematicSkip = null;
+        elCinematic.classList.remove('active');
+        this.busy = false;
+        this.navigate(nextId);
     }
 
     setBackground(key) {
@@ -496,6 +632,7 @@ class CutsceneScene extends Phaser.Scene {
     }
 
     advance() {
+        if (this.cinematicSkip) { this.cinematicSkip(); return; }
         if (this.busy) return;
         const f = DATA.frames[this.currentId];
         if (!f || f.type === 'choice') return;

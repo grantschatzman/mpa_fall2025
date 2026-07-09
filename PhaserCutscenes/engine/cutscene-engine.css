@@ -51,6 +51,23 @@ body {
     filter: sepia(0.12) saturate(0.92) contrast(1.02) brightness(1.05);
 }
 
+/* ── "sepia-dark" — same family, deeper and dimmer than the base "sepia"
+   for a somber/ominous beat (e.g. Episode 3's epilogue stinger). Can be
+   set per-frame via a frame's own "visualTreatment", overriding the
+   episode's meta.visualTreatment for just that frame. ── */
+#cutscene-container.treatment-sepia-dark #game-root canvas {
+    filter: sepia(0.45) saturate(0.55) contrast(1.12) brightness(0.68);
+}
+
+#cutscene-container.treatment-sepia-dark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 38%, rgba(8,6,4,0.65) 100%);
+}
+
 /* ── Speech bubble ── */
 #bubble-wrap {
     position: absolute;
@@ -315,6 +332,36 @@ body {
     animation: indicPulse 1.8s ease-in-out infinite;
     letter-spacing: 1px;
 }
+
+/* ── Cinematic overlay — auto-timed sequences with no dialogue box or
+   player input (e.g. a scripted epilogue). Lines fade in one at a time and
+   stay visible, stacked. See the "cinematic" frame type in the JSON schema. ── */
+#cinematic-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 42;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px;
+    pointer-events: none;
+}
+
+#cinematic-overlay.active { display: flex; }
+
+.cinematic-line {
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    color: #F5E6D3;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.85);
+    opacity: 0;
+    transition: opacity 1.1s ease;
+}
+
+.cinematic-line.visible { opacity: 1; }
 
 /* ── Transition overlay ── */
 #transition-overlay {

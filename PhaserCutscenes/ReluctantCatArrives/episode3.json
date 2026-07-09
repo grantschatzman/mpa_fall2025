@@ -7,10 +7,12 @@
   "assets": {
     "images": [
       { "key": "campusmap", "path": "../../Scenes/Prequel_Campus Map.png", "role": "background" },
+      { "key": "forest",    "path": "../../Scenes/PreFounding_Forest.png", "role": "background" },
       { "key": "mousifer",  "path": "../../Sprites/Mousifer.png",  "role": "character" }
     ],
     "audio": [
-      { "key": "shop", "path": "../../Music/23 - Shop.mp3" }
+      { "key": "shop", "path": "../../Music/23 - Shop.mp3" },
+      { "key": "worldsend", "path": "../../Music/086 - World_s End Valentine.mp3" }
     ]
   },
   "frames": {
@@ -86,7 +88,42 @@
       "end": {
         "label": "My Pixel Academy: Prequels & Origins",
         "main": "Episode 3 Complete",
-        "sub": "Time to meet the other students!",
+        "sub": "Mousifer settles happily into an ordinary routine at the Academy.",
+        "prompt": "▼ click to continue"
+      },
+      "slowFade": true,
+      "next": "e3stinger"
+    },
+    "e3stinger": {
+      "type": "cinematic",
+      "bg": "forest",
+      "visualTreatment": "sepia-dark",
+      "music": { "action": "crossfade", "from": "shop", "to": "worldsend" },
+      "forceFade": true,
+      "cinematic": {
+        "lines": [
+          "And so Mousifer began",
+          "a totally normal time",
+          "at a totally normal Academy,",
+          "where nothing strange",
+          "would definitely ever happen."
+        ],
+        "revealDuration": 15000,
+        "musicFadeOutAt": 15000,
+        "musicFadeOutDuration": 7000,
+        "flashAt": 19500,
+        "cutToBlackAt": 22000
+      },
+      "next": "e3trueend"
+    },
+    "e3trueend": {
+      "type": "end",
+      "bg": "forest",
+      "visualTreatment": "sepia-dark",
+      "end": {
+        "label": "My Pixel Academy: Prequels & Origins",
+        "main": "You've done it!",
+        "sub": "You're in for a totally normal time at the Academy.",
         "prompt": "▼ click to restart"
       },
       "next": "title"
