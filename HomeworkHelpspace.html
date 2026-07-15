@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Helpspace - My Pixel Academy</title>
+
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro', system-ui, sans-serif;
+            background: #FAFAF9;
+            color: #37352F;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== DISCLAIMER MODAL ===== */
+        #disclaimer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #disclaimer-modal.visible {
+            display: flex;
+        }
+
+        .disclaimer-content {
+            background: #FAFAF9;
+            border: 2px solid #E9E9E7;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .disclaimer-content h2 {
+            color: #0B6E99;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .disclaimer-content p {
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .disclaimer-content ul {
+            margin: 16px 0 16px 24px;
+            line-height: 1.8;
+        }
+
+        .ai-disclosure {
+            background: #FFF4E6;
+            border: 2px solid #F59E0B;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .name-entry-section {
+            background: #F0FFFE;
+            border: 2px solid #0B6E99;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .name-entry-section label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .name-entry-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E9E9E7;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 16px;
+            background: white;
+        }
+
+        .name-entry-section input:focus {
+            outline: none;
+            border-color: #0B6E99;
+        }
+
+        .disclaimer-button {
+            background: #0B6E99;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .disclaimer-button:hover {
+            background: #095A7F;
+        }
+
+        .disclaimer-button:disabled {
+            background: #D1D5DB;
+            cursor: not-allowed;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: white;
+            border-bottom: 1px solid #E9E9E7;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #37352F;
+        }
+
+        .battery-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .battery-bar {
+            width: 100px;
+            height: 20px;
+            background: #E9E9E7;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #D1D5DB;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: #0B6E99;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .battery-fill.low {
+            background: #F59E0B;
+        }
+
+        .battery-fill.critical {
+            background: #DC2626;
+        }
+
+        .recharge-timer {
+            font-size: 13px;
+            color: #DC2626;
+            font-weight: 600;
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+            gap: 20px;
+        }
+
+        /* ===== EDITOR SECTION ===== */
+        .editor-section {
+            background: white;
+            border: 1px solid #E9E9E7;
+            border-radius: 8px;
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        #editor {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Quill toolbar customization */
+        .ql-toolbar {
+            border: none !important;
+            border-bottom: 1px solid #E9E9E7 !important;
+            padding: 12px !important;
+            background: #F7F6F3;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .ql-container {
+            border: none !important;
+            font-size: 16px;
+        }
+
+        .ql-editor {
+            min-height: 300px;
+            padding: 20px !important;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: #9CA3AF;
+            font-style: normal;
+        }
+
+        /* ===== CONSOLE SECTION ===== */
+        .console-section {
+            background: #F7F6F3;
+            border: 1px solid #E9E9E7;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .console-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .help-button {
+            background: white;
+            border: 2px solid #E9E9E7;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            color: #37352F;
+        }
+
+        .help-button:hover:not(:disabled) {
+            border-color: #0B6E99;
+            background: #F0FFFE;
+            transform: translateY(-1px);
+        }
+
+        .help-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .clear-button, .submit-button {
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .clear-button {
+            background: #E9E9E7;
+            color: #37352F;
+        }
+
+        .clear-button:hover {
+            background: #D1D5DB;
+        }
+
+        .submit-button {
+            background: #0B6E99;
+            color: white;
+            flex: 1;
+        }
+
+        .submit-button:hover {
+            background: #095A7F;
+        }
+
+        .submit-button:disabled {
+            background: #D1D5DB;
+            cursor: not-allowed;
+        }
+
+        /* ===== HELP OUTPUT SECTION ===== */
+        .help-output-section {
+            background: white;
+            border: 1px solid #E9E9E7;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .help-output-section.visible {
+            display: block;
+        }
+
+        .help-output-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .help-output-content {
+            color: #37352F;
+            line-height: 1.6;
+        }
+
+        .help-output-empty {
+            color: #9CA3AF;
+            font-style: italic;
+        }
+
+        .loading-indicator {
+            color: #0B6E99;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #E9E9E7;
+            border-top-color: #0B6E99;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 3-HOUR REMINDER MODAL ===== */
+        #reminder-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #reminder-modal.visible {
+            display: flex;
+        }
+
+        .reminder-content {
+            background: #FFF4E6;
+            border: 3px solid #F59E0B;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .reminder-content h2 {
+            color: #92400E;
+            margin-bottom: 16px;
+            font-size: 22px;
+        }
+
+        .reminder-content p {
+            color: #78350F;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .reminder-button {
+            background: #F59E0B;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        .reminder-button:hover {
+            background: #D97706;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 16px;
+            }
+
+            .battery-bar {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== DISCLAIMER MODAL ===== -->
+    <div id="disclaimer-modal" class="visible">
+        <div class="disclaimer-content">
+            <h2>Welcome to Homework Helpspace</h2>
+
+            <div class="ai-disclosure">
+                ⚠️ <strong>Important:</strong> This is an AI assistant, not a human teacher.
+            </div>
+
+            <p><strong>For Parents and Students:</strong></p>
+            <p>This tool is designed to help students with their homework by providing guidance and asking questions. It will <strong>not</strong> do the work for them.</p>
+
+            <ul>
+                <li><strong>Writing Buddy:</strong> Get help starting or continuing your writing</li>
+                <li><strong>Reading Simplifier:</strong> Understand difficult texts</li>
+                <li><strong>Outline Helper:</strong> Organize your ideas before writing</li>
+                <li><strong>Mistake Sniffer:</strong> Find spelling and grammar errors</li>
+                <li><strong>Challenger:</strong> Make your good writing even better</li>
+            </ul>
+
+            <p><strong>Important Notes:</strong></p>
+            <ul>
+                <li>All conversations are logged and reviewed by your teacher</li>
+                <li>The AI runs on "battery power" - you get 10 uses before a 5-minute recharge</li>
+                <li>This tool guides your thinking, it doesn't replace it</li>
+            </ul>
+
+            <div class="name-entry-section">
+                <label for="student-name-input">What's your first name? (so you can submit work to your teacher)</label>
+                <input type="text" id="student-name-input" placeholder="Enter your first name" maxlength="50">
+            </div>
+
+            <button class="disclaimer-button" id="accept-disclaimer-btn" disabled>I Understand - Let's Start</button>
+        </div>
+    </div>
+
+    <!-- ===== 3-HOUR REMINDER MODAL ===== -->
+    <div id="reminder-modal">
+        <div class="reminder-content">
+            <h2>⏰ Time for a Break!</h2>
+            <p><strong>Reminder:</strong> This is an AI assistant, not a human.</p>
+            <p>You've been working for 3 hours. It's a good time to take a break, stretch, and rest your eyes.</p>
+            <button class="reminder-button" id="acknowledge-reminder-btn">Got it, thanks!</button>
+        </div>
+    </div>
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <h1>Homework Helpspace</h1>
+        <div class="battery-indicator">
+            <span id="battery-text">Battery: 10/10</span>
+            <div class="battery-bar">
+                <div class="battery-fill" id="battery-fill" style="width: 100%"></div>
+            </div>
+            <span class="recharge-timer" id="recharge-timer" style="display: none;"></span>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTAINER ===== -->
+    <div class="container">
+        <!-- EDITOR -->
+        <div class="editor-section">
+            <div id="editor"></div>
+        </div>
+
+        <!-- CONSOLE -->
+        <div class="console-section">
+            <div class="console-label">Help Options</div>
+            <div class="button-grid">
+                <button class="help-button" data-zone="writing-buddy">✍️ Writing Buddy</button>
+                <button class="help-button" data-zone="reading-simplifier">📖 Reading Simplifier</button>
+                <button class="help-button" data-zone="outline-helper">📝 Outline Helper</button>
+                <button class="help-button" data-zone="mistake-sniffer">🔍 Mistake Sniffer</button>
+                <button class="help-button" data-zone="challenger">⭐ Challenger</button>
+            </div>
+            <div class="action-buttons">
+                <button class="clear-button" id="clear-help-btn">Clear Help</button>
+                <button class="submit-button" id="submit-btn">Submit to Teacher</button>
+            </div>
+        </div>
+
+        <!-- HELP OUTPUT -->
+        <div class="help-output-section" id="help-output">
+            <div class="help-output-header">
+                <span>AI Response</span>
+            </div>
+            <div class="help-output-content" id="help-content">
+                <p class="help-output-empty">Click a help button above to get started...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== QUILL.JS LIBRARY ===== -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <!-- ===== MAIN APPLICATION SCRIPT ===== -->
+    <script>
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            GEMINI_API_KEY: 'AIzaSyDNdh_p40uZzgJMCwcXdjEDGAFDW9pBpjo',  // Replace with actual key
+            GOOGLE_SHEET_URL: 'https://script.google.com/macros/s/AKfycbwDPZ1SX06kjIoLGBk_wnzyOE_6GEcCZCNwpOFyju_BQQ-yK_nY6wydUBYIGMjd9j_Pmg/exec',  // Replace with Apps Script URL
+            MAX_BATTERY: 10,
+            RECHARGE_TIME: 5 * 60 * 1000,  // 5 minutes
+            THREE_HOUR_REMINDER: 3 * 60 * 60 * 1000  // 3 hours
+        };
+
+        // ===== SYSTEM PROMPTS =====
+        const SYSTEM_PROMPTS = {
+            'writing-buddy': `You are Bev, the robotic director of the Wordworking Lab at My Pixel Academy. You are thoughtful and kind, like Roz in The Wild Robot.
+
+Your role is to help students with their WRITING, not do it for them. Focus on STRUCTURAL feedback. When a student asks for help:
+
+1. Ask what they're trying to write about (if they haven't said)
+2. Offer ideas and sentence starters that leave LOTS of room for their own creativity
+3. Use N+1 pedagogy: point to one thing to add or improve, keeping them engaged and writing
+4. Encourage them to expand and elaborate on their ideas
+5. Never write full paragraphs or complete their work
+6. If they ask for more help, guide them with questions, not answers
+7. IMPORTANT: Assess when no more feedback is necessary - when a sentence, paragraph, or piece of writing is good enough given best practices for writing structure in the given genre
+8. When work is good enough, affirm their progress and encourage them to keep going
+
+Keep responses brief and encouraging. You run on battery power, so be concise! Speak at a 5th-8th grade level. Remember: guide their thinking, don't replace it.`,
+
+            'reading-simplifier': `You are Bev, the robotic director of the Wordworking Lab at My Pixel Academy. You are thoughtful and kind, like Roz in The Wild Robot.
+
+Your role is to help students UNDERSTAND complex texts, not replace reading. When a student shares a difficult text:
+
+1. Ask what specifically is confusing (if they haven't said)
+2. Break down / summarize at most one paragraph at a time - never the whole text
+3. Define hard vocabulary words in context
+4. Ask comprehension questions to check their understanding
+5. Never summarize the entire text - make them engage with it piece by piece
+
+Keep responses brief and conversational. You run on battery power! Speak at a 5th-8th grade level. Remember: help them understand, don't do the reading for them.`,
+
+            'outline-helper': `You are Bev, the robotic director of the Wordworking Lab at My Pixel Academy. You are thoughtful and kind, like Roz in The Wild Robot.
+
+Your role is to help students ORGANIZE their ideas, not write their outline for them. When a student asks for help outlining:
+
+1. Ask what their writing prompt is. If they're not sure, break it down into "what are you supposed to write about" and "how are you supposed to write about it" (e.g. 5-paragraph essay, reflection, story, etc)
+2. Help them identify 2-3 main ideas through questions, and later, a point of reasoning, example, or explanation for each. You can refer to the CREE method: Claim, Reasoning, Example, Explanation.
+3. Guide them to arrange ideas in a logical order
+4. Suggest organizational structures they might consider (chronological, compare/contrast, etc.)
+5. Produce visual models using bullet points or ASCII that capture their thinking so far. They provide the input, but you can provide the visuals for their outline.
+
+Keep responses brief and Socratic. You run on battery power! Speak at a 5th-8th grade level. Remember: it's THEIR writing, you're just helping them plan.`,
+
+            'mistake-sniffer': `You are one of Bev's trusty helpers at the Wordworking Lab. You're like a friendly bloodhound who sniffs out mistakes!
+
+Your role is to help students FIND and FIX their own mistakes in spelling, grammar, and basic writing mechanics. When a student shares their writing:
+
+1. Read through their text carefully
+2. Point out spelling errors, grammar mistakes, and basic mechanical issues (punctuation, capitalization, etc.)
+3. DON'T just correct them - help the student understand WHY it's wrong and HOW to fix it
+4. Focus on one or two issues at a time, not everything at once
+5. Use simple explanations appropriate for 5th-8th graders
+6. Encourage them to make the corrections themselves
+
+Keep responses brief and friendly. You run on battery power! Speak at a 5th-8th grade level. Remember: help them learn to catch their own mistakes.`,
+
+            'challenger': `You are Bev's challenger companion at the Wordworking Lab! Your job is to push students to make their good writing even better.
+
+Your role is to help students ENHANCE writing that's already correct. When a student shares their writing:
+
+1. First, acknowledge what they've done well
+2. Look for opportunities to improve:
+   - Word choice (replacing basic words with more precise or vivid ones)
+   - Sentence structure (varying length, combining choppy sentences, breaking up run-ons)
+   - Level of detail (adding sensory details, specific examples, or elaboration)
+3. Suggest improvements through questions: "What if you tried..." or "Could you describe..."
+4. Never rewrite their work - guide them to make it better themselves
+5. Focus on ONE area at a time
+6. Make sure they understand their writing is already good - you're just helping them level up
+
+Keep responses encouraging and brief. You run on battery power! Speak at a 5th-8th grade level. Remember: you're making good writing great, not fixing bad writing.`
+        };
+
+        const GREETINGS = {
+            'writing-buddy': "Hello! I'm here to help you with your writing. What are you working on?",
+            'reading-simplifier': "Hello! I can help you understand difficult texts. What passage is giving you trouble? Please paste it here.",
+            'outline-helper': "Hello! I love helping students organize their ideas. What are you planning to write about?",
+            'mistake-sniffer': "Hello! I'm one of Bev's helpers, and I'm great at sniffing out mistakes. Paste your writing here, and I'll help you find any spelling, grammar, or punctuation errors!",
+            'challenger': "Hello! I'm here to help you take your writing to the next level. Share your work, and I'll suggest ways to make it even better!"
+        };
+
+        // ===== STATE MANAGEMENT =====
+        let state = {
+            studentName: '',
+            batteryLevel: CONFIG.MAX_BATTERY,
+            rechargeTime: null,
+            sessionStartTime: null,
+            conversationHistory: []  // For API context only
+        };
+
+        let quill = null;
+        let rechargeInterval = null;
+
+        // ===== INITIALIZE =====
+        function init() {
+            // Load state from localStorage
+            loadState();
+
+            // Initialize Quill editor
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: 'Start writing here...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Check if disclaimer needs to be shown
+            if (!state.studentName) {
+                showDisclaimer();
+            } else {
+                hideDisclaimer();
+                startSession();
+            }
+
+            // Update battery UI
+            updateBatteryUI();
+
+            // Check for recharge timer
+            if (state.rechargeTime && Date.now() < state.rechargeTime) {
+                startRechargeTimer();
+            }
+        }
+
+        // ===== STATE PERSISTENCE =====
+        function loadState() {
+            const saved = localStorage.getItem('helpspace_state');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed };
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('helpspace_state', JSON.stringify({
+                studentName: state.studentName,
+                batteryLevel: state.batteryLevel,
+                rechargeTime: state.rechargeTime,
+                sessionStartTime: state.sessionStartTime
+            }));
+        }
+
+        // ===== EVENT LISTENERS =====
+        function setupEventListeners() {
+            // Disclaimer
+            const nameInput = document.getElementById('student-name-input');
+            const acceptBtn = document.getElementById('accept-disclaimer-btn');
+
+            nameInput.addEventListener('input', () => {
+                acceptBtn.disabled = nameInput.value.trim().length === 0;
+            });
+
+            acceptBtn.addEventListener('click', acceptDisclaimer);
+
+            // Help buttons
+            document.querySelectorAll('.help-button').forEach(btn => {
+                btn.addEventListener('click', () => handleHelpButton(btn.dataset.zone));
+            });
+
+            // Clear help
+            document.getElementById('clear-help-btn').addEventListener('click', clearHelp);
+
+            // Submit
+            document.getElementById('submit-btn').addEventListener('click', submitToTeacher);
+
+            // 3-hour reminder
+            document.getElementById('acknowledge-reminder-btn').addEventListener('click', acknowledgeReminder);
+
+            // Log session end on page unload
+            window.addEventListener('beforeunload', logSessionEnd);
+        }
+
+        // ===== DISCLAIMER =====
+        function showDisclaimer() {
+            document.getElementById('disclaimer-modal').classList.add('visible');
+        }
+
+        function hideDisclaimer() {
+            document.getElementById('disclaimer-modal').classList.remove('visible');
+        }
+
+        function acceptDisclaimer() {
+            const nameInput = document.getElementById('student-name-input');
+            state.studentName = nameInput.value.trim();
+
+            if (!state.studentName) {
+                alert('Please enter your name to continue.');
+                return;
+            }
+
+            saveState();
+            hideDisclaimer();
+            startSession();
+        }
+
+        // ===== SESSION MANAGEMENT =====
+        function startSession() {
+            if (!state.sessionStartTime) {
+                state.sessionStartTime = Date.now();
+                saveState();
+            }
+
+            // Log session start
+            logEvent('session_start', null, '', '');
+
+            // Check 3-hour reminder
+            check3HourReminder();
+        }
+
+        function logSessionEnd() {
+            const editorText = quill.getText().trim();
+            logEvent('session_end', null, editorText, '');
+        }
+
+        function check3HourReminder() {
+            const elapsed = Date.now() - state.sessionStartTime;
+
+            if (elapsed >= CONFIG.THREE_HOUR_REMINDER) {
+                showReminderModal();
+            } else {
+                // Check again when 3 hours is up
+                const remaining = CONFIG.THREE_HOUR_REMINDER - elapsed;
+                setTimeout(showReminderModal, remaining);
+            }
+        }
+
+        function showReminderModal() {
+            document.getElementById('reminder-modal').classList.add('visible');
+        }
+
+        function acknowledgeReminder() {
+            document.getElementById('reminder-modal').classList.remove('visible');
+            // Reset timer for next 3 hours
+            state.sessionStartTime = Date.now();
+            saveState();
+            check3HourReminder();
+        }
+
+        // ===== BATTERY MANAGEMENT =====
+        function updateBatteryUI() {
+            const batteryText = document.getElementById('battery-text');
+            const batteryFill = document.getElementById('battery-fill');
+
+            batteryText.textContent = `Battery: ${state.batteryLevel}/${CONFIG.MAX_BATTERY}`;
+
+            const percentage = (state.batteryLevel / CONFIG.MAX_BATTERY) * 100;
+            batteryFill.style.width = `${percentage}%`;
+
+            // Color coding
+            batteryFill.classList.remove('low', 'critical');
+            if (state.batteryLevel <= 2) {
+                batteryFill.classList.add('critical');
+            } else if (state.batteryLevel <= 5) {
+                batteryFill.classList.add('low');
+            }
+
+            // Disable buttons if battery is 0
+            const helpButtons = document.querySelectorAll('.help-button');
+            helpButtons.forEach(btn => {
+                btn.disabled = state.batteryLevel <= 0;
+            });
+        }
+
+        function useBattery() {
+            if (state.batteryLevel > 0) {
+                state.batteryLevel--;
+                saveState();
+                updateBatteryUI();
+
+                if (state.batteryLevel === 0) {
+                    startRecharge();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function startRecharge() {
+            state.rechargeTime = Date.now() + CONFIG.RECHARGE_TIME;
+            saveState();
+            startRechargeTimer();
+        }
+
+        function startRechargeTimer() {
+            const timerDisplay = document.getElementById('recharge-timer');
+            timerDisplay.style.display = 'block';
+
+            rechargeInterval = setInterval(() => {
+                const remaining = state.rechargeTime - Date.now();
+
+                if (remaining <= 0) {
+                    // Recharge complete
+                    clearInterval(rechargeInterval);
+                    state.batteryLevel = CONFIG.MAX_BATTERY;
+                    state.rechargeTime = null;
+                    saveState();
+                    updateBatteryUI();
+                    timerDisplay.style.display = 'none';
+                    showHelpMessage('✅ Battery recharged! You can use the help buttons again.');
+                } else {
+                    // Update timer
+                    const minutes = Math.floor(remaining / 60000);
+                    const seconds = Math.floor((remaining % 60000) / 1000);
+                    timerDisplay.textContent = `Recharging: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        // ===== HELP BUTTON HANDLER =====
+        async function handleHelpButton(zone) {
+            if (state.batteryLevel <= 0) {
+                alert('Battery depleted! Please wait for recharge.');
+                return;
+            }
+
+            const editorText = quill.getText().trim();
+
+            // Show help output section with loading
+            showLoading();
+
+            // Build conversation for this button click
+            const systemPrompt = SYSTEM_PROMPTS[zone];
+            const greeting = GREETINGS[zone];
+
+            // If this is a new zone or no history, start with greeting
+            let userMessage = editorText || "Hello";
+
+            // Call AI
+            try {
+                const response = await callGeminiAPI(systemPrompt, userMessage);
+
+                // Use battery only on successful response
+                useBattery();
+
+                // Show response
+                showHelpMessage(response);
+
+                // Log event
+                logEvent('button_click', zone, editorText, response);
+
+            } catch (error) {
+                console.error('Error calling AI:', error);
+                showHelpMessage('⚠️ Sorry, I encountered an error. Please try again.');
+            }
+        }
+
+        // ===== AI API CALL =====
+        async function callGeminiAPI(systemPrompt, userMessage) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
+
+            const requestBody = {
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{ text: systemPrompt + '\n\nStudent: ' + userMessage }]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 500
+                }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // ===== HELP OUTPUT UI =====
+        function showLoading() {
+            const helpOutput = document.getElementById('help-output');
+            const helpContent = document.getElementById('help-content');
+
+            helpOutput.classList.add('visible');
+            helpContent.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div> Thinking...</div>';
+        }
+
+        function showHelpMessage(message) {
+            const helpOutput = document.getElementById('help-output');
+            const helpContent = document.getElementById('help-content');
+
+            helpOutput.classList.add('visible');
+            helpContent.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
+        }
+
+        function clearHelp() {
+            const helpContent = document.getElementById('help-content');
+            helpContent.innerHTML = '<p class="help-output-empty">Click a help button above to get started...</p>';
+            document.getElementById('help-output').classList.remove('visible');
+        }
+
+        // ===== SUBMIT TO TEACHER =====
+        async function submitToTeacher() {
+            const editorText = quill.getText().trim();
+
+            if (!editorText) {
+                alert('Please write something before submitting to your teacher.');
+                return;
+            }
+
+            const confirmed = confirm('Submit your work to your teacher?');
+            if (!confirmed) return;
+
+            // Log submission (doesn't use battery)
+            await logEvent('submission', null, editorText, '');
+
+            // Show success
+            alert('✅ Great work! Your writing has been sent to your teacher.');
+
+            // Show simple stats
+            const wordCount = editorText.split(/\s+/).filter(w => w.length > 0).length;
+            const sessionDuration = Math.floor((Date.now() - state.sessionStartTime) / 60000);
+
+            showHelpMessage(`📊 <strong>Your Session Stats:</strong><br><br>
+                ✍️ Words Written: ${wordCount}<br>
+                🔋 Help Used: ${CONFIG.MAX_BATTERY - state.batteryLevel} times<br>
+                ⏱️ Session Time: ${sessionDuration} minutes<br><br>
+                Keep up the excellent work!`);
+        }
+
+        // ===== EVENT LOGGING =====
+        async function logEvent(eventType, buttonType, textSnapshot, aiResponse) {
+            const logData = {
+                timestamp: new Date().toISOString(),
+                studentName: state.studentName,
+                eventType: eventType,
+                buttonType: buttonType || '',
+                textSnapshot: textSnapshot,
+                aiResponse: aiResponse,
+                batteryLevel: state.batteryLevel
+            };
+
+            // Log to console for debugging
+            console.log('LOG EVENT:', logData);
+
+            // Send to Google Sheets (if URL is configured)
+            if (CONFIG.GOOGLE_SHEET_URL && CONFIG.GOOGLE_SHEET_URL !== 'YOUR_SHEET_URL_HERE') {
+                try {
+                    await fetch(CONFIG.GOOGLE_SHEET_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(logData)
+                    });
+                } catch (error) {
+                    console.error('Error logging to Google Sheets:', error);
+                }
+            }
+        }
+
+        // ===== START APPLICATION =====
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

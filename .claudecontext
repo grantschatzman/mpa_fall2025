@@ -1,0 +1,30 @@
+# My Pixel Academy - Fall 2025 Build
+
+## Project Overview
+Interactive HTML activities and cutscenes for My Pixel Academy educational game.
+
+## Key Documentation
+- Brand guide: G:\My Drive\GDrive Obsidian Vault\MPA\MPA_Colors_and_Brand.md
+- Midterm Battle: G:\My Drive\GDrive Obsidian Vault\MPA\Midterm-Battle\
+- Midterm Preparation: G:\My Drive\GDrive Obsidian Vault\MPA\Midterm-Preparation_Cutscene\
+- GitHub Pages Links: G:\My Drive\GDrive Obsidian Vault\GitHub Pages Links.md
+- Activity structure: Activities follow consistent patterns with Music, Sprites, Scenes folders
+
+## Common Patterns
+- All files use 'Courier New' monospace font
+- Color palette: Teal (#4EC9B0), Brown (#8B4545), Cream (#F5E6D3)
+- Music files have number prefixes (e.g., "34 - Memory.mp3")
+- Always use `image-rendering: pixelated` for sprite assets
+- Dialogue boxes use rgba(139, 69, 69, 0.95) background with #F5E6D3 text
+- End screens include "Return to the Custodian" or similar navigation buttons
+
+## Asset Locations
+- Music: ./Music/
+- Sprites: ./Sprites/
+- Scenes: ./Scenes/
+- Documentation: G:\My Drive\GDrive Obsidian Vault\MPA\
+
+## GitHub Pages
+- Repository: https://github.com/grantschatzman/mpa_fall2025
+- Base URL: https://grantschatzman.github.io/mpa_fall2025/
+- Links tracked in: G:\My Drive\GDrive Obsidian Vault\GitHub Pages Links.md
