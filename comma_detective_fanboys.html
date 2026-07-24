@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comma Detective: FANBOYS</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #1a1a1a;
+    font-family: 'Courier New', monospace;
+    color: #F5E6D3;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .app {
+    width: 100%;
+    max-width: 720px;
+  }
+  h1 {
+    text-align: center;
+    color: #4EC9B0;
+    font-size: clamp(20px, 4vw, 28px);
+    letter-spacing: 1px;
+    margin: 0 0 1.25rem;
+  }
+  #btnExplain {
+    display: block;
+    margin: 0 auto 1.25rem;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-family: 'Courier New', monospace;
+    background: #D4A574;
+    color: #412402;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #btnExplain:hover { background: #e0b586; }
+  .panel {
+    background: #1E1E1E;
+    border: 2px solid #8B4545;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 15px;
+    gap: 12px;
+  }
+  .status-row .case { color: #D4A574; }
+  .score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .streak-badge {
+    background: #2D2D2D;
+    border: 1px solid #D4A574;
+    color: #D4A574;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .streak-badge.show { opacity: 1; }
+  .streak-badge.hot { border-color: #4EC9B0; color: #4EC9B0; }
+  #score {
+    color: #4EC9B0;
+    font-weight: bold;
+    display: inline-block;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  #score.pop { transform: scale(1.5); color: #97C459; }
+  .sentence-box {
+    background: #2D2D2D;
+    border: 1px solid #4EC9B0;
+    border-radius: 8px;
+    padding: 1.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sentence-box p {
+    font-size: clamp(17px, 2.6vw, 21px);
+    line-height: 1.8;
+    text-align: center;
+    margin: 0;
+  }
+  .conj { color: #4EC9B0; font-weight: bold; }
+  .button-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  button { font-family: 'Courier New', monospace; }
+  .choice-btn {
+    flex: 1;
+    max-width: 260px;
+    padding: 14px 10px;
+    font-size: 15px;
+    background: #3D5A6B;
+    color: #F5E6D3;
+    border: 1px solid #4EC9B0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .choice-btn:hover:not(:disabled) { background: #47687a; }
+  .choice-btn:active:not(:disabled) { transform: scale(0.97); }
+  .choice-btn:disabled { opacity: 0.5; cursor: default; }
+  #feedback {
+    display: none;
+    min-height: 80px;
+    padding: 1rem 1.1rem;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.7;
+    border: 1px solid;
+    margin-bottom: 0.75rem;
+  }
+  #feedback strong { display: block; margin-bottom: 4px; font-size: 15px; }
+  .points-flash {
+    display: inline-block;
+    font-size: 13px;
+    color: #97C459;
+    font-weight: bold;
+    margin-left: 8px;
+  }
+  .next-row { display: flex; justify-content: center; }
+  #btnNext {
+    display: none;
+    padding: 11px 22px;
+    font-size: 15px;
+    background: #4EC9B0;
+    color: #04342C;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #btnNext:hover { background: #5dd4bd; }
+  #finalMsg {
+    display: none;
+    text-align: center;
+    font-size: 17px;
+    color: #D4A574;
+    margin-top: 0.75rem;
+    font-weight: bold;
+  }
+  #btnRestart {
+    display: none;
+    margin: 0.75rem auto 0;
+    padding: 10px 20px;
+    font-size: 14px;
+    background: #8B4545;
+    color: #F5E6D3;
+    border: 1px solid #D4A574;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .guide {
+    margin-top: 1.5rem;
+    background: #2D2D2D;
+    border: 1px solid #D4A574;
+    border-radius: 8px;
+    padding: 1.1rem 1.2rem;
+  }
+  .guide p { margin: 0 0 10px; font-size: 14px; line-height: 1.7; }
+  .guide p:last-child { margin-bottom: 0; }
+  .guide-title { color: #D4A574; font-weight: bold; }
+  .tag-compound { color: #4EC9B0; font-weight: bold; }
+  .tag-predicate {
+    color: #8B4545;
+    background: #F5E6D3;
+    padding: 0 5px;
+    border-radius: 3px;
+    font-weight: bold;
+  }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #1E1E1E;
+    border: 3px solid #4EC9B0;
+    border-radius: 14px;
+    max-width: 760px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem 2.25rem;
+    position: relative;
+  }
+  .modal-box h2 {
+    color: #4EC9B0;
+    font-size: clamp(24px, 4vw, 32px);
+    text-align: center;
+    margin: 0 0 1.5rem;
+    letter-spacing: 1px;
+  }
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #8B4545;
+    color: #F5E6D3;
+    border: 1px solid #D4A574;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .fanboys-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+  .fanboys-letter {
+    background: #2D2D2D;
+    border: 1px solid #4EC9B0;
+    border-radius: 8px;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+  }
+  .fanboys-letter .big {
+    font-size: clamp(22px, 3vw, 30px);
+    color: #4EC9B0;
+    font-weight: bold;
+    display: block;
+  }
+  .fanboys-letter .word {
+    font-size: 15px;
+    color: #F5E6D3;
+    display: block;
+    margin-top: 4px;
+  }
+  .rule-block {
+    border-radius: 10px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.25rem;
+    font-size: clamp(16px, 2.2vw, 19px);
+    line-height: 1.8;
+  }
+  .rule-block:last-child { margin-bottom: 0; }
+  .rule-block .rule-name {
+    display: block;
+    font-size: clamp(19px, 2.6vw, 23px);
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .rule-compound { background: #1E3A32; border: 2px solid #4EC9B0; }
+  .rule-compound .rule-name { color: #4EC9B0; }
+  .rule-predicate { background: #2E2420; border: 2px solid #8B4545; }
+  .rule-predicate .rule-name { color: #D4A574; }
+  .rule-block .example { display: block; margin-top: 8px; color: #F5E6D3; }
+  .rule-block .example .ex-label { color: #D4A574; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>COMMA DETECTIVE: FANBOYS CASE FILES</h1>
+  <button id="btnExplain">EXPLAIN IT (TEACHER SCREEN)</button>
+  <div class="panel">
+
+    <div class="status-row">
+      <span class="case">CASE <span id="caseNum">1</span> / 30</span>
+      <div class="score-wrap">
+        <span class="streak-badge" id="streakBadge">STREAK x1</span>
+        <span>SCORE: <span id="score">0</span> pts</span>
+      </div>
+    </div>
+
+    <div class="sentence-box">
+      <p id="sentence"></p>
+    </div>
+
+    <div class="button-row">
+      <button id="btnComma" class="choice-btn">NEEDS A COMMA</button>
+      <button id="btnNoComma" class="choice-btn">NO COMMA NEEDED</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="next-row">
+      <button id="btnNext">NEXT CASE &gt;</button>
+    </div>
+
+    <p id="finalMsg"></p>
+    <div class="next-row">
+      <button id="btnRestart">PLAY AGAIN (NEW SHUFFLE)</button>
+    </div>
+
+    <div class="guide">
+      <p class="guide-title">FANBOYS FIELD GUIDE (for, and, nor, but, or, yet, so)</p>
+      <p><span class="tag-compound">COMPOUND SENTENCE:</span> two subjects, each with its own verb, joined by a FANBOYS word &rarr; comma before it.<br>Ex: The rain stopped, so we went outside.</p>
+      <p><span class="tag-predicate">COMPOUND PREDICATE:</span> one subject doing two things, joined by a FANBOYS word &rarr; no comma.<br>Ex: The dog barked and chased its tail.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    <h2>WHAT IS FANBOYS?</h2>
+
+    <div class="fanboys-grid">
+      <div class="fanboys-letter"><span class="big">F</span><span class="word">for</span></div>
+      <div class="fanboys-letter"><span class="big">A</span><span class="word">and</span></div>
+      <div class="fanboys-letter"><span class="big">N</span><span class="word">nor</span></div>
+      <div class="fanboys-letter"><span class="big">B</span><span class="word">but</span></div>
+      <div class="fanboys-letter"><span class="big">O</span><span class="word">or</span></div>
+      <div class="fanboys-letter"><span class="big">Y</span><span class="word">yet</span></div>
+      <div class="fanboys-letter"><span class="big">S</span><span class="word">so</span></div>
+    </div>
+
+    <div class="rule-block rule-compound">
+      <span class="rule-name">COMPOUND SENTENCE &rarr; USE A COMMA</span>
+      Two subjects, each with its own verb, joined by a FANBOYS word. Each side could stand alone as its own sentence.
+      <span class="example"><span class="ex-label">Example:</span> The rain stopped, so we went outside.</span>
+    </div>
+
+    <div class="rule-block rule-predicate">
+      <span class="rule-name">COMPOUND PREDICATE &rarr; NO COMMA</span>
+      One subject doing two things, joined by a FANBOYS word. The second half cannot stand alone as its own sentence.
+      <span class="example"><span class="ex-label">Example:</span> The dog barked and chased its tail.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// 30 sentences, hand-verified: comma:true = compound sentence (two independent clauses),
+// comma:false = compound predicate (one subject, two verbs)
+const baseCases = [
+  {before:"The wind howled", conj:"and", after:"the windows rattled.", comma:true},
+  {before:"The rain fell all day", conj:"and", after:"the streets flooded.", comma:true},
+  {before:"I wanted pizza", conj:"but", after:"my sister wanted tacos.", comma:true},
+  {before:"The bell rang", conj:"but", after:"nobody moved.", comma:true},
+  {before:"I called her twice", conj:"but", after:"she never answered.", comma:true},
+  {before:"You can read quietly", conj:"or", after:"you can draw at your desk.", comma:true},
+  {before:"We could stay home", conj:"or", after:"we could go to the park.", comma:true},
+  {before:"Nobody raised a hand", conj:"for", after:"no one knew the answer.", comma:true},
+  {before:"The campers stayed inside", conj:"for", after:"the storm was getting worse.", comma:true},
+  {before:"He wasn't hungry", conj:"nor", after:"did he want a snack.", comma:true},
+  {before:"The dog wouldn't eat", conj:"nor", after:"would it drink water.", comma:true},
+  {before:"The team practiced all week", conj:"yet", after:"they still lost the game.", comma:true},
+  {before:"Jake studied all night", conj:"yet", after:"he still failed the quiz.", comma:true},
+  {before:"The clouds grew dark", conj:"so", after:"we ran inside.", comma:true},
+  {before:"The power went out", conj:"so", after:"the whole class sat in the dark.", comma:true},
+  {before:"Maya fed the dog", conj:"and", after:"gave it fresh water.", comma:false},
+  {before:"Leo grabbed his backpack", conj:"and", after:"raced to the bus stop.", comma:false},
+  {before:"The cat stretched", conj:"and", after:"yawned in the sun.", comma:false},
+  {before:"Dad chopped the vegetables", conj:"and", after:"stirred the soup.", comma:false},
+  {before:"The students lined up", conj:"and", after:"walked to the cafeteria.", comma:false},
+  {before:"The bird flew over the fence", conj:"and", after:"landed on a branch.", comma:false},
+  {before:"We packed our bags", conj:"and", after:"headed to the airport.", comma:false},
+  {before:"The teacher erased the board", conj:"and", after:"wrote new notes.", comma:false},
+  {before:"She picked up the phone", conj:"but", after:"didn't answer it.", comma:false},
+  {before:"He wanted to go outside", conj:"but", after:"stayed in to finish his chores.", comma:false},
+  {before:"The puppy heard the noise", conj:"but", after:"didn't bark.", comma:false},
+  {before:"You can finish your veggies", conj:"or", after:"skip dessert.", comma:false},
+  {before:"We can walk to school", conj:"or", after:"take the bus.", comma:false},
+  {before:"She tried hard", conj:"yet", after:"failed to solve the puzzle.", comma:false},
+  {before:"He looked calm", conj:"yet", after:"felt nervous inside.", comma:false}
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let k = a.length - 1; k > 0; k--) {
+    const j = Math.floor(Math.random() * (k + 1));
+    [a[k], a[j]] = [a[j], a[k]];
+  }
+  return a;
+}
+
+let cases = shuffle(baseCases);
+let i = 0, score = 0, streak = 0, answered = false;
+
+const caseNumEl = document.getElementById('caseNum');
+const scoreEl = document.getElementById('score');
+const streakBadge = document.getElementById('streakBadge');
+const sentenceEl = document.getElementById('sentence');
+const feedbackEl = document.getElementById('feedback');
+const finalMsgEl = document.getElementById('finalMsg');
+const btnComma = document.getElementById('btnComma');
+const btnNoComma = document.getElementById('btnNoComma');
+const btnNext = document.getElementById('btnNext');
+const btnRestart = document.getElementById('btnRestart');
+
+// --- sound effects (Web Audio API, no external files needed) ---
+let audioCtx = null;
+function getCtx(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, start, duration, type, gainPeak){
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, ctx.currentTime + start);
+  gain.gain.linearRampToValueAtTime(gainPeak, ctx.currentTime + start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime + start);
+  osc.stop(ctx.currentTime + start + duration + 0.05);
+}
+function playCorrectSound(){
+  playTone(523.25, 0, 0.14, 'sine', 0.18);
+  playTone(659.25, 0.10, 0.14, 'sine', 0.18);
+  playTone(783.99, 0.20, 0.22, 'sine', 0.2);
+}
+function playWrongSound(){
+  playTone(220, 0, 0.22, 'sawtooth', 0.1);
+  playTone(174.6, 0.08, 0.22, 'sawtooth', 0.09);
+}
+
+function updateStreakBadge(){
+  if (streak >= 2) {
+    streakBadge.textContent = 'STREAK x' + streak;
+    streakBadge.classList.add('show');
+    streakBadge.classList.toggle('hot', streak >= 4);
+  } else {
+    streakBadge.classList.remove('show');
+  }
+}
+
+function render(){
+  const c = cases[i];
+  caseNumEl.textContent = (i + 1);
+  sentenceEl.innerHTML = c.before + ' <span class="conj">' + c.conj + '</span> ' + c.after;
+  feedbackEl.style.display = 'none';
+  finalMsgEl.style.display = 'none';
+  btnRestart.style.display = 'none';
+  btnNext.style.display = 'none';
+  btnComma.disabled = false;
+  btnNoComma.disabled = false;
+  answered = false;
+}
+
+function animateScore(){
+  scoreEl.classList.add('pop');
+  setTimeout(() => scoreEl.classList.remove('pop'), 220);
+}
+
+function check(userSaysComma){
+  if (answered) return;
+  answered = true;
+  const c = cases[i];
+  const correct = (userSaysComma === c.comma);
+
+  feedbackEl.style.display = 'block';
+
+  const correctSentence = c.comma
+    ? c.before + ', ' + c.conj + ' ' + c.after
+    : c.before + ' ' + c.conj + ' ' + c.after;
+
+  let reason;
+  if (c.comma) {
+    reason = 'Two full sentences are joined here, each with its own subject. That is a compound sentence, so a comma goes before "' + c.conj + '".';
+  } else {
+    reason = 'One subject is doing both actions. That is a compound predicate, not a compound sentence, so no comma before "' + c.conj + '".';
+  }
+
+  if (correct) {
+    streak++;
+    const multiplier = Math.min(streak, 5);
+    const pointsEarned = 10 * multiplier;
+    score += pointsEarned;
+    scoreEl.textContent = score;
+    animateScore();
+    playCorrectSound();
+    updateStreakBadge();
+
+    feedbackEl.style.background = '#1E3A32';
+    feedbackEl.style.borderColor = '#4EC9B0';
+    feedbackEl.style.color = '#9FE1CB';
+    feedbackEl.innerHTML = '<strong style="color:#4EC9B0;">CORRECT! <span class="points-flash">+' + pointsEarned + ' pts</span></strong>' + reason + '<br><span style="color:#F5E6D3;">' + correctSentence + '</span>';
+  } else {
+    streak = 0;
+    updateStreakBadge();
+    playWrongSound();
+
+    feedbackEl.style.background = '#3A1E1E';
+    feedbackEl.style.borderColor = '#C0504D';
+    feedbackEl.style.color = '#F0999A';
+    feedbackEl.innerHTML = '<strong style="color:#C0504D;">NOT QUITE.</strong>' + reason + '<br><span style="color:#F5E6D3;">' + correctSentence + '</span>';
+  }
+
+  btnComma.disabled = true;
+  btnNoComma.disabled = true;
+
+  if (i < cases.length - 1) {
+    btnNext.style.display = 'inline-block';
+  } else {
+    finalMsgEl.style.display = 'block';
+    finalMsgEl.textContent = 'FINAL SCORE: ' + score + ' pts (' + cases.length + ' cases)';
+    btnRestart.style.display = 'inline-block';
+  }
+}
+
+btnComma.addEventListener('click', () => check(true));
+btnNoComma.addEventListener('click', () => check(false));
+btnNext.addEventListener('click', () => { i++; render(); });
+btnRestart.addEventListener('click', () => {
+  cases = shuffle(baseCases);
+  i = 0; score = 0; streak = 0;
+  scoreEl.textContent = score;
+  updateStreakBadge();
+  render();
+});
+
+const modalOverlay = document.getElementById('modalOverlay');
+document.getElementById('btnExplain').addEventListener('click', () => modalOverlay.classList.add('open'));
+document.getElementById('modalClose').addEventListener('click', () => modalOverlay.classList.remove('open'));
+modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+render();
+</script>
+
+</body>
+</html>
